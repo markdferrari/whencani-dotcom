@@ -1,6 +1,7 @@
+import { config } from './config';
 
-export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-export const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
+export const TMDB_BASE_URL = config.tmdb.baseUrl;
+export const TMDB_IMAGE_BASE = config.tmdb.imageBaseUrl;
 
 export type TMDBMovie = {
   id: number;
@@ -110,7 +111,7 @@ type TMDBGenreResponse = {
 
 const buildParams = (overrides: Record<string, string | number> = {}) => {
   return new URLSearchParams({
-    api_key: process.env.TMDB_API_KEY ?? "",
+    api_key: config.tmdb.apiKey,
     ...DEFAULT_FETCH_PARAMS,
     ...Object.fromEntries(
       Object.entries(overrides).map(([key, value]) => [key, String(value)])
@@ -121,7 +122,7 @@ const buildParams = (overrides: Record<string, string | number> = {}) => {
 const CACHE_TTL_SECONDS = 30 * 60;
 
 const tmdbFetch = async <T>(path: string, params?: Record<string, string | number>) => {
-  if (!process.env.TMDB_API_KEY) {
+  if (!config.tmdb.apiKey) {
     throw new Error("TMDB_API_KEY is not defined");
   }
 

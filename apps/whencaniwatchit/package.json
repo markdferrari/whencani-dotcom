@@ -15,7 +15,6 @@
   "dependencies": {
     "@whencani/ui": "*",
     "clsx": "^2.1.1",
-    "config": "^4.2.0",
     "embla-carousel-react": "^8.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.563.0",
@@ -27,7 +26,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/config": "^3.3.5",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
     "@types/react": "^19",

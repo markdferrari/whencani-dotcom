@@ -1,7 +1,8 @@
 // OpenCritic API helpers for fetching game reviews
 import { searchGameByName } from '@/lib/igdb';
+import { config } from './config';
 
-const OPENCRITIC_BASE_URL = 'https://opencritic-api.p.rapidapi.com';
+const OPENCRITIC_BASE_URL = config.opencritic.baseUrl;
 
 const OPENCRITIC_RATE_LIMIT_PER_SECOND = 4;
 const OPENCRITIC_MIN_INTERVAL_MS = Math.ceil(1000 / OPENCRITIC_RATE_LIMIT_PER_SECOND);
@@ -87,7 +88,7 @@ async function enrichWithIgdbFallbacks<
   if (items.length === 0) return items;
 
   const hasCredentials = Boolean(
-    process.env.IGDB_CLIENT_ID && process.env.IGDB_CLIENT_SECRET
+    config.igdb.clientId && config.igdb.clientSecret
   );
 
   if (!hasCredentials) {
@@ -234,10 +235,10 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 export async function getOpenCriticGameDetails(
   openCriticId: number
 ): Promise<OpenCriticGameDetails | null> {
-  const rapidApiKey = process.env.RAPID_API_KEY;
+  const rapidApiKey = config.opencritic.rapidApiKey;
 
   if (!rapidApiKey) {
-    throw new Error('RAPID_API_KEY environment variable is required');
+    throw new Error('OpenCritic rapidApiKey is required in config');
   }
 
   const cacheKey = `opencritic:game:${openCriticId}`;
@@ -328,10 +329,10 @@ export interface TrendingGame {
 export async function getReviewedThisWeek(
   limit?: number
 ): Promise<OpenCriticReview[]> {
-  const rapidApiKey = process.env.RAPID_API_KEY;
+  const rapidApiKey = config.opencritic.rapidApiKey;
 
   if (!rapidApiKey) {
-    throw new Error('RAPID_API_KEY environment variable is required');
+    throw new Error('OpenCritic rapidApiKey is required in config');
   }
 
   const cacheKey = 'opencritic:reviewed-this-week';
@@ -375,10 +376,10 @@ export async function getReviewedThisWeek(
 export async function getRecentlyReleased(
   limit?: number
 ): Promise<TrendingGame[]> {
-  const rapidApiKey = process.env.RAPID_API_KEY;
+  const rapidApiKey = config.opencritic.rapidApiKey;
 
   if (!rapidApiKey) {
-    throw new Error('RAPID_API_KEY environment variable is required');
+    throw new Error('OpenCritic rapidApiKey is required in config');
   }
 
   const cacheKey = 'opencritic:recently-released';

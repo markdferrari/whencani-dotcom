@@ -1,4 +1,5 @@
 import type { NearbyCinema } from "@/lib/types/cinemas";
+import { config } from "./config";
 
 type GooglePlacesNearbySearchResponse = {
   results?: Array<{
@@ -32,7 +33,7 @@ export async function getNearbyCinemasGoogle(params: {
     throw new Error("Invalid radius");
   }
 
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const apiKey = config.google.mapsApiKey;
   if (!apiKey) {
     throw new Error("Google Places API key not configured");
   }
