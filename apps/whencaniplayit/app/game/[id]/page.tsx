@@ -249,22 +249,31 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             </h1>
           </div>
 
-          {/* Meta pills — release date, platforms */}
-          <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
-            <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+          {/* Release date — prominent hero badge */}
+          <div className="rounded-2xl border border-sky-200/60 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-900/50 dark:from-sky-950/40 dark:to-cyan-950/30">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-600 dark:text-sky-400">
+              Release date
+            </p>
+            <p className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 sm:text-3xl">
               {releaseDateHuman}
-            </span>
+            </p>
             {releaseDateBadge !== releaseDateHuman && (
-              <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+              <p className="mt-1 text-lg font-bold text-sky-600 dark:text-sky-400">
                 {releaseDateBadge}
-              </span>
+              </p>
             )}
-            {platforms.slice(0, 3).map((platform) => (
-              <span key={platform} className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                {platform}
-              </span>
-            ))}
           </div>
+
+          {/* Platform pills */}
+          {platforms.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {platforms.slice(0, 5).map((platform) => (
+                <span key={platform} className="rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:bg-zinc-900/70">
+                  {platform}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Genre tags */}
           {game.genres && game.genres.length > 0 && (
@@ -280,10 +289,37 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             </div>
           )}
 
-          {/* Summary */}
-          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
-            {game.summary || 'Synopsis is not available yet.'}
-          </p>
+          {/* Reviews — above description */}
+          <ReviewSection
+            game={game}
+            openCriticIdFromQuery={(() => {
+              const raw = resolvedSearchParams?.oc;
+              if (!raw) return null;
+              const parsed = parseInt(raw, 10);
+              return Number.isNaN(parsed) ? null : parsed;
+            })()}
+          />
+
+          {/* Summary — collapsible, 2-line preview */}
+          {game.summary ? (
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm leading-relaxed text-zinc-700 dark:text-zinc-200 [&::-webkit-details-marker]:hidden">
+                <span className="line-clamp-2 group-open:line-clamp-none">
+                  {game.summary}
+                </span>
+                <span className="mt-1 block text-xs font-semibold text-sky-600 group-open:hidden dark:text-sky-400">
+                  Show more
+                </span>
+                <span className="mt-1 hidden text-xs font-semibold text-sky-600 group-open:block dark:text-sky-400">
+                  Show less
+                </span>
+              </summary>
+            </details>
+          ) : (
+            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+              Synopsis is not available yet.
+            </p>
+          )}
 
           {/* Studio / Publisher info cards */}
           <div className="grid gap-4 sm:grid-cols-2">
@@ -315,19 +351,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             </div>
           )}
 
-          {/* Reviews */}
-          <ReviewSection
-            game={game}
-            openCriticIdFromQuery={(() => {
-              const raw = resolvedSearchParams?.oc;
-              if (!raw) return null;
-              const parsed = parseInt(raw, 10);
-              return Number.isNaN(parsed) ? null : parsed;
-            })()}
-          />
-
-          {/* External links */}
-          <GameLinks websites={game.websites} />
         </DetailHeroCard>
 
         {/* Trailer — full-width section */}
@@ -375,6 +398,13 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
               })}
             </div>
           </section>
+        )}
+
+        {/* External Links */}
+        {game.websites && game.websites.length > 0 && (
+          <div className="mt-6">
+            <GameLinks websites={game.websites} />
+          </div>
         )}
 
         {/* Similar Games — carousel section matching Cast section style */}
