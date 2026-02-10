@@ -394,8 +394,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
         {/* Similar Games — carousel section matching Cast section style */}
         {similarGames.length > 0 && (
           <MediaCarousel
-            label="Similar games"
-            subtitle={`${similarGames.length} related titles`}
+            label="You might also like"
             slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]"
             className="mt-8"
           >
