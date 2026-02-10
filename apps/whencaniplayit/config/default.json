@@ -1,0 +1,14 @@
+{
+  "igdb": {
+    "clientId": "",
+    "clientSecret": "",
+    "baseUrl": "https://api.igdb.com/v4"
+  },
+  "opencritic": {
+    "baseUrl": "https://opencritic-api.p.rapidapi.com"
+  },
+  "app": {
+    "name": "When Can I Play It",
+    "url": "https://whencaniplayit.com"
+  }
+}
