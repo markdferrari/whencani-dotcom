@@ -71,50 +71,47 @@ whencani-dotcom/
 - [x] Setup root package.json with workspace configuration
 - [x] Create shared configuration package
 
-### Phase 2: Create Shared UI Package
-- [ ] Extract common components from both apps
-- [ ] Setup packages/ui with proper exports
-- [ ] Configure TypeScript for package development
-- [ ] Document component API and usage
+### Phase 2: Create Shared UI Package ✓
+- [x] Extract common components from both apps
+- [x] Setup packages/ui with proper exports
+- [x] Configure TypeScript for package development
+- [x] Document component API and usage
 
-#### Common Components to Extract
-Based on both apps, the following components should be shared:
-- Carousel/Slider components (both use embla-carousel)
-- Icon system (both use lucide-react)
-- Layout primitives (containers, grids)
-- Loading/error states
-- Typography components
-- Button variants (whencaniwatchit style preferred)
+#### Common Components Extracted
+- Button (with variants)
+- Card (with Header, Content, Footer, Title, Description)
+- Skeleton
+- Badge
+- ThemeToggle
+- cn utility function
+- useMediaQuery hook
 
-### Phase 3: Migrate whencaniwatchit.com
-- [ ] Move app to `apps/whencaniwatchit/`
-- [ ] Update imports to use shared packages
-- [ ] Replace local components with shared UI package
-- [ ] Update package.json dependencies
-- [ ] Verify build and deployment
-- [ ] Update SST configuration for monorepo context
+### Phase 3: Migrate whencaniwatchit.com ✓
+- [x] Move app to `apps/whencaniwatchit/`
+- [x] Update imports to use shared packages
+- [x] Replace local components with shared UI package
+- [x] Update package.json dependencies
+- [x] Verify build and deployment
+- [x] Update SST configuration for monorepo context
 
-### Phase 4: Migrate whencaniplayit.com
-- [ ] Move app to `apps/whencaniplayit/`
-- [ ] Update imports to use shared packages
-- [ ] Replace local components with shared UI package
-- [ ] Update package.json dependencies
-- [ ] Migrate Jest configuration to monorepo
-- [ ] Verify build, tests, and deployment
-- [ ] Update SST configuration for monorepo context
+### Phase 4: Migrate whencaniplayit.com ✓
+- [x] Move app to `apps/whencaniplayit/`
+- [x] Update imports to use shared packages
+- [x] Replace local components with shared UI package
+- [x] Update package.json dependencies
+- [x] Migrate Jest configuration to monorepo
+- [x] Verify build, tests, and deployment
+- [x] Update SST configuration for monorepo context
 
-### Phase 5: Consolidate Configuration
-- [ ] Setup shared ESLint configuration
-- [ ] Setup shared Tailwind configuration
-- [ ] Setup shared TypeScript configuration
-- [ ] Add root-level scripts for building/testing all apps
-- [ ] Document development workflows
+### Phase 5: Consolidate Configuration ✓
+- [x] Setup shared ESLint configuration
+- [x] Setup shared TypeScript configuration
+- [x] Add root-level scripts for building/testing all apps
+- [x] Document development workflows
 
-### Phase 6: Optimize and Document
+### Phase 6: Optimize and Document (Future)
 - [ ] Add Turbo or similar for build caching (optional)
 - [ ] Setup GitHub Actions for CI/CD
-- [ ] Create comprehensive README
-- [ ] Document shared component guidelines
 - [ ] Setup changesets for versioning (if publishing packages)
 
 ## Key Decisions
