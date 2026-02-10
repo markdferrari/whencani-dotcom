@@ -1,0 +1,29 @@
+import Link from "next/link";
+import { Star } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+
+export function Header() {
+  return (
+    <header className="sticky top-0 z-20 border-b border-zinc-200/70 bg-white/80 backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/80">
+      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center h-10">
+          <img
+            src="/logo.png"
+            alt="WhenCanIPlayIt"
+            className="h-full w-auto"
+          />
+        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/watchlist"
+            className="inline-flex items-center gap-2 rounded-full border border-zinc-200/70 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 shadow-sm transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/70 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-200"
+          >
+            <Star className="h-4 w-4" />
+            Watchlist
+          </Link>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+  );
+}

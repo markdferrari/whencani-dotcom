@@ -1,0 +1,15 @@
+# WhenCanIPlayIt.com robots.txt
+# All crawlers welcome for indexing user-facing pages only
+
+User-agent: *
+Allow: /
+Allow: /game/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /__tests__/
+
+# Crawl delay to be respectful to resources
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://whencaniplayit.com/sitemap.xml
