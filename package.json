@@ -9,12 +9,12 @@
   "scripts": {
     "dev:watch": "yarn workspace whencaniwatchit dev",
     "dev:play": "yarn workspace whencaniplayit dev",
-    "build": "yarn workspaces run build",
+    "build": "yarn workspaces foreach -A run build",
     "build:watch": "yarn workspace whencaniwatchit build",
     "build:play": "yarn workspace whencaniplayit build",
-    "lint": "yarn workspaces run lint",
-    "test": "yarn workspaces run test",
-    "clean": "rm -rf apps/*/node_modules apps/*/.next packages/*/node_modules node_modules",
+    "lint": "yarn workspaces foreach -A run lint",
+    "test": "yarn workspaces foreach -A run test",
+    "clean": "rm -rf apps/*/node_modules apps/*/.next packages/*/node_modules node_modules .yarn/cache",
     "deploy:watch": "yarn workspace whencaniwatchit sst:deploy",
     "deploy:play": "yarn workspace whencaniplayit sst:deploy",
     "deploy:all": "yarn deploy:watch && yarn deploy:play",
@@ -24,5 +24,5 @@
   "devDependencies": {
     "typescript": "^5"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@4.12.0"
 }
