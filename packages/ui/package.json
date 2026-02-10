@@ -12,7 +12,8 @@
     "./trailer-section": "./src/components/trailer-section.tsx",
     "./media-carousel": "./src/components/media-carousel.tsx",
     "./screenshot-carousel": "./src/components/screenshot-carousel.tsx",
-    "./media-carousel-combined": "./src/components/media-carousel-combined.tsx"
+    "./media-carousel-combined": "./src/components/media-carousel-combined.tsx",
+    "./header": "./src/components/header.tsx"
   },
   "scripts": {
     "build": "echo 'No build required'",
