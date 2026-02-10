@@ -14,7 +14,12 @@
     "build:play": "yarn workspace whencaniplayit build",
     "lint": "yarn workspaces foreach -A run lint",
     "test": "yarn workspaces foreach -A run test",
-    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules"
+    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules",
+    "deploy:watch": "yarn workspace whencaniwatchit sst:deploy",
+    "deploy:play": "yarn workspace whencaniplayit sst:deploy",
+    "deploy:all": "yarn deploy:watch && yarn deploy:play",
+    "sst:dev:watch": "yarn workspace whencaniwatchit sst:dev",
+    "sst:dev:play": "yarn workspace whencaniplayit sst:dev"
   },
   "devDependencies": {
     "typescript": "^5"

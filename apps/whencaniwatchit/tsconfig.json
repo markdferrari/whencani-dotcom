@@ -13,10 +13,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": [
-    "node_modules",
-    "sst.config.ts",
-    ".sst/**",
-    "**/__tests__/**"
-  ]
+  "exclude": ["node_modules", "sst.config.ts", "**/__tests__/**"]
 }
