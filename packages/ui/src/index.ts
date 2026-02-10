@@ -1,7 +1,8 @@
+// Utilities
 export { cn } from './utils/cn';
 
-// Export hooks
+// Hooks
 export * from './hooks';
 
-// Export components (to be added)
-// export * from './components';
+// Components
+export * from './components';
