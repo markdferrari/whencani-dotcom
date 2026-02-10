@@ -1,0 +1,40 @@
+{
+  "name": "whencaniwatchit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "clean": "rm -rf .next",
+    "sst:dev": "sst dev",
+    "sst:deploy": "sst deploy --stage production",
+    "sst:remove": "sst remove"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "embla-carousel-react": "^8.2.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.563.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-leaflet": "^5.0.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "aws-cdk-lib": "^2.237.1",
+    "constructs": "^10.4.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "sst": "^3.17.38",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
