@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WhenCani.com Monorepo
+
+A unified monorepo for managing multiple "When Can I..." tracking applications.
+
+## Applications
+
+- **whencaniwatchit** - Track movie and TV show releases
+- **whencaniplayit** - Track video game releases
+
+## Structure
+
+```
+whencani-dotcom/
+├── apps/               # Application packages
+│   ├── whencaniwatchit/
+│   └── whencaniplayit/
+├── packages/           # Shared packages
+│   ├── ui/            # Shared UI components and hooks
+│   └── config/        # Shared configurations
+└── package.json       # Workspace root
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+ 
+- Yarn 1.22+
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Run whencaniwatchit locally
+yarn dev:watch
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run whencaniplayit locally  
+yarn dev:play
+```
 
-## Learn More
+### Building
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Build all apps
+yarn build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build specific app
+yarn build:watch
+yarn build:play
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Testing
 
-## Deploy on Vercel
+```bash
+# Run all tests
+yarn test
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Package Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Adding Dependencies
+
+```bash
+# Add to specific app
+yarn workspace whencaniwatchit add <package>
+yarn workspace whencaniplayit add <package>
+
+# Add to shared UI
+yarn workspace @whencani/ui add <package>
+
+# Add to root (dev tools)
+yarn add -W <package>
+```
+
+## Shared Packages
+
+### @whencani/ui
+
+Shared UI components, hooks, and utilities used across applications.
+
+```typescript
+import { cn, useMediaQuery } from '@whencani/ui';
+```
+
+### @whencani/config
+
+Shared configuration files for TypeScript, ESLint, and Tailwind CSS.
+
+## Documentation
+
+- [Migration Guide](./MIGRATION.md) - Detailed migration plan and phases
+- [Next.js Docs](https://nextjs.org/docs)
+- [Yarn Workspaces](https://classic.yarnpkg.com/en/docs/workspaces/)
+
+## Contributing
+
+When adding new features:
+
+1. Consider if code should be shared before creating app-specific implementations
+2. Use the shared UI package for reusable components
+3. Follow the component style from whencaniwatchit.com
+4. Update documentation when adding shared packages
+
+## License
+
+Private - Not for redistribution
+
