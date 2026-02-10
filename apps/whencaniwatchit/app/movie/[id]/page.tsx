@@ -17,7 +17,7 @@ import { MovieSchema, BreadcrumbListSchema } from "@/lib/schema";
 import { DetailBackLink } from "@whencani/ui/detail-back-link";
 import { DetailHeroCard } from "@whencani/ui/detail-hero-card";
 import { MediaCarousel } from "@whencani/ui/media-carousel";
-import { TrailerSection } from "@whencani/ui/trailer-section";
+import MediaCarouselCombined from "@whencani/ui/media-carousel-combined";
 
 type MoviePageProps = {
   params: Promise<{ id: string }>;
@@ -254,11 +254,13 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </div>
         </DetailHeroCard>
 
-        {/* Trailer */}
+        {/* Trailer / Media carousel */}
         {trailerEmbedUrl && (
-          <TrailerSection
-            embedUrl={trailerEmbedUrl}
+          <MediaCarouselCombined
+            trailerEmbedUrl={trailerEmbedUrl}
+            screenshots={[]}
             title={movie.title}
+            unoptimized
             className="mt-6"
           />
         )}
