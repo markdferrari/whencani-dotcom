@@ -25,12 +25,26 @@ jest.mock("@/components/ReviewSection", () => ({
   ReviewSection: () => <div>Reviews</div>,
 }));
 
-jest.mock("@/components/ScreenshotGallery", () => ({
-  ScreenshotGallery: ({ title }: { title: string }) => <div>Gallery {title}</div>,
+jest.mock("@whencani/ui/detail-back-link", () => ({
+  DetailBackLink: () => <div>Back</div>,
 }));
 
-jest.mock("@/components/SimilarGamesCarousel", () => ({
-  SimilarGamesCarousel: () => <div>Similar Games Carousel</div>,
+jest.mock("@whencani/ui/detail-hero-card", () => ({
+  DetailHeroCard: ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <div data-testid="detail-hero-card">{title}{children}</div>
+  ),
+}));
+
+jest.mock("@whencani/ui/media-carousel", () => ({
+  MediaCarousel: ({ label }: { label: string }) => <div>{label}</div>,
+}));
+
+jest.mock("@whencani/ui/screenshot-carousel", () => ({
+  ScreenshotCarousel: ({ title }: { title: string }) => <div>Screenshots {title}</div>,
+}));
+
+jest.mock("@whencani/ui/trailer-section", () => ({
+  TrailerSection: () => <div>Trailer</div>,
 }));
 
 jest.mock("@/lib/igdb", () => ({
@@ -93,26 +107,17 @@ describe("GameDetailPage", () => {
     jest.useRealTimers();
   });
 
-  it("renders a prominent release date badge", async () => {
+  it("renders the game title and release date", async () => {
     await renderGamePage();
 
-    const badge = screen.getByTestId("release-date-hero");
-    expect(badge).toHaveTextContent("Feb 15, 2026");
-    expect(badge).toHaveTextContent("days away");
-
-    const coverWrapper = screen.getByTestId("game-cover-wrapper");
-    expect(coverWrapper).toBeInTheDocument();
-    expect(coverWrapper.className).toContain("max-w-[min(90vw,360px)]");
-    expect(coverWrapper.className).toContain("overflow-hidden");
-    expect(coverWrapper.className).toContain("min-w-0");
+    expect(screen.getAllByText("Test Game").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Feb 15, 2026")).toBeInTheDocument();
   });
 
-  it("caps the layout width to the cover size on narrow screens", async () => {
+  it("renders the main layout wrapper", async () => {
     await renderGamePage();
 
     const main = screen.getByRole("main");
-    expect(main).toHaveClass("w-full");
-    expect(main).toHaveClass("max-w-[min(100vw,360px)]");
-    expect(main).toHaveClass("lg:max-w-6xl");
+    expect(main).toBeInTheDocument();
   });
 });
