@@ -2,5 +2,10 @@
   "name": "@whencani/config",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared configuration for whencani monorepo"
+  "description": "Shared configuration for whencani monorepo",
+  "exports": {
+    "./eslint/nextjs": "./eslint/nextjs.mjs",
+    "./typescript/nextjs.json": "./typescript/nextjs.json",
+    "./typescript/library.json": "./typescript/library.json"
+  }
 }
