@@ -1,4 +1,5 @@
 // IGDB API helpers for fetching PlayStation game data
+import { config } from './config';
 
 let cachedToken: { access_token: string; expires_at: number } | null = null;
 
@@ -145,11 +146,11 @@ async function getAccessToken(): Promise<string> {
     return cachedToken.access_token;
   }
 
-  const clientId = process.env.IGDB_CLIENT_ID;
-  const clientSecret = process.env.IGDB_CLIENT_SECRET;
+  const clientId = config.igdb.clientId;
+  const clientSecret = config.igdb.clientSecret;
 
   if (!clientId || !clientSecret) {
-    throw new Error('IGDB_CLIENT_ID and IGDB_CLIENT_SECRET must be set in .env.local');
+    throw new Error('IGDB clientId and clientSecret must be configured');
   }
 
   const response = await fetch('https://id.twitch.tv/oauth2/token', {
@@ -184,9 +185,9 @@ async function getAccessToken(): Promise<string> {
  */
 async function igdbRequest<T>(endpoint: string, body: string): Promise<T> {
   const token = await getAccessToken();
-  const clientId = process.env.IGDB_CLIENT_ID!;
+  const clientId = config.igdb.clientId;
 
-  const response = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
+  const response = await fetch(`${config.igdb.baseUrl}/${endpoint}`, {
     method: 'POST',
     headers: {
       'Client-ID': clientId,

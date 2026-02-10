@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:all": "yarn workspace whencaniwatchit dev & yarn workspace whencaniplayit dev",
     "dev:watch": "yarn workspace whencaniwatchit dev",
     "dev:play": "yarn workspace whencaniplayit dev",
     "build": "yarn workspaces foreach -A run build",
@@ -14,15 +15,33 @@
     "build:play": "yarn workspace whencaniplayit build",
     "lint": "yarn workspaces foreach -A run lint",
     "test": "yarn workspaces foreach -A run test",
-    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules",
+    "clean": "rm -rf apps/*/node_modules apps/*/.next packages/*/node_modules node_modules .yarn/cache",
     "deploy:watch": "yarn workspace whencaniwatchit sst:deploy",
     "deploy:play": "yarn workspace whencaniplayit sst:deploy",
     "deploy:all": "yarn deploy:watch && yarn deploy:play",
     "sst:dev:watch": "yarn workspace whencaniwatchit sst:dev",
     "sst:dev:play": "yarn workspace whencaniplayit sst:dev"
   },
+  "dependencies": {
+    "embla-carousel-react": "^8.6.0",
+    "lucide-react": "^0.563.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwind-merge": "^3.4.0"
+  },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "aws-cdk-lib": "^2.237.1",
+    "constructs": "^10.4.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "sst": "^3.17.38",
+    "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@4.12.0"
 }
