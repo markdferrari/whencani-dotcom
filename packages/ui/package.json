@@ -6,6 +6,7 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
+    "build": "echo 'No build required'",
     "lint": "eslint src/",
     "type-check": "tsc --noEmit"
   },
