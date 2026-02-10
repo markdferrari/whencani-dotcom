@@ -239,21 +239,15 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           {/* Category label + Watchlist */}
           <div>
             <div className="flex items-start justify-between gap-4">
-              <p className="pt-1 text-xs font-semibold uppercase tracking-[0.4em] text-sky-500">
-                Game
-              </p>
-              <WatchlistToggle gameId={game.id} className="shadow" />
-            </div>
             <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
               {game.name}
             </h1>
+              <WatchlistToggle gameId={game.id} className="shadow" />
+            </div>
           </div>
 
           {/* Release date — prominent hero badge */}
           <div className="rounded-2xl border border-sky-200/60 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-900/50 dark:from-sky-950/40 dark:to-cyan-950/30">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-600 dark:text-sky-400">
-              Release date
-            </p>
             <p className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 sm:text-3xl">
               {releaseDateHuman}
             </p>
