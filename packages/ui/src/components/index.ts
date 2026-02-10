@@ -8,3 +8,4 @@ export { DetailBackLink } from './detail-back-link';
 export { TrailerSection } from './trailer-section';
 export { MediaCarousel } from './media-carousel';
 export { ScreenshotCarousel } from './screenshot-carousel';
+export { MediaCarouselCombined } from './media-carousel-combined';

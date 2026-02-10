@@ -10,8 +10,7 @@ import { WatchlistToggle } from '@/components/WatchlistToggle';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
-import { ScreenshotCarousel } from '@whencani/ui/screenshot-carousel';
-import { TrailerSection } from '@whencani/ui/trailer-section';
+import MediaCarouselCombined from '@whencani/ui/media-carousel-combined';
 
 const SITE_URL = 'https://whencaniplayit.com';
 
@@ -347,18 +346,9 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
 
         </DetailHeroCard>
 
-        {/* Trailer — full-width section */}
-        {trailerEmbedUrl && (
-          <TrailerSection
-            embedUrl={trailerEmbedUrl}
-            title={game.name}
-            className="mt-6"
-          />
-        )}
-
-        {/* Screenshots — swipeable carousel */}
-        {screenshots.length > 0 && (
-          <ScreenshotCarousel
+        {(trailerEmbedUrl || screenshots.length > 0) && (
+          <MediaCarouselCombined
+            trailerEmbedUrl={trailerEmbedUrl}
             screenshots={screenshots}
             title={game.name}
             unoptimized
