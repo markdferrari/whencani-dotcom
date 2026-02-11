@@ -16,6 +16,9 @@
     "@whencani/ui": "*",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
+    "next": "*",
+    "react": "*",
+    "react-dom": "*",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {

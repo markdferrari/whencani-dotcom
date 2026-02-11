@@ -25,7 +25,7 @@
   "dependencies": {
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.563.0",
-    "next": "16.1.6",
+    "next": "15.5.12",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0"
@@ -38,7 +38,7 @@
     "aws-cdk-lib": "^2.237.1",
     "constructs": "^10.4.5",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "15.5.12",
     "sst": "^3.17.38",
     "tailwindcss": "^4",
     "typescript": "^5"
