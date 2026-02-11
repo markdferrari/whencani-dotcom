@@ -43,10 +43,6 @@ export async function ReviewSection({ game, openCriticIdFromQuery }: ReviewSecti
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-        Reviews & Ratings
-      </h2>
-
       <div className="mt-4 space-y-4">
         {/* Review Site Links */}
         <div className="grid gap-3 sm:grid-cols-2">

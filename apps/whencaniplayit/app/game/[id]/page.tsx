@@ -2,15 +2,15 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { getGameById, getSimilarGamesById, formatReleaseDate } from '@/lib/igdb';
 import { getGameNote } from '@/lib/notes';
 import { GameLinks } from '@/components/GameLinks';
 import { ReviewSection } from '@/components/ReviewSection';
-import { ScreenshotGallery } from '@/components/ScreenshotGallery';
-import { SimilarGamesCarousel } from '@/components/SimilarGamesCarousel';
-import { TrailerEmbed } from '@/components/TrailerEmbed';
 import { WatchlistToggle } from '@/components/WatchlistToggle';
+import { DetailBackLink } from '@whencani/ui/detail-back-link';
+import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
+import { MediaCarousel } from '@whencani/ui/media-carousel';
+import MediaCarouselCombined from '@whencani/ui/media-carousel-combined';
 
 const SITE_URL = 'https://whencaniplayit.com';
 
@@ -117,9 +117,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
       )}`
     : null;
 
-  const coverWrapperClasses =
-    'mx-auto w-full max-w-[min(90vw,360px)] min-w-0 overflow-hidden rounded-xl sm:max-w-none';
-
   // Get screenshots
   const screenshots =
     game.screenshots?.map(
@@ -207,263 +204,229 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     }),
   };
 
+  // Get first screenshot as backdrop
+  const backdropUrl = screenshots[0] ?? null;
+
+  // Build trailer embed URL
+  const trailerEmbedUrl = game.videos?.[0]?.video_id
+    ? `https://www.youtube.com/embed/${game.videos[0].video_id}?rel=0&modestbranding=1`
+    : null;
+
+  // Developers and publishers for the info cards
+  const developers = involvedCompanies.filter((c) => c.role === 'Developer');
+  const publishers = involvedCompanies.filter((c) => c.role === 'Publisher');
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_45%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(videoGameSchema) }}
       />
       <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-6xl">
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+        <DetailBackLink href="/" />
+
+        {/* Hero Card — backdrop, small cover left, details right */}
+        <DetailHeroCard
+          title={game.name}
+          backdropUrl={backdropUrl}
+          posterUrl={coverUrl}
+          posterAlt={`${game.name} video game cover art for ${platforms.length > 0 ? platforms.join(', ') : 'PC'}`}
+          posterAspect="3/4"
+          posterUnoptimized
+          className="mt-6"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to games
-        </Link>
+          {/* Category label + Watchlist */}
+          <div>
+            <div className="flex items-start justify-between gap-4">
+            <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+              {game.name}
+            </h1>
+              <WatchlistToggle gameId={game.id} className="shadow" />
+            </div>
+          </div>
 
-        <div className="grid gap-8 lg:grid-cols-3 min-w-0">
-          {/* Left Column - Cover & Meta */}
-          <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start min-w-0">
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <div
-                  className="mb-4 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-700 px-4 py-3 text-white dark:from-zinc-100 dark:to-zinc-300 dark:text-zinc-900"
-                  data-testid="release-date-hero"
+          {/* Release date — prominent hero badge */}
+          <div className="rounded-2xl border border-sky-200/60 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-900/50 dark:from-sky-950/40 dark:to-cyan-950/30">
+            <p className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+              {releaseDateHuman}
+            </p>
+            {releaseDateBadge !== releaseDateHuman && (
+              <p className="mt-1 text-lg font-bold text-sky-600 dark:text-sky-400">
+                {releaseDateBadge}
+              </p>
+            )}
+          </div>
+
+          {/* Platform pills */}
+          {platforms.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {platforms.slice(0, 5).map((platform) => (
+                <span key={platform} className="rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:bg-zinc-900/70">
+                  {platform}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Genre tags */}
+          {game.genres && game.genres.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {game.genres.map((genre) => (
+                <span
+                  key={genre.id}
+                  className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-800/80 dark:text-zinc-300"
                 >
-                  <div className="text-xs font-semibold uppercase tracking-wide opacity-80">
-                    Release date
-                  </div>
-                  <div className="mt-1 text-lg font-semibold">
-                    {releaseDateHuman}
-                  </div>
-                  <div className="text-sm opacity-80">{releaseDateBadge}</div>
-                </div>
-
-                {coverUrl ? (
-                  <div data-testid="game-cover-wrapper" className={coverWrapperClasses}>
-                    <div className="relative aspect-[3/4]">
-                      <Image
-                        src={coverUrl}
-                        alt={`${game.name} video game cover art for ${platforms.length > 0 ? platforms.join(', ') : 'PC'}`}
-                        fill
-                        unoptimized
-                        className="object-cover"
-                        priority
-                        sizes="(max-width: 640px) min(90vw, 360px), 360px"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div data-testid="game-cover-wrapper" className={coverWrapperClasses}>
-                    <div className="flex aspect-[3/4] h-full items-center justify-center bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                      No cover available
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* External Links - Desktop only */}
-              <div className="mt-6 hidden lg:block">
-                <GameLinks websites={game.websites} />
-              </div>
+                  {genre.name}
+                </span>
+              ))}
             </div>
+          )}
 
-            {/* Reviews & Ratings */}
-            <div className="mt-6">
-              <ReviewSection
-                game={game}
-                openCriticIdFromQuery={(() => {
-                  const raw = resolvedSearchParams?.oc;
-                  if (!raw) return null;
-                  const parsed = parseInt(raw, 10);
-                  return Number.isNaN(parsed) ? null : parsed;
-                })()}
-              />
-            </div>
+          {/* Reviews — above description */}
+          <ReviewSection
+            game={game}
+            openCriticIdFromQuery={(() => {
+              const raw = resolvedSearchParams?.oc;
+              if (!raw) return null;
+              const parsed = parseInt(raw, 10);
+              return Number.isNaN(parsed) ? null : parsed;
+            })()}
+          />
 
-          </div>
-
-          {/* Right Column - Details */}
-          <div className="lg:col-span-2 min-w-0">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  {game.name}
-                </h1>
-                <WatchlistToggle gameId={game.id} />
-              </div>
-              {game.genres && game.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {game.genres.slice(0, 2).map((genre) => (
-                    <span
-                      key={genre.id}
-                      className="rounded-full border border-sky-200/70 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700 dark:border-sky-500/60 dark:bg-sky-900/40 dark:text-sky-200"
-                    >
-                      {genre.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {platforms.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {platforms.map((platform) => (
-                    <span
-                      key={platform}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-                    >
-                      {platform}
-                    </span>
-                  ))}
-                </div>
-              )}
-              
-              {/* Studios & Involved Companies */}
-              {(involvedCompanies.length > 0 || collectionName) && (
-                <div className="mt-4 space-y-3">
-                  {collectionName && (
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-                        Collection
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {collectionName}
-                      </p>
-                    </div>
-                  )}
-                  {involvedCompanies.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {involvedCompanies.map((company) => (
-                        <span
-                          key={company.id}
-                          className="rounded-full border border-zinc-200/80 bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-700 dark:border-zinc-800/60 dark:bg-zinc-900/60 dark:text-zinc-200"
-                        >
-                          {company.name}
-                          {company.role && (
-                            <span className="ml-1 text-[0.6rem] font-normal uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-400">
-                              {company.role}
-                            </span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Summary */}
-            {game.summary && (
-              <div className="mt-6">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  About
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
+          {/* Summary — collapsible, 2-line preview */}
+          {game.summary ? (
+            <details className="group">
+              <summary className="cursor-pointer list-none text-sm leading-relaxed text-zinc-700 dark:text-zinc-200 [&::-webkit-details-marker]:hidden">
+                <span className="line-clamp-2 group-open:line-clamp-none">
                   {game.summary}
-                </p>
-              </div>
-            )}
+                </span>
+                <span className="mt-1 block text-xs font-semibold text-sky-600 group-open:hidden dark:text-sky-400">
+                  Show more
+                </span>
+                <span className="mt-1 hidden text-xs font-semibold text-sky-600 group-open:block dark:text-sky-400">
+                  Show less
+                </span>
+              </summary>
+            </details>
+          ) : (
+            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+              Synopsis is not available yet.
+            </p>
+          )}
 
-            <div className="mt-8 border-t border-zinc-200/70 pt-8 dark:border-zinc-800/70" />
-
-            {/* Trailer */}
-            {game.videos && game.videos.length > 0 && (
-              <div className="mt-8">
-                <TrailerEmbed videoId={game.videos[0].video_id} title={game.name} />
-              </div>
-            )}
-
-            {/* Screenshots */}
-            {screenshots.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  Screenshots
-                </h2>
-                <div className="mt-4">
-                  <ScreenshotGallery screenshots={screenshots} title={game.name} />
-                </div>
-              </div>
-            )}
-
-            {/* Personal Notes */}
-            {note && (
-              <div className="mt-8 rounded-lg border-2 border-blue-200 bg-blue-50 p-6 dark:border-blue-900 dark:bg-blue-950">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  📝 My Notes
-                </h2>
-                {note.data.hype_level && (
-                  <div className="mt-2">
-                    <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      Hype Level: {note.data.hype_level}
-                    </span>
-                  </div>
-                )}
-                <div className="prose prose-zinc mt-4 max-w-none dark:prose-invert">
-                  {note.content.split('\n').map((line, index) => {
-                    if (line.startsWith('## ')) {
-                      return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.replace('## ', '')}</h3>;
-                    } else if (line.startsWith('- ')) {
-                      return <li key={index} className="ml-4">{line.replace('- ', '')}</li>;
-                    } else if (line.trim()) {
-                      return <p key={index} className="mb-2">{line}</p>;
-                    }
-                    return null;
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-8 space-y-6">
-              {/* External Links - Mobile only */}
-              <div className="lg:hidden">
-                <GameLinks websites={game.websites} />
-              </div>
-
-              {similarGames.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                    Similar games
-                  </h2>
-                  {/* Mobile carousel */}
-                  <div className="lg:hidden">
-                    <SimilarGamesCarousel games={similarGames} />
-                  </div>
-                  {/* Desktop grid */}
-                  <div className="hidden lg:grid gap-4 lg:grid-cols-3">
-                    {similarGames.map((similar) => (
-                      <Link
-                        key={similar.id}
-                        href={`/game/${similar.id}`}
-                        className="group mx-auto w-full max-w-[220px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-900 transition hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
-                      >
-                        <div className="relative aspect-[3/4]">
-                          {similar.coverUrl ? (
-                            <Image
-                              src={similar.coverUrl}
-                              alt={`${similar.name} - Video game cover art`}
-                              fill
-                              sizes="(max-width: 768px) 90vw, 180px"
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center bg-zinc-100 text-sm font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-                              No cover
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 py-3 text-sm font-semibold">
-                          {similar.name}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* Studio / Publisher info cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Developer
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {developers.length > 0 ? developers.map((d) => d.name).join(', ') : 'TBD'}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Publisher
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {publishers.length > 0 ? publishers.map((p) => p.name).join(', ') : 'TBD'}
+              </p>
             </div>
           </div>
-        </div>
+
+          {/* Collection badge */}
+          {collectionName && (
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Collection
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">{collectionName}</p>
+            </div>
+          )}
+
+        </DetailHeroCard>
+
+        {(trailerEmbedUrl || screenshots.length > 0) && (
+          <MediaCarouselCombined
+            trailerEmbedUrl={trailerEmbedUrl}
+            screenshots={screenshots}
+            title={game.name}
+            unoptimized
+            className="mt-6"
+          />
+        )}
+
+        {/* Personal Notes */}
+        {note && (
+          <section className="mt-6 rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70 sm:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+              📝 My Notes
+            </p>
+            {note.data.hype_level && (
+              <div className="mt-2">
+                <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  Hype Level: {note.data.hype_level}
+                </span>
+              </div>
+            )}
+            <div className="prose prose-zinc mt-4 max-w-none dark:prose-invert">
+              {note.content.split('\n').map((line, index) => {
+                if (line.startsWith('## ')) {
+                  return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.replace('## ', '')}</h3>;
+                } else if (line.startsWith('- ')) {
+                  return <li key={index} className="ml-4">{line.replace('- ', '')}</li>;
+                } else if (line.trim()) {
+                  return <p key={index} className="mb-2">{line}</p>;
+                }
+                return null;
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* External Links */}
+        {game.websites && game.websites.length > 0 && (
+          <div className="mt-6">
+            <GameLinks websites={game.websites} />
+          </div>
+        )}
+
+        {/* Similar Games — carousel section matching Cast section style */}
+        {similarGames.length > 0 && (
+          <MediaCarousel
+            label="You might also like"
+            slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]"
+            className="mt-8"
+          >
+            {similarGames.map((similar) => (
+              <Link
+                key={similar.id}
+                href={`/game/${similar.id}`}
+                className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-blue-400 dark:border-zinc-800/80 dark:bg-zinc-900/80"
+              >
+                <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
+                  {similar.coverUrl ? (
+                    <Image
+                      src={similar.coverUrl}
+                      alt={`${similar.name} cover`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">
+                      No cover
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                  {similar.name}
+                </p>
+              </Link>
+            ))}
+          </MediaCarousel>
+        )}
       </main>
     </div>
   );
