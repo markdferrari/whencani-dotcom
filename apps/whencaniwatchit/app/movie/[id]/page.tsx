@@ -1,5 +1,6 @@
 import { type Metadata, type ResolvingMetadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { WatchlistToggle } from "@/components/WatchlistToggle";
 import {
   formatReleaseDate,
@@ -173,7 +174,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
         suppressHydrationWarning
       />
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
-      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-6xl">
+      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl">
         <DetailBackLink href="/" />
 
         {/* Hero Card */}
@@ -186,14 +187,11 @@ export default async function MoviePage({ params }: MoviePageProps) {
         >
           <div>
             <div className="flex items-start justify-between gap-4">
-              <p className="pt-1 text-xs font-semibold uppercase tracking-[0.4em] text-sky-500">
-                Movie
-              </p>
+              <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+                {movie.title}
+              </h1>
               <WatchlistToggle movieId={Number(id)} className="shadow" />
-            </div>
-            <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
-              {movie.title}
-            </h1>
+            </div>            
             {movie.tagline && (
               <p className="mt-2 text-sm italic text-zinc-600 dark:text-zinc-300">
                 {movie.tagline}
@@ -201,10 +199,15 @@ export default async function MoviePage({ params }: MoviePageProps) {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
-            <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+          {/* Release date */}
+          <div className="flex flex-wrap gap-3">
+            <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">
               {formatReleaseDate(movie.release_date)}
             </span>
+          </div>
+
+          {/* Other metadata */}
+          <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
             <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
               {movie.vote_average.toFixed(1)} / 10
             </span>
@@ -222,12 +225,13 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
           <div className="flex flex-wrap gap-2">
             {movie.genres.map((genre) => (
-              <span
+              <Link
                 key={genre.id}
-                className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-800/80 dark:text-zinc-300"
+                href={`/?view=upcoming&genre=${genre.id}`}
+                className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-400"
               >
                 {genre.name}
-              </span>
+              </Link>
             ))}
           </div>
 
