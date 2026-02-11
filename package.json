@@ -25,20 +25,20 @@
   "dependencies": {
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.563.0",
-    "next": "15.5.12",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "aws-cdk-lib": "^2.237.1",
     "constructs": "^10.4.5",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.12",
+    "eslint": "^10",
+    "eslint-config-next": "16.1.6",
     "sst": "^3.17.38",
     "tailwindcss": "^4",
     "typescript": "^5"
