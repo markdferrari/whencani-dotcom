@@ -32,7 +32,6 @@ export function MediaCard({
   ratingCount,
   watchlistToggle,
   size = "md",
-  platforms,
 }: MediaCardProps) {
   const imageHeight = size === "md" ? 120 : 88;
   const imageWidth = size === "md" ? 84 : 64;
