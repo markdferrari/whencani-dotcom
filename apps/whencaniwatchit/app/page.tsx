@@ -150,9 +150,6 @@ export default async function Home({ searchParams }: PageProps) {
 
           <aside className="space-y-6 min-w-0 lg:order-last">
             <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-                Filters
-              </p>
               <div className="mt-4 grid gap-4">
                 <GenreFilter genres={genres} currentGenreId={genreId} />
                 {/* <PlatformFilter currentProviderId={providerId} /> */}
