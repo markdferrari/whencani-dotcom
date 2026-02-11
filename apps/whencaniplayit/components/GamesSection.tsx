@@ -63,9 +63,6 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ViewToggle />
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Ranked by nearest release
-        </p>
       </div>
 
       <div className={`mt-5 space-y-4 ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>

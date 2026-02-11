@@ -112,31 +112,12 @@ export default async function Home({ searchParams }: PageProps) {
       />
       <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-10 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl flex flex-col gap-10">
         <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-500">
-            Tracking all the upcoming releases so you don&apos;t have to
-          </p>
-          <h1 className="mt-4 text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
-            Stay ahead of every big game drop and score update.
+          <h1 className="text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
+            Track every game release that matters to you.
           </h1>
           <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-300">
-            We surface verified release windows, recent review momentum, and trending scores so you can queue your next session with confidence.
+            Upcoming launches, review momentum, and multi-platform tracking—all in one place.
           </p>
-
-          {/* Hero Stats Cards */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-lg border border-zinc-200 bg-gradient-to-br from-sky-50 to-blue-50 p-4 dark:border-zinc-800 dark:from-sky-950/30 dark:to-blue-950/30">
-              <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">100%</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Verified Release Windows</p>
-            </div>
-            <div className="rounded-lg border border-zinc-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 dark:border-zinc-800 dark:from-amber-950/30 dark:to-orange-950/30">
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">Live</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Review Momentum Tracking</p>
-            </div>
-            <div className="rounded-lg border border-zinc-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 dark:border-zinc-800 dark:from-emerald-950/30 dark:to-teal-950/30">
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">4</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Major Platforms</p>
-            </div>
-          </div>
         </section>
 
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
