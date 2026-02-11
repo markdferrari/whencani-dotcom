@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/markdferrari/whencani-dotcom/compare/v1.0.2...v1.1.0) (2026-02-11)
+
+
+### Bug Fixes
+
+* misc ui issues ([#9](https://github.com/markdferrari/whencani-dotcom/issues/9)) ([4d0e100](https://github.com/markdferrari/whencani-dotcom/commit/4d0e10051034da2a2dc132cd9cf785c81641d2ab))
+
+
+### Features
+
+* improved caching ([#10](https://github.com/markdferrari/whencani-dotcom/issues/10)) ([04fb860](https://github.com/markdferrari/whencani-dotcom/commit/04fb86033db8adc1f1bfb39db2105563d1fbd4d7))
+
 ## [1.0.2](https://github.com/markdferrari/whencani-dotcom/compare/v1.0.1...v1.0.2) (2026-02-11)
 
 
