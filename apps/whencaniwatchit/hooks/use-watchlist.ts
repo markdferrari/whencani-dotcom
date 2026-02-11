@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TMDBMovie } from '@/lib/tmdb';
 import { WATCHLIST_COOKIE_NAME, parseWatchlistCookie } from '@/lib/watchlist';
-import { useToast } from '@/components/ui/ToastProvider';
+import { useToast } from '@whencani/ui';
 
 const WATCHLIST_EVENT_NAME = 'watchlist:update';
 
