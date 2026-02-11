@@ -183,9 +183,17 @@ async function getAccessToken(): Promise<string> {
 /**
  * Make a request to the IGDB API
  */
-async function igdbRequest<T>(endpoint: string, body: string): Promise<T> {
+async function igdbRequest<T>(endpoint: string, body: string, options?: { cache?: RequestCache | number }): Promise<T> {
   const token = await getAccessToken();
   const clientId = config.igdb.clientId;
+
+  // Handle cache options: if a number is provided, use it as revalidate time; otherwise use the cache strategy
+  const cacheConfig =
+    typeof options?.cache === 'number'
+      ? { next: { revalidate: options.cache } }
+      : options?.cache
+        ? { cache: options.cache }
+        : { next: { revalidate: 172800 } }; // Default: Cache for 48 hours
 
   const response = await fetch(`${config.igdb.baseUrl}/${endpoint}`, {
     method: 'POST',
@@ -195,7 +203,7 @@ async function igdbRequest<T>(endpoint: string, body: string): Promise<T> {
       'Content-Type': 'text/plain',
     },
     body,
-    next: { revalidate: 172800 }, // Cache for 48 hours
+    ...cacheConfig,
   });
 
   if (!response.ok) {
@@ -489,7 +497,7 @@ export async function searchGameByName(name: string): Promise<IGDBGame | null> {
 }
 
 /**
- * Fetch similar games by ID without caching
+ * Fetch similar games by ID with short cache duration
  */
 export async function getSimilarGamesById(id: number): Promise<IGDBGame['similar_games']> {
   const query = `
@@ -500,6 +508,7 @@ export async function getSimilarGamesById(id: number): Promise<IGDBGame['similar
   const results = await igdbRequest<Array<{ similar_games?: IGDBGame['similar_games'] }>>(
     'games',
     query,
+    { cache: 3600 }, // Cache for 1 hour instead of 48 hours
   );
   if (results.length === 0) return [];
 
