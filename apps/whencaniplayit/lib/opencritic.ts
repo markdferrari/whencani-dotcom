@@ -8,7 +8,7 @@ const OPENCRITIC_RATE_LIMIT_PER_SECOND = 4;
 const OPENCRITIC_MIN_INTERVAL_MS = Math.ceil(1000 / OPENCRITIC_RATE_LIMIT_PER_SECOND);
 
 type NextFetchRequestInit = RequestInit & {
-  next?: { revalidate?: number };
+  next?: { revalidate?: number; tags?: string[] };
 };
 
 const sleep = async (ms: number) => {
@@ -242,7 +242,7 @@ export async function getOpenCriticGameDetails(
   }
 
   const cacheKey = `opencritic:game:${openCriticId}`;
-  const cacheTtlMs = 60 * 60 * 1000;
+  const cacheTtlMs = 48 * 60 * 60 * 1000; // 48 hours
 
   const data = await getCachedOrCreate<unknown>(cacheKey, cacheTtlMs, async () => {
     const response = await openCriticFetch(`${OPENCRITIC_BASE_URL}/game/${openCriticId}`, {
@@ -250,7 +250,10 @@ export async function getOpenCriticGameDetails(
         'X-RapidAPI-Key': rapidApiKey,
         'X-RapidAPI-Host': 'opencritic-api.p.rapidapi.com',
       },
-      next: { revalidate: 60 * 60 },
+      next: {
+        revalidate: 48 * 60 * 60, // 48 hours
+        tags: [`opencritic-game-${openCriticId}`, 'opencritic-games', 'opencritic']
+      },
     });
 
     if (!response.ok) {
@@ -349,7 +352,10 @@ export async function getReviewedThisWeek(
             'X-RapidAPI-Key': rapidApiKey,
             'X-RapidAPI-Host': 'opencritic-api.p.rapidapi.com',
           },
-          next: { revalidate: 60 * 60 * 24 * 7 },
+          next: {
+            revalidate: 60 * 60 * 24 * 7, // 7 days
+            tags: ['opencritic-reviewed-this-week', 'opencritic-games', 'opencritic']
+          },
         }
       );
 
@@ -396,7 +402,10 @@ export async function getRecentlyReleased(
             'X-RapidAPI-Key': rapidApiKey,
             'X-RapidAPI-Host': 'opencritic-api.p.rapidapi.com',
           },
-          next: { revalidate: 60 * 60 * 24 * 7 },
+          next: {
+            revalidate: 60 * 60 * 24 * 7, // 7 days
+            tags: ['opencritic-recently-released', 'opencritic-games', 'opencritic']
+          },
         }
       );
 
