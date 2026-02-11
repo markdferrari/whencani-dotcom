@@ -18,6 +18,14 @@ export default $config({
     const certificateArn = "arn:aws:acm:us-east-1:632700996244:certificate/15b3fa06-9db9-440e-8164-f8cd8b910efc"
     const zoneId = "Z01083643VX0XZEEC21MK"
 
+    // Define secrets using SST Secret resource
+    // These are stored securely in AWS SSM Parameter Store
+    // Set them with: sst secret set IGDB_CLIENT_ID <value>
+    const igdbClientId = new sst.Secret("IgdbClientId");
+    const igdbClientSecret = new sst.Secret("IgdbClientSecret");
+    const rapidApiKey = new sst.Secret("RapidApiKey");
+    const revalidateSecret = new sst.Secret("RevalidateSecret");
+
     const site = new sst.aws.Nextjs("WhenCanPlayIt", {
       server: {
         runtime: 'nodejs22.x',
@@ -32,10 +40,12 @@ export default $config({
         cert: certificateArn,
       },
       environment: {
-        IGDB_CLIENT_ID: process.env.IGDB_CLIENT_ID!,
-        IGDB_CLIENT_SECRET: process.env.IGDB_CLIENT_SECRET!,
-        RAPID_API_KEY: process.env.RAPID_API_KEY!,
+        IGDB_CLIENT_ID: igdbClientId.value,
+        IGDB_CLIENT_SECRET: igdbClientSecret.value,
+        RAPID_API_KEY: rapidApiKey.value,
+        REVALIDATE_SECRET: revalidateSecret.value,
       },
+      link: [igdbClientId, igdbClientSecret, rapidApiKey, revalidateSecret],
       transform: {
         cdn: (args) => {
           // Add cache policy for API routes

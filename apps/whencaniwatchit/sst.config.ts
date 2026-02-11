@@ -20,6 +20,11 @@ export default $config({
       "arn:aws:acm:us-east-1:632700996244:certificate/d3deeb5a-33dc-4b3b-8f82-4598dad5220b";
     const zoneId = process.env.ROUTE53_ZONE_ID ?? "Z02296993P8NWPQQZY8WO";
 
+    // Define secrets using SST Secret resource
+    // These are stored securely in AWS SSM Parameter Store
+    // Set them with: sst secret set TMDB_API_KEY <value>
+    const tmdbApiKey = new sst.Secret("TmdbApiKey");
+
     const site = new sst.aws.Nextjs("WhenCanIWatchIt", {
       server: {
         runtime: 'nodejs22.x',
@@ -34,8 +39,9 @@ export default $config({
         cert: certificateArn,
       },
       environment: {
-        TMDB_API_KEY: process.env.TMDB_API_KEY!,
+        TMDB_API_KEY: tmdbApiKey.value,
       },
+      link: [tmdbApiKey],
       transform: {
         cdn: (args) => {
           // Add cache policy for API routes

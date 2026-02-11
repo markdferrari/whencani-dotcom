@@ -35,16 +35,24 @@ yarn build
 
 ## Environment Variables
 
-Required environment variables:
+**Quick Setup:**
 
 ```bash
-IGDB_CLIENT_ID=your-igdb-client-id
-IGDB_CLIENT_SECRET=your-igdb-client-secret
-RAPID_API_KEY=your-rapidapi-key
-REVALIDATE_SECRET=your-revalidation-secret
+# 1. Local development - copy and edit .env.local
+cp .env.example .env.local
+nano .env.local
+
+# 2. Production - set SST secrets (one-time)
+yarn sst secret set IgdbClientId "your-value"
+yarn sst secret set IgdbClientSecret "your-value"
+yarn sst secret set RapidApiKey "your-value"
+yarn sst secret set RevalidateSecret "your-value"
+
+# Or use the interactive setup script from repo root
+../../scripts/setup-secrets.sh
 ```
 
-See [.env.example](.env.example) for details.
+**Full documentation:** See [ENVIRONMENT_VARIABLES.md](../../ENVIRONMENT_VARIABLES.md) in the repository root.
 
 ## Architecture
 
