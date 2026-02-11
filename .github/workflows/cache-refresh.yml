@@ -1,0 +1,33 @@
+name: Weekly Cache Refresh
+
+on:
+  schedule:
+    # Every Thursday at 12:00 PM UTC (when OpenCritic updates weekly reviews)
+    - cron: '30 12 * * 4'
+  workflow_dispatch: # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  refresh-cache:
+    name: Refresh OpenCritic Cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Refresh "Reviewed This Week" cache
+        run: |
+          curl -X POST https://whencaniplayit.com/api/revalidate \
+            -H "Content-Type: application/json" \
+            -H "x-revalidate-secret: ${{ secrets.REVALIDATE_SECRET }}" \
+            -d '{"tags": ["opencritic-reviewed-this-week", "opencritic-recently-released"]}' \
+            --fail-with-body \
+            --show-error \
+            --silent
+
+      - name: Check response
+        if: success()
+        run: echo "✅ Cache refresh completed successfully"
+
+      - name: Failed to refresh
+        if: failure()
+        run: |
+          echo "❌ Cache refresh failed. Check the REVALIDATE_SECRET secret is set correctly."
+          exit 1
