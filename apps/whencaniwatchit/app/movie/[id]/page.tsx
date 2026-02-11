@@ -6,6 +6,7 @@ import {
   getBackdropUrl,
   getMovieCredits,
   getMovieDetails,
+  getMovieImages,
   getMovieVideos,
   getPersonExternalIds,
   getPosterUrl,
@@ -84,10 +85,11 @@ export async function generateMetadata(
 export default async function MoviePage({ params }: MoviePageProps) {
   const { id } = await params;
 
-  const [movie, credits, videos] = await Promise.all([
+  const [movie, credits, videos, images] = await Promise.all([
     getMovieDetails(id),
     getMovieCredits(id),
     getMovieVideos(id),
+    getMovieImages(id),
   ]);
 
   const posterUrl = getPosterUrl(movie.poster_path, "w342");
@@ -128,6 +130,14 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const trailerEmbedUrl = trailerVideo
     ? `https://www.youtube.com/embed/${trailerVideo.key}?rel=0&modestbranding=1`
     : null;
+
+  // Get backdrop images for screenshots, sorted by vote average, limit to 5
+  const screenshotUrls = images.backdrops
+    .sort((a, b) => b.vote_average - a.vote_average)
+    .slice(0, 5)
+    .map((img) => getBackdropUrl(img.file_path, "w1280"))
+    .filter((url): url is string => url !== null);
+
   const director = credits.crew.find((member) => member.job === "Director")?.name;
   const producers = credits.crew
     .filter((member) => member.job === "Producer")
@@ -255,10 +265,10 @@ export default async function MoviePage({ params }: MoviePageProps) {
         </DetailHeroCard>
 
         {/* Trailer / Media carousel */}
-        {trailerEmbedUrl && (
+        {(trailerEmbedUrl || screenshotUrls.length > 0) && (
           <MediaCarouselCombined
             trailerEmbedUrl={trailerEmbedUrl}
-            screenshots={[]}
+            screenshots={screenshotUrls}
             title={movie.title}
             unoptimized
             className="mt-6"

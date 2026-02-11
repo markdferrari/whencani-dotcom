@@ -110,7 +110,7 @@ export default async function Home({ searchParams }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-10 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl flex flex-col gap-10">
         <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-500">
             Tracking all the upcoming releases so you don&apos;t have to

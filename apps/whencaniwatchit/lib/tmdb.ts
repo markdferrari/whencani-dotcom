@@ -87,6 +87,23 @@ export type TMDBVideo = {
   published_at?: string;
 };
 
+export type TMDBImage = {
+  aspect_ratio: number;
+  height: number;
+  iso_639_1: string | null;
+  file_path: string;
+  vote_average: number;
+  vote_count: number;
+  width: number;
+};
+
+export type TMDBImagesResponse = {
+  id: number;
+  backdrops: TMDBImage[];
+  posters: TMDBImage[];
+  logos: TMDBImage[];
+};
+
 type TMDBPersonExternalIds = {
   imdb_id: string | null;
 };
@@ -352,4 +369,8 @@ export const getPersonExternalIds = async (personId: number) => {
 
 export const getMovieVideos = async (id: string) => {
   return tmdbFetch<{ results: TMDBVideo[] }>(`/movie/${id}/videos`);
+};
+
+export const getMovieImages = async (id: string) => {
+  return tmdbFetch<TMDBImagesResponse>(`/movie/${id}/images`, { include_image_language: "en,null" });
 };
