@@ -12,4 +12,6 @@ updates:
         patterns:
           - "*"
         update-types:
-          - "all"
+          - "major"
+          - "minor"
+          - "patch"
