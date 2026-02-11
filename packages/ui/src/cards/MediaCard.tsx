@@ -89,7 +89,8 @@ export function MediaCard({
       </div>
 
       {(rating !== undefined || ratingCount !== undefined) && (
-        <div className="ml-4 flex-shrink-0 text-right text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+        // hide rating/votes on small screens to avoid truncating titles
+        <div className="hidden sm:flex ml-4 flex-shrink-0 flex-col items-end text-right text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
           {rating !== undefined && <div>{rating.toFixed(1)} / 10</div>}
           {ratingCount !== undefined && (
             <div className="text-[0.65rem] text-zinc-400 dark:text-zinc-500">{ratingCount} votes</div>

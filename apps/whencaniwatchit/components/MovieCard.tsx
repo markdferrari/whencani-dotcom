@@ -9,9 +9,10 @@ type MovieCardProps = {
   movie: TMDBMovie;
   genres?: TMDBGenre[];
   size?: "md" | "sm";
+  hideRating?: boolean;
 };
 
-export function MovieCard({ movie, genres = [], size = "md" }: MovieCardProps) {
+export function MovieCard({ movie, genres = [], size = "md", hideRating = false }: MovieCardProps) {
   const posterUrl = getPosterUrl(movie.poster_path, size === "md" ? "w342" : "w300");
   const summary = movie.overview
     ? movie.overview.length > 110
@@ -30,8 +31,8 @@ export function MovieCard({ movie, genres = [], size = "md" }: MovieCardProps) {
       releaseDate={formatReleaseDate(movie.release_date)}
       summary={summary}
       genres={genreNames}
-      rating={movie.vote_average}
-      ratingCount={movie.vote_count}
+      rating={hideRating ? undefined : movie.vote_average}
+      ratingCount={hideRating ? undefined : movie.vote_count}
       watchlistToggle={<WatchlistToggle movieId={movie.id} />}
       size={size}
     />

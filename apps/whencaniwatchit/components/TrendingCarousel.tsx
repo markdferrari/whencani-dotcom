@@ -20,32 +20,8 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
     containScroll: "trimSnaps",
   });
 
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-  const holdIntervalRef = useRef<number | null>(null);
-
-  const stopHoldScroll = useCallback(() => {
-    if (holdIntervalRef.current === null) return;
-    window.clearInterval(holdIntervalRef.current);
-    holdIntervalRef.current = null;
-  }, []);
-
-  const startHoldScroll = useCallback(
-    (direction: "prev" | "next") => {
-      if (!emblaApi) return;
-      stopHoldScroll();
-
-      const tick = () => {
-        if (direction === "next") emblaApi.scrollNext();
-        else emblaApi.scrollPrev();
-      };
-
-      // Do one immediately, then keep stepping while pressed.
-      tick();
-      holdIntervalRef.current = window.setInterval(tick, 140);
-    },
-    [emblaApi, stopHoldScroll],
-  );
+    const [canScrollPrev, setCanScrollPrev] = useState(false);
+    const [canScrollNext, setCanScrollNext] = useState(false);
 
   const updateScrollButtons = useCallback(() => {
     if (!emblaApi) return;
@@ -81,9 +57,8 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
       emblaApi.off("select", updateScrollButtons);
       emblaApi.off("reInit", updateScrollButtons);
       container.removeEventListener("wheel", handleWheel);
-      stopHoldScroll();
     };
-  }, [emblaApi, stopHoldScroll, updateScrollButtons]);
+  }, [emblaApi, updateScrollButtons]);
 
   if (movies.length === 0) {
     return null;
@@ -152,10 +127,11 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
           type="button"
           aria-label="Scroll left"
           disabled={!canScrollPrev}
-          onClick={() => emblaApi?.scrollPrev()}
-          onMouseDown={() => startHoldScroll("prev")}
-          onMouseUp={stopHoldScroll}
-          onMouseLeave={stopHoldScroll}
+          onClick={() => {
+            if (!emblaApi) return;
+            const idx = emblaApi.selectedScrollSnap();
+            emblaApi.scrollTo(Math.max(0, idx - 1));
+          }}
           className="hidden lg:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-zinc-200/70 bg-white/90 text-zinc-700 shadow-sm opacity-0 transition group-hover:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed hover:border-sky-500 hover:text-sky-500 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -165,10 +141,11 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
           type="button"
           aria-label="Scroll right"
           disabled={!canScrollNext}
-          onClick={() => emblaApi?.scrollNext()}
-          onMouseDown={() => startHoldScroll("next")}
-          onMouseUp={stopHoldScroll}
-          onMouseLeave={stopHoldScroll}
+          onClick={() => {
+            if (!emblaApi) return;
+            const idx = emblaApi.selectedScrollSnap();
+            emblaApi.scrollTo(idx + 1);
+          }}
           className="hidden lg:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-zinc-200/70 bg-white/90 text-zinc-700 shadow-sm opacity-0 transition group-hover:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed hover:border-sky-500 hover:text-sky-500 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
         >
           <ChevronRight className="h-5 w-5" />
