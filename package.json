@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:all": "yarn workspace whencaniwatchit dev & yarn workspace whencaniplayit dev",
+    "dev": "yarn workspaces foreach -pA run dev",
     "dev:watch": "yarn workspace whencaniwatchit dev",
     "dev:play": "yarn workspace whencaniplayit dev",
     "build": "yarn workspaces foreach -A run build",

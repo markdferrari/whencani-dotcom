@@ -3,3 +3,10 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 export { Skeleton } from './skeleton';
 export { Badge, badgeVariants, type BadgeProps } from './badge';
 export { ThemeToggle, type ThemeToggleProps } from './theme-toggle';
+export { DetailHeroCard } from './detail-hero-card';
+export { DetailBackLink } from './detail-back-link';
+export { TrailerSection } from './trailer-section';
+export { MediaCarousel } from './media-carousel';
+export { ScreenshotCarousel } from './screenshot-carousel';
+export { Header } from './header';
+export { MediaCarouselCombined } from './media-carousel-combined';
