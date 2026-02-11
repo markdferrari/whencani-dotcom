@@ -32,7 +32,6 @@ jobs:
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator
 
-
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
