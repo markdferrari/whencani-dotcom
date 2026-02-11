@@ -158,10 +158,12 @@ curl -X POST http://localhost:3000/api/revalidate \
 
 ## Monitoring
 
-After revalidation, the next request for that data will:
-1. Miss the cache (as intended)
-2. Make a fresh API call to OpenCritic
-3. Re-cache the fresh data for 48 hours
+After revalidation (using Next.js 16 stale-while-revalidate), the next request for that data will:
+1. **Serve stale content** to the user (fast response)
+2. **Fetch fresh data in the background** (makes OpenCritic API call)
+3. **Subsequent requests** get the fresh, re-cached data
+
+This approach is better for user experience than blocking revalidation, as users always get fast responses.
 
 Monitor your OpenCritic usage after revalidations to ensure you stay under the 200 calls/day limit.
 

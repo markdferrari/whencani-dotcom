@@ -53,8 +53,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Revalidate each tag
+    // Using profile="max" for stale-while-revalidate behavior (Next.js 16+)
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag);
+      revalidateTag(tag, "max");
     }
 
     return NextResponse.json({
