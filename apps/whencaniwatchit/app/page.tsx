@@ -1,13 +1,9 @@
 import { type Metadata, type ResolvingMetadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { WatchlistToggle } from "@/components/WatchlistToggle";
 import { MovieCard } from "@/components/MovieCard";
 import {
-  formatReleaseDate,
   getMovieGenres,
   getNowPlayingMovies,
-  getPosterUrl,
   getTrendingTheatrical,
   getTrendingStreaming,
   getUpcomingMovies,
@@ -19,7 +15,6 @@ import { GenreFilter } from "./GenreFilter";
 import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
 import { buildCanonicalPath } from "@/lib/seo";
 import { MovieItemListSchema } from "@/lib/schema";
-// import { PlatformFilter } from "./PlatformFilter";
 
 interface PageProps {
   searchParams: Promise<{ view?: string; genre?: string; provider?: string }>;
@@ -140,7 +135,7 @@ export default async function Home({ searchParams }: PageProps) {
               </div>
             )}
             {trendingStreamingMovies.length > 0 && (
-              <div className="space-y-2">
+              <div className="hidden lg:block space-y-2">
                 <TrendingCarousel movies={trendingStreamingMovies} title="Trending on streaming" />
               </div>
             )}
@@ -154,7 +149,9 @@ export default async function Home({ searchParams }: PageProps) {
               </div>
             </div>
 
-            <FindShowtimes />
+            <div className="hidden lg:block">
+              <FindShowtimes />
+            </div>
           </aside>
 
           <section className="space-y-6 min-w-0">
@@ -192,9 +189,14 @@ export default async function Home({ searchParams }: PageProps) {
                   <div className="mt-5 space-y-4">
                     {displayedMovies.map((movie) => (
                       <div key={movie.id} className="mx-auto max-w-2xl">
-                        <MovieCard movie={movie} genres={genres} />
+                        <MovieCard movie={movie} genres={genres} hideRating={view === "upcoming"} />
                       </div>
                     ))}
+                  </div>
+
+                  {/* Mobile-only placement: show FindShowtimes below the movie cards on small screens */}
+                  <div className="mt-6 lg:hidden">
+                    <FindShowtimes />
                   </div>
                 </div>
               </>
