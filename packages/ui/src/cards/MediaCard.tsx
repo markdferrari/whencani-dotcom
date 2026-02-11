@@ -11,6 +11,7 @@ export interface MediaCardProps {
   imageUrl?: string;
   imageAlt?: string;
   releaseDate?: string;
+  summary?: string;
   genres?: string[];
   rating?: number;
   ratingCount?: number;
@@ -70,6 +71,10 @@ export function MediaCard({
           </div>
           <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
         </div>
+
+        {summary && (
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 hidden md:block">{summary}</p>
+        )}
 
         {genres && genres.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">

@@ -28,6 +28,7 @@ export function MovieCard({ movie, genres = [], size = "md" }: MovieCardProps) {
       imageUrl={posterUrl || undefined}
       imageAlt={`${movie.title} poster`}
       releaseDate={formatReleaseDate(movie.release_date)}
+      summary={summary}
       genres={genreNames}
       rating={movie.vote_average}
       ratingCount={movie.vote_count}

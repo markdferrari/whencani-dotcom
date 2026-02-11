@@ -47,6 +47,7 @@ export function GameCard({ game, genres, size }: GameCardProps) {
       imageUrl={coverUrl || '/game-placeholder.svg'}
       imageAlt={`${game.name} - Video game cover art`}
       releaseDate={releaseDateHuman}
+      summary={summary}
       genres={genreNames}
       watchlistToggle={<WatchlistToggle gameId={game.id} className="shadow" />}
     />

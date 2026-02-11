@@ -2,6 +2,7 @@ import { type Metadata, type ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { WatchlistToggle } from "@/components/WatchlistToggle";
+import { MovieCard } from "@/components/MovieCard";
 import {
   formatReleaseDate,
   getMovieGenres,
@@ -190,39 +191,9 @@ export default async function Home({ searchParams }: PageProps) {
                   </div>
                   <div className="mt-5 space-y-4">
                     {displayedMovies.map((movie) => (
-                      <Link key={movie.id} href={`/movie/${movie.id}`} className="group block max-w-2xl mx-auto">
-                        <article className="relative grid gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80 sm:grid-cols-[72px_minmax(0,1fr)]">
-                          <div className="absolute right-3 top-3">
-                            <WatchlistToggle movieId={movie.id} className="shadow" />
-                          </div>
-                          <div className="relative aspect-[2/3] w-[72px] overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
-                            {getPosterUrl(movie.poster_path, "w154") ? (
-                              <Image
-                                src={getPosterUrl(movie.poster_path, "w154")!}
-                                alt={`${movie.title} poster`}
-                                fill
-                                className="object-cover"
-                                sizes="72px"
-                              />
-                            ) : (
-                              <div className="flex h-full items-center justify-center text-[0.55rem] uppercase tracking-[0.4em] text-zinc-400">
-                                No
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
-                              {formatReleaseDate(movie.release_date)}
-                            </p>
-                            <h3 className="text-xl font-semibold text-zinc-900 group-hover:text-sky-500 dark:text-zinc-50">
-                              {movie.title}
-                            </h3>
-                            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                              {movie.overview || "Awaited release detail is coming soon."}
-                            </p>
-                          </div>
-                        </article>
-                      </Link>
+                      <div key={movie.id} className="mx-auto max-w-2xl">
+                        <MovieCard movie={movie} genres={genres} />
+                      </div>
                     ))}
                   </div>
                 </div>
