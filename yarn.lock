@@ -3285,7 +3285,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@whencani/ui@workspace:packages/ui"
   dependencies:
+    "@radix-ui/react-dropdown-menu": "npm:^2.1.16"
+    "@radix-ui/react-hover-card": "npm:^1.1.15"
+    "@radix-ui/react-scroll-area": "npm:^1.2.10"
+    "@radix-ui/react-select": "npm:^2.2.6"
     "@radix-ui/react-slot": "npm:^1.2.4"
+    "@radix-ui/react-tabs": "npm:^1.1.13"
+    "@radix-ui/react-tooltip": "npm:^1.2.8"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     class-variance-authority: "npm:^0.7.1"

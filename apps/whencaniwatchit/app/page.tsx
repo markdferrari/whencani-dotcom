@@ -149,8 +149,8 @@ export default async function Home({ searchParams }: PageProps) {
           </aside>
 
           <aside className="space-y-6 min-w-0 lg:order-last">
-            <div className="rounded-2xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-              <div className="mt-4 grid gap-3">
+            <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+              <div className="mt-4 grid gap-4">
                 <GenreFilter genres={genres} currentGenreId={genreId} />
                 {/* <PlatformFilter currentProviderId={providerId} /> */}
               </div>
@@ -193,7 +193,7 @@ export default async function Home({ searchParams }: PageProps) {
                   </div>
                   <div className="mt-5 space-y-4">
                     {displayedMovies.map((movie) => (
-                      <Link key={movie.id} href={`/movie/${movie.id}`} className="group block">
+                      <Link key={movie.id} href={`/movie/${movie.id}`} className="group block max-w-2xl mx-auto">
                         <article className="relative grid gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80 sm:grid-cols-[72px_minmax(0,1fr)]">
                           <div className="absolute right-3 top-3">
                             <WatchlistToggle movieId={movie.id} className="shadow" />

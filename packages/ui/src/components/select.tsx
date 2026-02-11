@@ -2,7 +2,7 @@ import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "../utils/cn"
 
 const Select = SelectPrimitive.Root
 
@@ -132,12 +132,25 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
 export {
   Select,
   SelectGroup,
   SelectValue,
   SelectTrigger,
   SelectContent,
+  SelectLabel,
   SelectItem,
   SelectSeparator,
   SelectScrollUpButton,
