@@ -146,6 +146,16 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     ? formatReleaseBadge(releaseDate)
     : 'TBA';
 
+  // Map platform names to filter IDs
+  const getPlatformId = (platformName: string): string | null => {
+    const name = platformName.toLowerCase();
+    if (name.includes('playstation') || name.includes('ps')) return '1';
+    if (name.includes('xbox')) return '2';
+    if (name.includes('nintendo') || name.includes('switch')) return '5';
+    if (name.includes('pc') || name.includes('windows') || name.includes('linux') || name.includes('mac')) return '6';
+    return null;
+  };
+
   // Get platforms
   const platforms =
     game.release_dates
@@ -222,7 +232,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(videoGameSchema) }}
       />
-      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-6xl">
+      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl">
         <DetailBackLink href="/" />
 
         {/* Hero Card — backdrop, small cover left, details right */}
@@ -245,26 +255,37 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             </div>
           </div>
 
-          {/* Release date — prominent hero badge */}
-          <div className="rounded-2xl border border-sky-200/60 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-900/50 dark:from-sky-950/40 dark:to-cyan-950/30">
-            <p className="mt-1 text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+          {/* Release date */}
+          <div className="flex flex-wrap gap-3">
+            <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">
               {releaseDateHuman}
-            </p>
+            </span>
             {releaseDateBadge !== releaseDateHuman && (
-              <p className="mt-1 text-lg font-bold text-sky-600 dark:text-sky-400">
+              <span className="rounded-full bg-zinc-50 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-sky-600 dark:bg-zinc-900/70 dark:text-sky-400">
                 {releaseDateBadge}
-              </p>
+              </span>
             )}
           </div>
 
           {/* Platform pills */}
           {platforms.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {platforms.slice(0, 5).map((platform) => (
-                <span key={platform} className="rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:bg-zinc-900/70">
-                  {platform}
-                </span>
-              ))}
+              {platforms.slice(0, 5).map((platform) => {
+                const platformId = getPlatformId(platform);
+                return platformId ? (
+                  <Link
+                    key={platform}
+                    href={`/?platform=${platformId}`}
+                    className="rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500 transition hover:bg-sky-500 hover:text-white dark:bg-zinc-900/70 dark:hover:bg-sky-500"
+                  >
+                    {platform}
+                  </Link>
+                ) : (
+                  <span key={platform} className="rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:bg-zinc-900/70">
+                    {platform}
+                  </span>
+                );
+              })}
             </div>
           )}
 
@@ -272,12 +293,13 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           {game.genres && game.genres.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {game.genres.map((genre) => (
-                <span
+                <Link
                   key={genre.id}
-                  className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-800/80 dark:text-zinc-300"
+                  href={`/?genre=${genre.id}`}
+                  className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-400"
                 >
                   {genre.name}
-                </span>
+                </Link>
               ))}
             </div>
           )}
