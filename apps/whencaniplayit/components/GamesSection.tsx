@@ -4,7 +4,7 @@ import { GameCard } from './GameCard';
 import { ViewToggle } from './ViewToggle';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import type { IGDBGame } from '@/lib/igdb';
+import type { IGDBGame, IGDBGenre } from '@/lib/igdb';
 
 interface GamesSectionProps {
   searchParams: { platform?: string; view?: string; genre?: string; studio?: string };
@@ -13,6 +13,7 @@ interface GamesSectionProps {
 export function GamesSection({ searchParams }: GamesSectionProps) {
   const routerSearchParams = useSearchParams();
   const [games, setGames] = useState<IGDBGame[]>([]);
+  const [genres, setGenres] = useState<IGDBGenre[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -38,9 +39,11 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
         if (!response.ok) {
           setError(data.error || 'Failed to fetch games');
           setGames([]);
+          setGenres([]);
         } else {
           setError(null);
           setGames(data.games || []);
+          setGenres(data.genres || []);
         }
       } catch (err) {
         setError('Failed to fetch games');
@@ -67,7 +70,7 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
 
       <div className={`mt-5 space-y-4 ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
         {games.length > 0 ? (
-          games.map((game) => <GameCard key={game.id} game={game} />)
+          games.map((game) => <GameCard key={game.id} game={game} genres={genres} />)
         ) : (
           !error && (
             <div className="rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 p-8 text-center text-sm text-zinc-600 dark:border-zinc-800/70 dark:bg-zinc-900/60 dark:text-zinc-300">

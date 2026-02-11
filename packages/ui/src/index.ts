@@ -6,3 +6,4 @@ export * from './hooks';
 
 // Components
 export * from './components';
+export * from './cards/MediaCard';
