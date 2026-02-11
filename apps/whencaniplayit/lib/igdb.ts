@@ -114,6 +114,7 @@ interface IGDBReleaseDate {
     first_release_date?: number;
     platforms?: Array<{ id: number; name: string }>;
     screenshots?: Array<{ url: string }>;
+    genres?: Array<{ id: number; name: string }>;
   };
 }
 
@@ -257,7 +258,7 @@ export async function getUpcomingPSGames(
   const query = `
     fields date, human, date_format, status, platform.id, platform.name, platform.platform_family, platform.platform_type,
       game.id, game.name, game.summary, game.cover.url, game.first_release_date,
-      game.game_status, game.platforms.name, game.screenshots.url;
+      game.game_status, game.platforms.name, game.screenshots.url, game.genres.name;
     where ${filters.join(' & ')};
     sort date asc;
     limit 150;
@@ -286,6 +287,7 @@ export async function getUpcomingPSGames(
       first_release_date: releaseDate.game.first_release_date,
       platforms: releaseDate.game.platforms,
       screenshots: releaseDate.game.screenshots,
+      genres: releaseDate.game.genres,
       release_dates: [],
     };
 
@@ -392,7 +394,7 @@ export async function getRecentlyReleasedGames(
   const query = `
     fields date, human, date_format, status, platform.id, platform.name, platform.platform_family, platform.platform_type,
       game.id, game.name, game.summary, game.cover.url, game.first_release_date,
-      game.game_status, game.platforms.name, game.screenshots.url;
+      game.game_status, game.platforms.name, game.screenshots.url, game.genres.name;
     where ${filters.join(' & ')};
     sort date desc;
     limit 100;
@@ -415,6 +417,7 @@ export async function getRecentlyReleasedGames(
       first_release_date: releaseDate.game.first_release_date,
       platforms: releaseDate.game.platforms,
       screenshots: releaseDate.game.screenshots,
+      genres: releaseDate.game.genres,
       release_dates: [],
     };
 
@@ -559,7 +562,7 @@ export async function getGamesByIds(ids: number[]): Promise<IGDBGame[]> {
 
   const query = `
     fields id, name, summary, cover.url, first_release_date, platforms.name, screenshots.url,
-      release_dates.human, release_dates.date, release_dates.date_format, release_dates.platform.name, release_dates.platform.id;
+      release_dates.human, release_dates.date, release_dates.date_format, release_dates.platform.name, release_dates.platform.id, genres.name;
     where id = (${normalizedIds.join(',')});
     limit ${normalizedIds.length};
   `;

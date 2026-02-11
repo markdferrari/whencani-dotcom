@@ -29,7 +29,10 @@ export async function GET(request: Request) {
       games = await getUpcomingPSGames(platformFilter, genreId, studioFilterId);
     }
 
-    return NextResponse.json({ games, view });
+    // Also fetch genre metadata so clients can map genre ids to names
+    const genres = await getGameGenres().catch(() => []);
+
+    return NextResponse.json({ games, view, genres });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to fetch games';
     return NextResponse.json({ error: message, games: [], view }, { status: 500 });
