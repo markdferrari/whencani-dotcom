@@ -1,5 +1,5 @@
 export const WATCHLIST_COOKIE_NAME = 'watchlist';
-export const WATCHLIST_MAX_ITEMS = 20;
+export const WATCHLIST_MAX_ITEMS = 100;
 
 export function parseWatchlistCookie(value?: string | null) {
   if (!value) return [];

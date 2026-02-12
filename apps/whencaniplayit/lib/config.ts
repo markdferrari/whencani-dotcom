@@ -21,4 +21,9 @@ export const config = {
     name: 'When Can I Play It',
     url: 'https://whencaniplayit.com',
   },
+  features: {
+    get watchlistImprovements(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_WATCHLIST_IMPROVEMENTS === 'true';
+    },
+  },
 } as const;

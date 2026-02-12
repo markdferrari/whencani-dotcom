@@ -16,6 +16,7 @@ export interface MediaCardProps {
   rating?: number;
   ratingCount?: number;
   watchlistToggle?: ReactNode;
+  badge?: ReactNode;
   size?: "md" | "sm";
 }
 
@@ -31,6 +32,7 @@ export function MediaCard({
   rating,
   ratingCount,
   watchlistToggle,
+  badge,
   size = "md",
 }: MediaCardProps) {
   const imageHeight = size === "md" ? 120 : 88;
@@ -52,6 +54,11 @@ export function MediaCard({
         ) : (
           <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
             No image
+          </div>
+        )}
+        {badge && (
+          <div className="absolute top-2 right-2 z-10">
+            {badge}
           </div>
         )}
       </div>

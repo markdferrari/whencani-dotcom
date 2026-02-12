@@ -1,6 +1,19 @@
 import { WatchlistSection } from '@/components/WatchlistSection';
 
-export default function WatchlistPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function WatchlistPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const idsParam = params.ids;
+  const overrideIds = idsParam
+    ? String(idsParam)
+        .split(',')
+        .map(id => parseInt(id.trim()))
+        .filter(id => !isNaN(id))
+    : undefined;
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
@@ -16,7 +29,7 @@ export default function WatchlistPage() {
           </p>
         </section>
 
-        <WatchlistSection />
+        <WatchlistSection overrideIds={overrideIds} isShared={!!overrideIds} />
       </main>
     </div>
   );
