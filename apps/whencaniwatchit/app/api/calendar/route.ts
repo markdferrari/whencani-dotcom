@@ -23,7 +23,7 @@ export async function GET(req: Request) {
       grouped.get(date)!.push({
         id: movie.id,
         title: movie.title,
-        imageUrl: getPosterUrl(movie.poster_path),
+        imageUrl: getPosterUrl(movie.poster_path, 'w500'),
         href: `/movie/${movie.id}`,
       });
     }

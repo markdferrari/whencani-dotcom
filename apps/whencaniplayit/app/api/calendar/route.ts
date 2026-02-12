@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGamesForDateRange, IGDBPlatformFilter } from '../../../lib/igdb';
+import { getHighResImageUrl } from '../../../lib/utils';
 
 export async function GET(req: Request) {
   try {
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
         grouped.get(date)!.push({
           id: game.id,
           title: game.name,
-          imageUrl: game.cover?.url || null,
+          imageUrl: getHighResImageUrl(game.cover?.url) || null,
           href: `/game/${game.id}`,
         });
       }
