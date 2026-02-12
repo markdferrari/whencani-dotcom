@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { WeeklyReleases, DayDetail, CalendarItem } from '@whencani/ui';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getGameGenres } from '../../lib/igdb';
+import { useState, useEffect } from 'react';
 
 const PLATFORMS = [
   { id: '', name: 'All Platforms' },
@@ -13,7 +14,7 @@ const PLATFORMS = [
   { id: '6', name: 'PC' },
 ];
 
-export default function CalendarPage() {
+function CalendarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -186,5 +187,13 @@ export default function CalendarPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto p-4"><div className="text-center py-20">Loading calendar...</div></div>}>
+      <CalendarContent />
+    </Suspense>
   );
 }
