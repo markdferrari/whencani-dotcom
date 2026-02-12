@@ -641,3 +641,84 @@ export async function getDeveloperStudios(): Promise<IGDBStudio[]> {
     .map(([id, name]) => ({ id, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+export async function getGamesForDateRange(
+  startDate: string,
+  endDate: string,
+  platform?: IGDBPlatformFilter,
+  genreId?: number,
+): Promise<IGDBGame[]> {
+  const platformFilter = normalizePlatformFilter(platform);
+  const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+  const endTimestamp = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
+
+  const platformWhere =
+    platformFilter.type === 'all'
+      ? ''
+      : platformFilter.type === 'family'
+        ? `platform.platform_family = (${platformFilter.id})`
+        : platformFilter.type === 'platform'
+          ? `platform = (${platformFilter.id})`
+          : `platform.platform_type = (${platformFilter.id})`;
+
+  const filters = [
+    `date >= ${startTimestamp}`,
+    `date <= ${endTimestamp}`,
+  ];
+
+  if (platformWhere) {
+    filters.push(platformWhere);
+  }
+
+  if (typeof genreId === 'number') {
+    filters.push(`game.genres = (${genreId})`);
+  }
+
+  const query = `
+    fields date, human, date_format, status, platform.id, platform.name, platform.platform_family, platform.platform_type,
+      game.id, game.name, game.summary, game.cover.url, game.first_release_date,
+      game.game_status, game.platforms.name, game.screenshots.url, game.genres.name;
+    where ${filters.join(' & ')};
+    sort date asc;
+    limit 500;
+  `;
+
+  const releaseDates = await igdbRequest<IGDBReleaseDate[]>('release_dates', query);
+  const gamesById = new Map<number, IGDBGame>();
+
+  for (const releaseDate of releaseDates) {
+    if (!releaseDate.game) continue;
+
+    const existing = gamesById.get(releaseDate.game.id);
+    const game: IGDBGame = existing ?? {
+      id: releaseDate.game.id,
+      name: releaseDate.game.name,
+      summary: releaseDate.game.summary,
+      game_status: releaseDate.game.game_status,
+      cover: releaseDate.game.cover,
+      first_release_date: releaseDate.game.first_release_date,
+      platforms: releaseDate.game.platforms,
+      screenshots: releaseDate.game.screenshots,
+      genres: releaseDate.game.genres,
+      release_dates: [],
+    };
+
+    game.release_dates = game.release_dates ?? [];
+    game.release_dates.push({
+      human: releaseDate.human ?? '',
+      date: releaseDate.date,
+      date_format: releaseDate.date_format,
+      status: releaseDate.status,
+      platform: {
+        id: releaseDate.platform?.id ?? 0,
+        name: releaseDate.platform?.name ?? '',
+        platform_family: releaseDate.platform?.platform_family,
+        platform_type: releaseDate.platform?.platform_type,
+      },
+    });
+
+    gamesById.set(game.id, game);
+  }
+
+  return Array.from(gamesById.values());
+}

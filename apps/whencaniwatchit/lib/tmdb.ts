@@ -374,3 +374,15 @@ export const getMovieVideos = async (id: string) => {
 export const getMovieImages = async (id: string) => {
   return tmdbFetch<TMDBImagesResponse>(`/movie/${id}/images`, { include_image_language: "en,null" });
 };
+
+export const getMoviesForDateRange = async (startDate: string, endDate: string, genreId?: number) => {
+  const params: Record<string, string | number> = {
+    'primary_release_date.gte': startDate,
+    'primary_release_date.lte': endDate,
+    page: 1,
+  };
+  if (genreId) params.with_genres = genreId;
+
+  const data = await tmdbFetch<TMDBListResponse>('/discover/movie', params);
+  return data.results;
+};
