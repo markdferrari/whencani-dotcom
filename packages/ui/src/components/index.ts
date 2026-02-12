@@ -33,3 +33,6 @@ export { MediaCarousel } from './media-carousel';
 export { ScreenshotCarousel } from './screenshot-carousel';
 export { Header } from './header';
 export { MediaCarouselCombined } from './media-carousel-combined';
+export { WeeklyReleases } from './calendar-grid';
+export { DayDetail } from './day-detail';
+export type { CalendarItem } from '../types/calendar';
