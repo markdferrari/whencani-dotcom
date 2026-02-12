@@ -9,6 +9,22 @@ const nextConfig: NextConfig = {
         hostname: 'images.igdb.com',
         pathname: '/igdb/image/upload/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.opencritic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'opencritic-cdn.b-cdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'p3.opencritic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+      },
     ],
   },
   async headers() {

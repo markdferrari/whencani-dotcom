@@ -32,7 +32,13 @@ export async function GET(request: Request) {
     return new Response(`Invalid host: ${target.hostname}`, { status: 400 });
   }
 
-  const upstream = await fetch(target.toString());
+  const upstream = await fetch(target.toString(), {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (compatible; WhencaniBot/1.0; +https://whencaniplayit.com)",
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    },
+  });
 
   if (!upstream.ok) {
     return new Response("Upstream error", { status: upstream.status });

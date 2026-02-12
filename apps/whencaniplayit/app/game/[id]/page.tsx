@@ -242,7 +242,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           posterUrl={coverUrl}
           posterAlt={`${game.name} video game cover art for ${platforms.length > 0 ? platforms.join(', ') : 'PC'}`}
           posterAspect="3/4"
-          posterUnoptimized
           className="mt-6"
         >
           {/* Category label + Watchlist */}
@@ -373,7 +372,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             trailerEmbedUrl={trailerEmbedUrl}
             screenshots={screenshots}
             title={game.name}
-            unoptimized
             className="mt-6"
           />
         )}
@@ -434,7 +432,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px"
-                      unoptimized
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">

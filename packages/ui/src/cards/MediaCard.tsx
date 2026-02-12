@@ -47,7 +47,6 @@ export function MediaCard({
             height={imageHeight}
             className="h-full w-full object-cover"
             priority={false}
-            unoptimized={imageUrl?.startsWith('/api/image')}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">

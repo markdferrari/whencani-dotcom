@@ -59,7 +59,6 @@ export function CarouselCard({
               src={imageUrl}
               alt={alt ?? `${name} cover`}
               fill
-              unoptimized
               className="object-cover"
               sizes="64px"
             />

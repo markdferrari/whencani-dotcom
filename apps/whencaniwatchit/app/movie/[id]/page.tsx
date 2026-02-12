@@ -274,7 +274,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
             trailerEmbedUrl={trailerEmbedUrl}
             screenshots={screenshotUrls}
             title={movie.title}
-            unoptimized
             className="mt-6"
           />
         )}

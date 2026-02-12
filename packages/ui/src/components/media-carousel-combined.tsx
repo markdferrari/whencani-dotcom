@@ -173,7 +173,6 @@ export function MediaCarouselCombined({
               src={trailerThumb}
               alt={`${title} trailer`}
               fill
-              unoptimized
               className="object-cover"
             />
           ) : (
