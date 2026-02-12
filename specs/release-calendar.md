@@ -46,7 +46,7 @@ Reuse the existing filter components:
 
 Filters are applied as query params: `/calendar?platform=1&genre=12`
 
-### "My releases" toggle
+### "My Watchlist" toggle
 
 A toggle to show only watchlisted items on the calendar. Reads from the existing watchlist cookie.
 
@@ -136,13 +136,13 @@ Add a calendar icon link (`CalendarDays` from lucide-react) next to the watchlis
 - Calendar cells are small on mobile — use coloured dots rather than thumbnails
 - Day detail opens as a bottom sheet (not inline) to avoid layout shifts
 - Swipe left/right to change months
-- "My releases" toggle should be prominent and easy to reach
+- "My Watchlist" toggle should be prominent and easy to reach
 
 ## Verification
 
 1. Navigate to `/calendar` — should show current month with release dots
 2. Tap a day with releases — detail panel shows the correct items
 3. Apply platform/genre filter — calendar updates to show filtered releases only
-4. Toggle "My releases" — only watchlisted items appear
+4. Toggle "My Watchlist" — only watchlisted items appear
 5. Navigate to previous/next month — grid and data update correctly
 6. On mobile, verify dots are visible and day detail opens as a sheet

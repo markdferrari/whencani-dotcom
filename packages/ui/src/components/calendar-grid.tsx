@@ -2,15 +2,17 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { CalendarItem } from "../types/calendar";
 
 interface WeeklyReleasesProps {
   releases: Map<string, CalendarItem[]>;
   watchlistIds: number[];
   startDate: Date;
+  onToggleWatchlist?: (itemId: number) => void;
 }
 
-export function WeeklyReleases({ releases, watchlistIds, startDate }: WeeklyReleasesProps) {
+export function WeeklyReleases({ releases, watchlistIds, startDate, onToggleWatchlist }: WeeklyReleasesProps) {
   const [showAll, setShowAll] = useState(false);
 
   const allReleases = useMemo(() => {
@@ -54,7 +56,7 @@ export function WeeklyReleases({ releases, watchlistIds, startDate }: WeeklyRele
       <div className="text-center py-20">
         <div className="text-8xl mb-6">🎬</div>
         <h3 className="text-xl font-medium mb-2 text-zinc-700 dark:text-zinc-300">No releases this week</h3>
-        <p className="text-zinc-500">Check back later for upcoming movie releases</p>
+        <p className="text-zinc-500">Check back later for upcoming releases</p>
       </div>
     );
   }
@@ -63,31 +65,38 @@ export function WeeklyReleases({ releases, watchlistIds, startDate }: WeeklyRele
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {displayedReleases.map(({ item, date, dateObj }, index) => (
-          <Link
-            key={`${date}-${item.id}-${index}`}
-            href={item.href}
-            className="group block"
-          >
-            <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 mb-3 shadow-sm group-hover:shadow-lg transition-shadow duration-200">
-              <img
-                src={item.imageUrl || '/placeholder.png'}
-                alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              {watchlistIds.includes(item.id) && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold shadow-sm">
-                  ★
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-medium text-sm leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.title}</h3>
-              <p className="text-xs text-zinc-500">
-                {formatDate(dateObj)}
-              </p>
-            </div>
-          </Link>
+          <div key={`${date}-${item.id}-${index}`} className="group relative">
+            <Link href={item.href} className="block">
+              <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 mb-3 shadow-sm group-hover:shadow-lg transition-shadow duration-200">
+                <img
+                  src={item.imageUrl || '/placeholder.png'}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-medium text-sm leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.title}</h3>
+                <p className="text-xs text-zinc-500">
+                  {formatDate(dateObj)}
+                </p>
+              </div>
+            </Link>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleWatchlist?.(item.id);
+              }}
+              className={`absolute top-2 right-2 p-1 rounded-full shadow-sm transition-colors z-10 ${
+                watchlistIds.includes(item.id)
+                  ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+                  : 'bg-zinc-700/80 text-zinc-300 hover:bg-zinc-600 hover:text-white'
+              }`}
+            >
+              <Star className={`h-3.5 w-3.5 ${watchlistIds.includes(item.id) ? 'fill-current' : ''}`} />
+            </button>
+          </div>
         ))}
       </div>
 

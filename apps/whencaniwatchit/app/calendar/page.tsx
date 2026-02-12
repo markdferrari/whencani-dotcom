@@ -75,6 +75,33 @@ function CalendarContent() {
     fetchReleases();
   }, [currentWeekStart, searchParams, myReleasesOnly, watchlistIds]);
 
+  const handleToggleWatchlist = async (itemId: number) => {
+    const isInWatchlist = watchlistIds.includes(itemId);
+    const action = isInWatchlist ? 'remove' : 'add';
+
+    try {
+      const response = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          movieId: itemId,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedIds = isInWatchlist
+          ? watchlistIds.filter(id => id !== itemId)
+          : [...watchlistIds, itemId];
+        setWatchlistIds(updatedIds);
+      }
+    } catch (error) {
+      console.error('Failed to update watchlist:', error);
+    }
+  };
+
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const genreValue = e.target.value;
     const params = new URLSearchParams(searchParams.toString());
@@ -111,7 +138,7 @@ function CalendarContent() {
             checked={myReleasesOnly}
             onChange={(e) => setMyReleasesOnly(e.target.checked)}
           />
-          My releases
+          My Watchlist
         </label>
       </div>
       <div className="flex justify-between mb-4">
@@ -148,6 +175,7 @@ function CalendarContent() {
         releases={releases}
         watchlistIds={watchlistIds}
         startDate={currentWeekStart}
+        onToggleWatchlist={handleToggleWatchlist}
       />
     </div>
   );
