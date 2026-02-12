@@ -5,8 +5,7 @@ import { formatReleaseDate } from "@/lib/tmdb";
 import { config } from "@/lib/config";
 import { WatchlistToggle } from "./WatchlistToggle";
 import { useWatchlistIds } from "@/hooks/use-watchlist";
-import { MediaCard, ReleaseBadge } from "@whencani/ui";
-import { isReleasedRecently } from "@whencani/ui/src/utils/watchlist";
+import { MediaCard, ReleaseBadge, isReleasedRecently } from "@whencani/ui";
 
 type MovieCardProps = {
   movie: TMDBMovie;

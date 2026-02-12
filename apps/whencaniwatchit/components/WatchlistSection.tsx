@@ -11,15 +11,13 @@ import {
   WatchlistToolbar,
   ReleaseBadge,
   useToast,
-} from '@whencani/ui';
-import {
   groupByReleaseDate,
   sortItems,
   extractUniqueGenres,
   filterByGenre,
   isReleasedRecently,
   type ReleaseGroup,
-} from '@whencani/ui/src/utils/watchlist';
+} from '@whencani/ui';
 import type { TMDBMovie } from '@/lib/tmdb';
 
 interface WatchlistSectionProps {
