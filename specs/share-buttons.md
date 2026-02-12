@@ -18,11 +18,13 @@ There's no way to share a game or movie page with someone. Users who discover so
 Add a share button next to the existing `WatchlistToggle` in the title area of detail pages.
 
 Current layout:
+
 ```
 Title                          [⭐ Watchlist]
 ```
 
 New layout:
+
 ```
 Title                    [↗ Share] [⭐ Watchlist]
 ```
@@ -37,9 +39,9 @@ Tapping the button calls `navigator.share()` with:
 
 ```typescript
 navigator.share({
-  title: 'GTA VI — WhenCanIPlayIt.com',
-  text: 'GTA VI releases on September 17, 2025. Check it out!',
-  url: 'https://whencaniplayit.com/game/123',
+  title: "GTA VI — WhenCanIPlayIt.com",
+  text: "GTA VI releases on September 17, 2025. Check it out!",
+  url: "https://whencaniplayit.com/game/123",
 });
 ```
 
@@ -51,11 +53,11 @@ Tapping the button copies the URL to the clipboard and shows a toast: "Link copi
 
 ### Share data
 
-| Field | Movies | Games |
-|-------|--------|-------|
-| `title` | `{title} — WhenCanIWatchIt.com` | `{title} — WhenCanIPlayIt.com` |
-| `text` | `{title} releases on {date}. Check it out!` | Same pattern |
-| `url` | `https://whencaniwatchit.com/movie/{id}` | `https://whencaniplayit.com/game/{id}` |
+| Field   | Movies                                      | Games                                  |
+| ------- | ------------------------------------------- | -------------------------------------- |
+| `title` | `{title} — WhenCanIWatchIt.com`             | `{title} — WhenCanIPlayIt.com`         |
+| `text`  | `{title} releases on {date}. Check it out!` | Same pattern                           |
+| `url`   | `https://whencaniwatchit.com/movie/{id}`    | `https://whencaniplayit.com/game/{id}` |
 
 If the release date is TBA, use: `Check out {title} on WhenCanI{Watch/Play}It.com`
 
@@ -65,17 +67,17 @@ If the release date is TBA, use: `Check out {title} on WhenCanI{Watch/Play}It.co
 
 Client component (`"use client"`). Props:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `title` | `string` | The share title |
-| `text` | `string` | The share description |
-| `url` | `string` | The canonical URL to share |
+| Prop        | Type      | Description                 |
+| ----------- | --------- | --------------------------- |
+| `title`     | `string`  | The share title             |
+| `text`      | `string`  | The share description       |
+| `url`       | `string`  | The canonical URL to share  |
 | `className` | `string?` | Optional additional classes |
 
 Implementation:
 
 ```typescript
-const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
+const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
 async function handleShare() {
   if (canShare) {
@@ -83,7 +85,7 @@ async function handleShare() {
       await navigator.share({ title, text, url });
     } catch (err) {
       // User cancelled — do nothing
-      if (err instanceof Error && err.name !== 'AbortError') {
+      if (err instanceof Error && err.name !== "AbortError") {
         fallbackCopy();
       }
     }
@@ -94,7 +96,7 @@ async function handleShare() {
 
 function fallbackCopy() {
   navigator.clipboard.writeText(url);
-  toast({ title: 'Link copied to clipboard' });
+  toast({ title: "Link copied to clipboard" });
 }
 ```
 

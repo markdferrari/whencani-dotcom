@@ -4,6 +4,7 @@ export { Skeleton } from './skeleton';
 export { Badge, badgeVariants, type BadgeProps } from './badge';
 export { ThemeToggle, type ThemeToggleProps } from './theme-toggle';
 export { ToastProvider, useToast, type ToastVariant } from './toast-provider';
+export { ShareButton, type ShareButtonProps } from './share-button';
 export {
   DropdownMenu,
   DropdownMenuTrigger,
