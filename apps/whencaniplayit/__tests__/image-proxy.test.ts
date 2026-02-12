@@ -44,6 +44,13 @@ describe('image proxy route', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toContain('s-maxage=86400');
     expect(response.headers.get('content-type')).toBe('image/jpeg');
+
+    // Verify User-Agent header is sent to upstream
+    const fetchCall = fetchMock.mock.calls[0];
+    const fetchInit = fetchCall[1] as RequestInit | undefined;
+    const headers = fetchInit?.headers as Record<string, string> | undefined;
+    expect(headers?.['User-Agent']).toBeDefined();
+    expect(headers?.['Accept']).toContain('image/');
   });
 
   it('returns cached response for OpenCritic host', async () => {
