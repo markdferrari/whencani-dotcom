@@ -133,3 +133,10 @@
 - Quick-preview modal — tap-and-hold on a card for summary without navigating away
 - Compare view — side-by-side comparison of two games or movies
 - Accessibility audit — screen reader support, keyboard navigation, contrast ratios
+
+### Marketing
+
+## Amazon Affiliate Program
+
+Use their product api to link stuff on all sites
+Use dynamoDB as a store for related products

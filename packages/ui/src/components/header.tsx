@@ -6,9 +6,10 @@ export interface HeaderProps {
   logoSrc: string;
   logoAlt: string;
   logoHref?: string;
+  searchSlot?: React.ReactNode;
 }
 
-export function Header({ logoSrc, logoAlt, logoHref = "/" }: HeaderProps) {
+export function Header({ logoSrc, logoAlt, logoHref = "/", searchSlot }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/70 bg-white/80 backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/80">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -19,6 +20,11 @@ export function Header({ logoSrc, logoAlt, logoHref = "/" }: HeaderProps) {
             className="h-full w-auto"
           />
         </Link>
+        {searchSlot && (
+          <div className="md:flex-1 md:max-w-md">
+            {searchSlot}
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <Link
             href="/calendar"

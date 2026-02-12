@@ -185,6 +185,14 @@ export const getBackdropUrl = (path?: string | null, size = "w780") =>
 export const getProfileUrl = (path?: string | null, size = "w185") =>
   path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null;
 
+export const searchMovies = async (query: string, limit = 10): Promise<TMDBMovie[]> => {
+  if (!query.trim()) return [];
+  const data = await tmdbFetch<TMDBListResponse>('/search/movie', {
+    query: query.trim(),
+  });
+  return data.results.slice(0, limit);
+};
+
 export const getUpcomingMovies = async (limit = 12, genreId?: number, providerId?: number) => {
   const data = await tmdbFetch<TMDBListResponse>("/movie/upcoming", { page: 1 });
   const today = new Date();

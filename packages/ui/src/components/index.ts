@@ -37,3 +37,5 @@ export { MediaCarouselCombined } from './media-carousel-combined';
 export { WeeklyReleases } from './calendar-grid';
 export { DayDetail } from './day-detail';
 export type { CalendarItem } from '../types/calendar';
+export { SearchBar, type SearchBarProps } from './search-bar';
+export type { SearchResult } from '../types/search';
