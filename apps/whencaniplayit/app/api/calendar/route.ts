@@ -25,19 +25,41 @@ export async function GET(req: Request) {
     const games = await getGamesForDateRange(startDate, endDate, platform, genreId);
     const releases: { date: string; items: { id: number; title: string; imageUrl: string | null; href: string }[] }[] = [];
 
-    const grouped = new Map<string, typeof releases[0]['items']>();
+    // Collect unique games with their earliest release date in the range
+    const uniqueGames = new Map<number, { game: typeof games[0], earliestDate: string }>();
+    
     for (const game of games) {
       if (!game.release_dates) continue;
+      
+      // Find the earliest release date for this game within our date range
+      let earliestDate = '';
       for (const rd of game.release_dates) {
         const date = new Date(rd.date * 1000).toISOString().split('T')[0];
-        if (!grouped.has(date)) grouped.set(date, []);
-        grouped.get(date)!.push({
-          id: game.id,
-          title: game.name,
-          imageUrl: getHighResImageUrl(game.cover?.url) || null,
-          href: `/game/${game.id}`,
-        });
+        if (date >= startDate && date <= endDate) {
+          if (!earliestDate || date < earliestDate) {
+            earliestDate = date;
+          }
+        }
       }
+      
+      if (earliestDate) {
+        const existing = uniqueGames.get(game.id);
+        if (!existing || earliestDate < existing.earliestDate) {
+          uniqueGames.set(game.id, { game, earliestDate });
+        }
+      }
+    }
+
+    // Group by date
+    const grouped = new Map<string, typeof releases[0]['items']>();
+    for (const { game, earliestDate } of uniqueGames.values()) {
+      if (!grouped.has(earliestDate)) grouped.set(earliestDate, []);
+      grouped.get(earliestDate)!.push({
+        id: game.id,
+        title: game.name,
+        imageUrl: getHighResImageUrl(game.cover?.url) || null,
+        href: `/game/${game.id}`,
+      });
     }
 
     for (const [date, items] of Array.from(grouped.entries())) {

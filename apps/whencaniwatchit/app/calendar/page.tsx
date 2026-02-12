@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from 'react';
-import { WeeklyReleases, DayDetail, CalendarItem } from '@whencani/ui';
+import { WeeklyReleases, CalendarItem } from '@whencani/ui';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getMovieGenres } from '../../lib/tmdb';
 import { useState, useEffect } from 'react';
@@ -17,7 +17,6 @@ function CalendarContent() {
     return startOfWeek;
   });
   const [releases, setReleases] = useState<Map<string, CalendarItem[]>>(new Map());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [genres, setGenres] = useState<{ id: number; name: string }[]>([]);
   const [myReleasesOnly, setMyReleasesOnly] = useState(false);
@@ -75,16 +74,6 @@ function CalendarContent() {
     }
     fetchReleases();
   }, [currentWeekStart, searchParams, myReleasesOnly, watchlistIds]);
-
-  const handleDayClick = (date: string) => {
-    setSelectedDate(date);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedDate(null);
-  };
-
-  const selectedItems = selectedDate ? releases.get(selectedDate) || [] : [];
 
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const genreValue = e.target.value;
@@ -153,16 +142,8 @@ function CalendarContent() {
       <WeeklyReleases
         releases={releases}
         watchlistIds={watchlistIds}
-        onDayClick={handleDayClick}
         startDate={currentWeekStart}
       />
-      {selectedDate && (
-        <DayDetail
-          date={selectedDate}
-          items={selectedItems}
-          onClose={handleCloseDetail}
-        />
-      )}
     </div>
   );
 }

@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { CalendarItem } from "../types/calendar";
 
 interface WeeklyReleasesProps {
   releases: Map<string, CalendarItem[]>;
   watchlistIds: number[];
-  onDayClick: (date: string) => void;
   startDate: Date;
 }
 
-export function WeeklyReleases({ releases, watchlistIds, onDayClick, startDate }: WeeklyReleasesProps) {
+export function WeeklyReleases({ releases, watchlistIds, startDate }: WeeklyReleasesProps) {
   const [showAll, setShowAll] = useState(false);
 
   const allReleases = useMemo(() => {
@@ -63,10 +63,10 @@ export function WeeklyReleases({ releases, watchlistIds, onDayClick, startDate }
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {displayedReleases.map(({ item, date, dateObj }, index) => (
-          <div
+          <Link
             key={`${date}-${item.id}-${index}`}
-            className="group cursor-pointer"
-            onClick={() => onDayClick(date)}
+            href={item.href}
+            className="group block"
           >
             <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 mb-3 shadow-sm group-hover:shadow-lg transition-shadow duration-200">
               <img
@@ -87,7 +87,7 @@ export function WeeklyReleases({ releases, watchlistIds, onDayClick, startDate }
                 {formatDate(dateObj)}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
