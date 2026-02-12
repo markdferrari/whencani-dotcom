@@ -13,7 +13,8 @@
     "./media-carousel": "./src/components/media-carousel.tsx",
     "./screenshot-carousel": "./src/components/screenshot-carousel.tsx",
     "./media-carousel-combined": "./src/components/media-carousel-combined.tsx",
-    "./header": "./src/components/header.tsx"
+    "./header": "./src/components/header.tsx",
+    "./search-bar": "./src/components/search-bar.tsx"
   },
   "scripts": {
     "build": "echo 'No build required'",

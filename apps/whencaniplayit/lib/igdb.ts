@@ -500,6 +500,22 @@ export async function searchGameByName(name: string): Promise<IGDBGame | null> {
 }
 
 /**
+ * Search for games by name, returning multiple results for user-facing search
+ */
+export async function searchGames(query: string, limit = 10): Promise<IGDBGame[]> {
+  const trimmed = query.trim().replace(/"/g, '');
+  if (!trimmed) return [];
+
+  const igdbQuery = `
+    search "${trimmed}";
+    fields name, cover.url, first_release_date, platforms.name, genres.name;
+    limit ${limit};
+  `;
+
+  return igdbRequest<IGDBGame[]>('games', igdbQuery, { cache: 300 });
+}
+
+/**
  * Fetch similar games by ID with short cache duration
  */
 export async function getSimilarGamesById(id: number): Promise<IGDBGame['similar_games']> {
