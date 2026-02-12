@@ -16,7 +16,6 @@ export default $config({
   },
   async run() {
     const certificateArn = "arn:aws:acm:us-east-1:632700996244:certificate/15b3fa06-9db9-440e-8164-f8cd8b910efc"
-    const zoneId = "Z01083643VX0XZEEC21MK"
 
     const site = new sst.aws.Nextjs("WhenCanPlayIt", {
       server: {
@@ -26,9 +25,6 @@ export default $config({
       domain: {
         name: "www.whencaniplayit.com",
         aliases: ["whencaniplayit.com"],
-        dns: sst.aws.dns({
-          zone: zoneId,
-        }),
         cert: certificateArn,
       },
       environment: {

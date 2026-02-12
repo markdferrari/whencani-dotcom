@@ -18,7 +18,6 @@ export default $config({
     const certificateArn =
       process.env.ACM_CERTIFICATE_ARN ??
       "arn:aws:acm:us-east-1:632700996244:certificate/d3deeb5a-33dc-4b3b-8f82-4598dad5220b";
-    const zoneId = process.env.ROUTE53_ZONE_ID ?? "Z02296993P8NWPQQZY8WO";
 
     const site = new sst.aws.Nextjs("WhenCanIWatchIt", {
       server: {
@@ -28,9 +27,6 @@ export default $config({
       domain: {
         name: "www.whencaniwatchit.com",
         aliases: ["whencaniwatchit.com"],
-        dns: sst.aws.dns({
-          zone: zoneId,
-        }),
         cert: certificateArn,
       },
       environment: {
