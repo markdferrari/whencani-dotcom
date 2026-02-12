@@ -18,6 +18,7 @@ import { buildMovieCanonical } from "@/lib/seo";
 import { MovieSchema, BreadcrumbListSchema } from "@/lib/schema";
 import { DetailBackLink } from "@whencani/ui/detail-back-link";
 import { DetailHeroCard } from "@whencani/ui/detail-hero-card";
+import { ShareButton } from "@whencani/ui";
 import { MediaCarousel } from "@whencani/ui/media-carousel";
 import MediaCarouselCombined from "@whencani/ui/media-carousel-combined";
 
@@ -190,7 +191,14 @@ export default async function MoviePage({ params }: MoviePageProps) {
               <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
                 {movie.title}
               </h1>
-              <WatchlistToggle movieId={Number(id)} className="shadow" />
+              <div className="flex items-center gap-2">
+                <ShareButton
+                  title={`${movie.title} — WhenCanIWatchIt.com`}
+                  text={movie.release_date ? `${movie.title} releases on ${formatReleaseDate(movie.release_date)}. Check it out!` : `Check out ${movie.title} on WhenCanIWatchIt.com`}
+                  url={`https://whencaniwatchit.com/movie/${id}`}
+                />
+                <WatchlistToggle movieId={Number(id)} className="shadow" />
+              </div>
             </div>            
             {movie.tagline && (
               <p className="mt-2 text-sm italic text-zinc-600 dark:text-zinc-300">

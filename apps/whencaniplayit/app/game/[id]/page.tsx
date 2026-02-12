@@ -11,6 +11,7 @@ import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
 import MediaCarouselCombined from '@whencani/ui/media-carousel-combined';
+import { ShareButton } from '@whencani/ui';
 
 const SITE_URL = 'https://whencaniplayit.com';
 
@@ -251,7 +252,14 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
             <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
               {game.name}
             </h1>
-              <WatchlistToggle gameId={game.id} className="shadow" />
+              <div className="flex items-center gap-2">
+                <ShareButton
+                  title={`${game.name} — WhenCanIPlayIt.com`}
+                  text={releaseDateHuman === 'TBA' ? `Check out ${game.name} on WhenCanIPlayIt.com` : `${game.name} releases on ${releaseDateHuman}. Check it out!`}
+                  url={`https://whencaniplayit.com/game/${id}`}
+                />
+                <WatchlistToggle gameId={game.id} className="shadow" />
+              </div>
             </div>
           </div>
 
