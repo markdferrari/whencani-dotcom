@@ -148,9 +148,14 @@ function CalendarContent() {
         >
           Previous Week
         </button>
-        <h2 className="text-lg font-semibold">
-          {currentWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-        </h2>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold">
+            {currentWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </h2>
+          <p className="text-sm text-zinc-500">
+            {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {(new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: currentWeekStart.getFullYear() !== (new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000)).getFullYear() ? 'numeric' : undefined })}
+          </p>
+        </div>
         <button
           onClick={() => {
             const nextWeek = new Date(currentWeekStart);
