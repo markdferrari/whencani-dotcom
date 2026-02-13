@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MediaCarousel } from "@whencani/ui/media-carousel";
+import useEmblaCarousel from "embla-carousel-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { MediaCard } from "@whencani/ui";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
@@ -53,17 +55,101 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
   return <div className="group block">{card}</div>;
 }
 
+function CarouselWrapper({ label, subtitle, children }: { label: string; subtitle?: string; children: React.ReactNode }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    dragFree: true,
+    containScroll: "trimSnaps",
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const updateScrollButtons = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    updateScrollButtons();
+    emblaApi.on("select", updateScrollButtons);
+    emblaApi.on("reInit", updateScrollButtons);
+    return () => {
+      emblaApi.off("select", updateScrollButtons);
+      emblaApi.off("reInit", updateScrollButtons);
+    };
+  }, [emblaApi, updateScrollButtons]);
+
+  return (
+    <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+            {label}
+          </p>
+          {subtitle && (
+            <p className="text-sm text-zinc-500">{subtitle}</p>
+          )}
+        </div>
+        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+          Live
+        </span>
+      </div>
+      <div className="relative mt-5 group">
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex gap-4">
+            {children}
+          </div>
+        </div>
+
+        {/* Desktop hover controls (mobile swipe stays unchanged) */}
+        <button
+          type="button"
+          aria-label="Scroll left"
+          disabled={!canScrollPrev}
+          onClick={() => {
+            if (!emblaApi) return;
+            const idx = emblaApi.selectedScrollSnap();
+            emblaApi.scrollTo(Math.max(0, idx - 1));
+          }}
+          className="hidden lg:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-zinc-200/70 bg-white/90 text-zinc-700 shadow-sm opacity-0 transition group-hover:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed hover:border-sky-500 hover:text-sky-500 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          aria-label="Scroll right"
+          disabled={!canScrollNext}
+          onClick={() => {
+            if (!emblaApi) return;
+            const idx = emblaApi.selectedScrollSnap();
+            emblaApi.scrollTo(idx + 1);
+          }}
+          className="hidden lg:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full border border-zinc-200/70 bg-white/90 text-zinc-700 shadow-sm opacity-0 transition group-hover:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed hover:border-sky-500 hover:text-sky-500 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function NYTCarousel({ list }: NYTCarouselProps) {
   const displayName =
     list.displayName === 'Combined Print & E-Book Fiction' ? 'Trending Fiction' :
     list.displayName === 'Combined Print & E-Book Nonfiction' ? 'Trending Nonfiction' :
     list.displayName;
+
   return (
-    <MediaCarousel label={displayName} subtitle={`Updated ${list.publishedDate}`}>
+    <CarouselWrapper label={displayName} subtitle={`Updated ${list.publishedDate}`}>
       {list.books.map((book) => (
-        <NYTBookCard key={book.isbn13 || book.title} book={book} />
+        <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+          <NYTBookCard book={book} />
+        </div>
       ))}
-    </MediaCarousel>
+    </CarouselWrapper>
   );
 }
 
@@ -103,18 +189,22 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
   return (
     <div className="space-y-6">
       {fictionList && fictionList.books.length > 0 && (
-        <MediaCarousel label="Trending Fiction" slideBasis="flex-[0_0_100%]">
+        <CarouselWrapper label="Trending Fiction" subtitle={`Updated ${fictionList.publishedDate}`}>
           {fictionList.books.slice(0, 8).map((book) => (
-            <NYTBookCard key={book.isbn13 || book.title} book={book} />
+            <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+              <NYTBookCard book={book} />
+            </div>
           ))}
-        </MediaCarousel>
+        </CarouselWrapper>
       )}
       {nonfictionList && nonfictionList.books.length > 0 && (
-        <MediaCarousel label="Trending Nonfiction" slideBasis="flex-[0_0_100%]">
+        <CarouselWrapper label="Trending Nonfiction" subtitle={`Updated ${nonfictionList.publishedDate}`}>
           {nonfictionList.books.slice(0, 8).map((book) => (
-            <NYTBookCard key={book.isbn13 || book.title} book={book} />
+            <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+              <NYTBookCard book={book} />
+            </div>
           ))}
-        </MediaCarousel>
+        </CarouselWrapper>
       )}
     </div>
   );
