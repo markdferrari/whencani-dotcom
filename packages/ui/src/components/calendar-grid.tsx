@@ -7,9 +7,9 @@ import { CalendarItem } from "../types/calendar";
 
 interface WeeklyReleasesProps {
   releases: Map<string, CalendarItem[]>;
-  watchlistIds: number[];
+  watchlistIds: Array<number | string>;
   startDate: Date;
-  onToggleWatchlist?: (itemId: number) => void;
+  onToggleWatchlist?: (itemId: number | string) => void;
 }
 
 export function WeeklyReleases({ releases, watchlistIds, startDate, onToggleWatchlist }: WeeklyReleasesProps) {

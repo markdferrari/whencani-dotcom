@@ -26,6 +26,7 @@ export default $config({
         name: "www.whencaniplayit.com",
         aliases: ["whencaniplayit.com"],
         cert: certificateArn,
+        dns: false
       },
       environment: {
         IGDB_CLIENT_ID: process.env.IGDB_CLIENT_ID!,
@@ -34,10 +35,7 @@ export default $config({
       },
       transform: {
         cdn: (args) => {
-          // Add cache policy for API routes
-          args.orderedCacheBehavior = [
-            ...(args.orderedCacheBehavior ?? []),
-            // OpenCritic API routes - cache aggressively (48 hours)
+          args.orderedCacheBehaviors = [            // OpenCritic API routes - cache aggressively (48 hours)
             {
               pathPattern: "/api/opencritic/*",
               targetOriginId: args.defaultCacheBehavior.targetOriginId,

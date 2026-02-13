@@ -14,45 +14,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://whencaniplayit.com";
-const SITE_NAME = "WhenCanIPlayIt.com";
+const SITE_URL = "https://whencanireadit.com";
+const SITE_NAME = "WhenCanIReadIt.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "WhenCanIPlayIt.com - Video Game Release Tracker",
-    template: "%s | WhenCanIPlayIt.com",
+    default: "WhenCanIReadIt.com - Book Release Tracker",
+    template: "%s | WhenCanIReadIt.com",
   },
   description:
-    "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+    "Track upcoming book releases, bestsellers, and new titles. Browse by genre, save to your bookshelf, and never miss a release.",
   keywords: [
-    "video game releases",
-    "game release tracker",
-    "upcoming games",
-    "recent releases",
-    "game review momentum",
-    "PlayStation releases",
-    "Xbox releases",
-    "Nintendo releases",
-    "PC game releases",
+    "book releases",
+    "book release tracker",
+    "upcoming books",
+    "new books",
+    "NYT bestsellers",
+    "book release dates",
+    "new fiction",
+    "new non-fiction",
   ],
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
-    title: "WhenCanIPlayIt.com",
+    title: "WhenCanIReadIt.com",
     description:
-      "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track upcoming book releases, bestsellers, and new titles. Browse by genre, save to your bookshelf, and never miss a release.",
     url: SITE_URL,
     siteName: SITE_NAME,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WhenCanIPlayIt.com",
+    title: "WhenCanIReadIt.com",
     description:
-      "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track upcoming book releases, bestsellers, and new titles. Browse by genre, save to your bookshelf, and never miss a release.",
   },
 };
 
@@ -73,16 +72,16 @@ export default function RootLayout({
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <a href="https://www.whencaniwatchit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
-                  Like Movies? - Visit WhenCanIWatchIt.com →
+                  Like Movies? Visit WhenCanIWatchIt.com &rarr;
                 </a>
               </div>
               <div>
-                <a href="https://www.whencanireadit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
-                  Like Books? Visit WhenCanIReadIt.com &rarr;
+                <a href="https://www.whencaniplayit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
+                  Like Games? Visit WhenCanIPlayIt.com &rarr;
                 </a>
-              </div>            
-              <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
-                Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a>
+              </div>
+              <div className="sm:text-right text-sm text-zinc-500 dark:text-zinc-400">
+                Data provided by <a href="https://books.google.com/" target="_blank" rel="noopener noreferrer" className="underline">Google Books</a> &amp; <a href="https://developer.nytimes.com/" target="_blank" rel="noopener noreferrer" className="underline">NYT</a>
               </div>
             </div>
           </footer>

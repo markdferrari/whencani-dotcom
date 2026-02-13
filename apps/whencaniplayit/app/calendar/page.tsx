@@ -73,7 +73,10 @@ function CalendarContent() {
       if (myReleasesOnly) {
         const filtered = new Map<string, CalendarItem[]>();
         for (const [date, items] of map) {
-          const filteredItems = items.filter(item => watchlistIds.includes(item.id));
+          const filteredItems = items.filter(item => {
+              const numId = typeof item.id === 'string' ? parseInt(item.id, 10) : item.id;
+              return watchlistIds.includes(numId);
+            });
           if (filteredItems.length > 0) {
             filtered.set(date, filteredItems);
           }
@@ -85,8 +88,9 @@ function CalendarContent() {
     fetchReleases();
   }, [currentWeekStart, searchParams, myReleasesOnly, watchlistIds]);
 
-  const handleToggleWatchlist = async (itemId: number) => {
-    const isInWatchlist = watchlistIds.includes(itemId);
+  const handleToggleWatchlist = async (itemId: number | string) => {
+    const numericId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
+    const isInWatchlist = watchlistIds.includes(numericId);
     const action = isInWatchlist ? 'remove' : 'add';
 
     try {
@@ -97,14 +101,14 @@ function CalendarContent() {
         },
         body: JSON.stringify({
           action,
-          gameId: itemId,
+          gameId: numericId,
         }),
       });
 
       if (response.ok) {
         const updatedIds = isInWatchlist
-          ? watchlistIds.filter(id => id !== itemId)
-          : [...watchlistIds, itemId];
+          ? watchlistIds.filter(id => id !== numericId)
+          : [...watchlistIds, numericId];
         setWatchlistIds(updatedIds);
       }
     } catch (error) {
