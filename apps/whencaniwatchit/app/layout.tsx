@@ -49,16 +49,19 @@ export default function RootLayout({
       >
         <ToastProvider>
           <Header />
-          <div className="flex-1 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_45%)]">
-            {children}
-          </div>
-          <footer className="border-t border-zinc-200/70 bg-white/80 py-6 shadow-inner shadow-white/40 dark:border-zinc-800/80 dark:bg-zinc-950/80">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-2 gap-8">
+          {children}
+          <footer className="border-t border-zinc-200/70 bg-white/80 py-6 dark:border-zinc-800/80 dark:bg-zinc-950/80">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <a href="https://www.whencaniplayit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
                   Like Gaming? Visit WhenCanIPlayIt.com →
                 </a>
               </div>
+              <div>
+                <a href="https://www.whencanireadit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
+                  Like Books? Visit WhenCanIReadIt.com &rarr;
+                </a>
+              </div>              
               <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
                 Data provided by <a href="https://www.tmdb.org" target="_blank" rel="noopener noreferrer" className="underline">TMDB.org</a>
               </div>
