@@ -13,6 +13,7 @@ import {
 import { TrendingCarousel } from "@/components/TrendingCarousel";
 import { GenreFilter } from "./GenreFilter";
 import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
+import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import { buildCanonicalPath } from "@/lib/seo";
 import { MovieItemListSchema } from "@/lib/schema";
 
@@ -118,7 +119,7 @@ export default async function Home({ searchParams }: PageProps) {
       )}
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
         <main className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-10">
-        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
           <h1 className="mt-4 text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Track every movie release that matters to you.
           </h1>
@@ -152,6 +153,7 @@ export default async function Home({ searchParams }: PageProps) {
             <div className="hidden lg:block">
               <FindShowtimes />
             </div>
+            <RecentlyViewedSection />
           </aside>
 
           <section className="space-y-6 min-w-0">

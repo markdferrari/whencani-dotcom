@@ -3,6 +3,7 @@ import { config } from "@/lib/config";
 import { getNewBooks } from "@/lib/google-books";
 import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
 import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
+import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 const SITE_URL = "https://whencanireadit.com";
@@ -78,7 +79,7 @@ export default async function Home() {
           </section>
 
           <aside className="space-y-6 hidden lg:block min-w-0">
-            {/* Right sidebar - could add filters or other content here */}
+            <RecentlyViewedSection />
           </aside>
         </div>
       </main>
