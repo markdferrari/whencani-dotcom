@@ -7,13 +7,81 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatReleaseDate, getPosterUrl, TMDBMovie } from "@/lib/tmdb";
 import { WatchlistToggle } from "./WatchlistToggle";
+import { config } from "@/lib/config";
+import { MediaCarousel } from "@whencani/ui";
 
 type TrendingCarouselProps = {
   movies: TMDBMovie[];
   title: string;
 };
 
-export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
+const ACCENT = {
+  navBorderHover: "hover:border-sky-500",
+  navTextHover: "hover:text-sky-500",
+};
+
+function TrendingCard({ movie }: { movie: TMDBMovie }) {
+  const posterUrl = getPosterUrl(movie.poster_path, "w300");
+  return (
+    <Link
+      href={`/movie/${movie.id}`}
+      className="group block"
+    >
+      <article className="relative rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80">
+        <div className="absolute right-3 top-3 z-10">
+          <WatchlistToggle movieId={movie.id} className="shadow" />
+        </div>
+        <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
+          {posterUrl ? (
+            <Image
+              src={posterUrl}
+              alt={`${movie.title} poster`}
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">
+              No poster
+            </div>
+          )}
+        </div>
+        <p className="text-[0.65rem] uppercase tracking-[0.35em] text-zinc-500">
+          {formatReleaseDate(movie.release_date, { month: "short" })}
+        </p>
+        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-sky-500 dark:text-zinc-50">
+          {movie.title}
+        </h3>
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-zinc-500">
+          {movie.vote_average.toFixed(1)} / 10
+        </p>
+      </article>
+    </Link>
+  );
+}
+
+function TrendingCarouselStandard({ movies, title }: TrendingCarouselProps) {
+  return (
+    <MediaCarousel
+      label={title}
+      slideBasis="flex-[0_0_100%]"
+      showNavigation
+      wheelScroll
+      accentClasses={ACCENT}
+      headerRight={
+        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+          Live
+        </span>
+      }
+    >
+      {movies.map((movie) => (
+        <TrendingCard key={movie.id} movie={movie} />
+      ))}
+    </MediaCarousel>
+  );
+}
+
+function TrendingCarouselLegacy({ movies, title }: TrendingCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     dragFree: true,
@@ -59,10 +127,6 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
       container.removeEventListener("wheel", handleWheel);
     };
   }, [emblaApi, updateScrollButtons]);
-
-  if (movies.length === 0) {
-    return null;
-  }
 
   return (
     <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -155,3 +219,14 @@ export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
   );
 }
 
+export function TrendingCarousel({ movies, title }: TrendingCarouselProps) {
+  if (movies.length === 0) {
+    return null;
+  }
+
+  if (config.features.standardCarousels) {
+    return <TrendingCarouselStandard movies={movies} title={title} />;
+  }
+
+  return <TrendingCarouselLegacy movies={movies} title={title} />;
+}

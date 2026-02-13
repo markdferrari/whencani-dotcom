@@ -5,9 +5,74 @@ import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getRecentlyViewed, clearRecentlyViewed, type RecentlyViewedItem } from "@/lib/recently-viewed";
+import { config } from "@/lib/config";
+import { MediaCarousel } from "@whencani/ui";
 
-export function RecentlyViewedSection() {
-  const [items, setItems] = useState<RecentlyViewedItem[]>([]);
+const ACCENT = {
+  navBorderHover: "hover:border-orange-500",
+  navTextHover: "hover:text-orange-500",
+};
+
+function RecentlyViewedCard({ item }: { item: RecentlyViewedItem }) {
+  return (
+    <Link
+      href={item.href}
+      className="group block"
+    >
+      <article className="relative rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-orange-400 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80">
+        <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={`${item.title} cover`}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              unoptimized
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">
+              No cover
+            </div>
+          )}
+        </div>
+        <p className="text-sm font-semibold text-zinc-900 group-hover:text-orange-500 dark:text-zinc-50">
+          {item.title}
+        </p>
+        {item.releaseDate && (
+          <p className="text-xs text-zinc-500 mt-1">
+            {item.releaseDate}
+          </p>
+        )}
+      </article>
+    </Link>
+  );
+}
+
+function RecentlyViewedStandard({ items, onClear }: { items: RecentlyViewedItem[]; onClear: () => void }) {
+  return (
+    <MediaCarousel
+      label="Recently viewed"
+      slideBasis="flex-[0_0_100%]"
+      showNavigation
+      accentClasses={ACCENT}
+      headerRight={
+        <button
+          onClick={onClear}
+          className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        >
+          Clear
+        </button>
+      }
+    >
+      {items.map((item) => (
+        <RecentlyViewedCard key={item.id} item={item} />
+      ))}
+    </MediaCarousel>
+  );
+}
+
+function RecentlyViewedLegacy({ items, onClear }: { items: RecentlyViewedItem[]; onClear: () => void }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     dragFree: true,
@@ -23,10 +88,6 @@ export function RecentlyViewedSection() {
   }, [emblaApi]);
 
   useEffect(() => {
-    setItems(getRecentlyViewed());
-  }, []);
-
-  useEffect(() => {
     if (!emblaApi) return;
     updateScrollButtons();
     emblaApi.on("select", updateScrollButtons);
@@ -37,10 +98,6 @@ export function RecentlyViewedSection() {
     };
   }, [emblaApi, updateScrollButtons]);
 
-  if (items.length === 0) {
-    return null;
-  }
-
   return (
     <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
       <div className="flex items-center justify-between">
@@ -50,10 +107,7 @@ export function RecentlyViewedSection() {
           </p>
         </div>
         <button
-          onClick={() => {
-            clearRecentlyViewed();
-            setItems([]);
-          }}
+          onClick={onClear}
           className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
           Clear
@@ -99,7 +153,6 @@ export function RecentlyViewedSection() {
           </div>
         </div>
 
-        {/* Desktop hover controls (mobile swipe stays unchanged) */}
         <button
           type="button"
           aria-label="Scroll left"
@@ -130,4 +183,27 @@ export function RecentlyViewedSection() {
       </div>
     </div>
   );
+}
+
+export function RecentlyViewedSection() {
+  const [items, setItems] = useState<RecentlyViewedItem[]>([]);
+
+  useEffect(() => {
+    setItems(getRecentlyViewed());
+  }, []);
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  const handleClear = () => {
+    clearRecentlyViewed();
+    setItems([]);
+  };
+
+  if (config.features.standardCarousels) {
+    return <RecentlyViewedStandard items={items} onClear={handleClear} />;
+  }
+
+  return <RecentlyViewedLegacy items={items} onClear={handleClear} />;
 }

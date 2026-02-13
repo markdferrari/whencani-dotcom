@@ -13,8 +13,18 @@ import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
 import MediaCarouselCombined from '@whencani/ui/media-carousel-combined';
 import { ShareButton } from '@whencani/ui';
+import { config } from '@/lib/config';
 
 const SITE_URL = 'https://whencaniplayit.com';
+
+const AMAZON_AFFILIATE_LINKS: Record<string, string> = {
+  '1': 'https://amzn.to/4kyuwz3', // PlayStation
+  '2': 'https://amzn.to/3MJZ83X', // Xbox
+  '6': 'https://amzn.to/3MmJont', // PC
+  '5': 'https://amzn.to/4ay9CLA', // Nintendo
+};
+
+const AMAZON_AFFILIATE_PRIORITY = ['1', '2', '6', '5'];
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -228,6 +238,16 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
   const developers = involvedCompanies.filter((c) => c.role === 'Developer');
   const publishers = involvedCompanies.filter((c) => c.role === 'Publisher');
 
+  // Determine Amazon affiliate link based on platform priority
+  const platformIds = new Set(
+    platforms.map(getPlatformId).filter((id): id is string => id !== null),
+  );
+  const amazonAffiliateUrl = config.features.amazonAffiliates
+    ? AMAZON_AFFILIATE_PRIORITY.find((id) => platformIds.has(id))
+      ? AMAZON_AFFILIATE_LINKS[AMAZON_AFFILIATE_PRIORITY.find((id) => platformIds.has(id))!]
+      : null
+    : null;
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
       <script
@@ -246,6 +266,16 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           posterAspect="3/4"
           posterUnoptimized
           className="mt-6"
+          posterFooter={amazonAffiliateUrl ? (
+            <a
+              href={amazonAffiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="mt-3 block text-center text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300"
+            >
+              Get it on Amazon
+            </a>
+          ) : undefined}
         >
           {/* Category label + Watchlist */}
           <div>

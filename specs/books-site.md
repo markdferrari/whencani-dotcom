@@ -97,9 +97,7 @@ Generated from ISBN in `lib/buy-links.ts`:
 |---|---|
 | Amazon | `https://www.amazon.com/dp/{isbn}` |
 | Bookshop.org | `https://bookshop.org/p/books/{isbn}` |
-| Barnes & Noble | `https://www.barnesandnoble.com/w/?ean={isbn}` |
-| Google Books | `book.previewLink` (from API response) |
-| Google Play | `book.saleInfo.buyLink` (if available) |
+
 
 Rendered as a horizontal row of pill buttons. Pre-order state highlighted when `saleInfo.saleability === 'FOR_PREORDER'`. Gracefully handles missing ISBN (hide retailer links, show only Google links).
 

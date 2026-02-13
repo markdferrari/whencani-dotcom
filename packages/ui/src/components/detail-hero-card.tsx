@@ -19,6 +19,8 @@ interface DetailHeroCardProps {
   posterUnoptimized?: boolean;
   /** Optional extra class(es) applied to the backdrop image (e.g. "blur-sm scale-110") */
   backdropClassName?: string;
+  /** Optional content rendered below the poster image */
+  posterFooter?: React.ReactNode;
   /** Content rendered in the right column next to the poster */
   children: React.ReactNode;
   className?: string;
@@ -31,6 +33,7 @@ export function DetailHeroCard({
   posterAlt,
   posterAspect = "2/3",
   posterUnoptimized = false,
+  posterFooter,
   backdropClassName,
   children,
   className,
@@ -88,6 +91,7 @@ export function DetailHeroCard({
               </div>
             )}
           </div>
+          {posterFooter}
         </div>
 
         {/* Details slot */}
