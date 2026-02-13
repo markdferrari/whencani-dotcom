@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 export interface MediaCardProps {
   id: string | number;
@@ -35,6 +35,7 @@ export function MediaCard({
   badge,
   size = "md",
 }: MediaCardProps) {
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const imageHeight = size === "md" ? 120 : 88;
   const imageWidth = size === "md" ? 84 : 64;
 
@@ -42,15 +43,17 @@ export function MediaCard({
     <article className="flex items-start gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
       <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: imageWidth, height: imageHeight }}>
         {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={imageAlt || `${title} cover`}
-            width={imageWidth}
-            height={imageHeight}
-            className="h-full w-full object-cover"
-            priority={false}
-            unoptimized={imageUrl.startsWith('/api/image')}
-          />
+          <Link href={href}>
+            <Image
+              src={imageUrl}
+              alt={imageAlt || `${title} cover`}
+              width={imageWidth}
+              height={imageHeight}
+              className="h-full w-full object-cover cursor-pointer"
+              priority={false}
+              unoptimized={imageUrl.startsWith('/api/image')}
+            />
+          </Link>
         ) : (
           <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
             No image
@@ -79,7 +82,23 @@ export function MediaCard({
         </div>
 
         {summary && (
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 hidden md:block">{summary}</p>
+          <div className="mt-2 hidden md:block">
+            <p className={`text-sm text-zinc-600 dark:text-zinc-300 ${!isSummaryExpanded ? 'line-clamp-2' : ''}`}>
+              {summary}
+            </p>
+            {summary.length > 100 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsSummaryExpanded(!isSummaryExpanded);
+                }}
+                className="mt-1 text-xs text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 font-medium"
+              >
+                {isSummaryExpanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
+          </div>
         )}
 
         {genres && genres.length > 0 && (
