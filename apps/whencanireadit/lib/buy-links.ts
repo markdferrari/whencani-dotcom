@@ -24,5 +24,12 @@ export function generateBuyLinks(book: Book): BuyLink[] {
     icon: 'kindle',
   });
 
+  // Always add Audible link
+  links.push({
+    name: 'Try Audible',
+    url: 'https://amzn.to/4cr3qHQ',
+    icon: 'audible',
+  });
+
   return links;
 }

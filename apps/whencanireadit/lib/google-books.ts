@@ -154,16 +154,20 @@ export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
     // Fall through to category-based search
   }
 
-  // Fallback: search by same categories/authors
-  const book = await getBookById(volumeId);
-  if (!book) return [];
+  try {
+    // Fallback: search by same categories/authors
+    const book = await getBookById(volumeId);
+    if (!book) return [];
 
-  const query = book.categories.length > 0
-    ? `subject:${book.categories[0]}`
-    : book.authors.length > 0
-      ? `inauthor:${book.authors[0]}`
-      : book.title;
+    const query = book.categories.length > 0
+      ? `subject:${book.categories[0]}`
+      : book.authors.length > 0
+        ? `inauthor:${book.authors[0]}`
+        : book.title;
 
-  const results = await searchBooks(query, 8);
-  return results.filter((b) => b.id !== volumeId);
+    const results = await searchBooks(query, 8);
+    return results.filter((b) => b.id !== volumeId);
+  } catch {
+    return [];
+  }
 }
