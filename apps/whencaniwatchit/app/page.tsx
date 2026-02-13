@@ -153,6 +153,7 @@ export default async function Home({ searchParams }: PageProps) {
             <div className="hidden lg:block">
               <FindShowtimes />
             </div>
+            <RecentlyViewedSection />
           </aside>
 
           <section className="space-y-6 min-w-0">
@@ -204,7 +205,6 @@ export default async function Home({ searchParams }: PageProps) {
             )}
           </section>
         </div>
-        <RecentlyViewedSection />
       </main>
     </div>
     </>

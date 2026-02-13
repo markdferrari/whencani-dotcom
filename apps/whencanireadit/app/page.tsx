@@ -79,10 +79,9 @@ export default async function Home() {
           </section>
 
           <aside className="space-y-6 hidden lg:block min-w-0">
-            {/* Right sidebar - could add filters or other content here */}
+            <RecentlyViewedSection />
           </aside>
         </div>
-        <RecentlyViewedSection />
       </main>
     </div>
   );

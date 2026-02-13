@@ -171,9 +171,9 @@ export default async function Home({ searchParams }: PageProps) {
                 </Suspense>
               </div>
             </div>
+            <RecentlyViewedSection />
           </aside>
         </div>
-        <RecentlyViewedSection />
       </main>
     </div>
   );

@@ -2,6 +2,10 @@ import { render, screen, within } from '@testing-library/react';
 import type React from 'react';
 import Home from './page';
 
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams('view=upcoming&platform=1'),
+}));
+
 jest.mock('@/lib/igdb', () => ({
   getUpcomingPSGames: jest.fn().mockResolvedValue([]),
   getRecentlyReleasedGames: jest.fn().mockResolvedValue([]),
@@ -40,11 +44,11 @@ describe('Home page', () => {
 
     render(ui);
 
-    expect(screen.getByText('Stay ahead of every big game drop and score update.')).toBeInTheDocument();
+    expect(screen.getByText('Upcoming launches, review momentum, and multi-platform tracking—all in one place.')).toBeInTheDocument();
     expect(screen.getByText('ViewToggle')).toBeInTheDocument();
     expect(screen.getByText('LatestReviewsSection')).toBeInTheDocument();
     expect(screen.getByText('TrendingSection')).toBeInTheDocument();
-    // Filters appears both on mobile and desktop, so use queryAllByText
-    expect(screen.queryAllByText('Filters').length).toBeGreaterThan(0);
+    // PlatformFilter appears both on mobile and desktop, so use queryAllByText
+    expect(screen.queryAllByText('PlatformFilter').length).toBeGreaterThan(0);
   });
 });
