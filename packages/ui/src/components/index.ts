@@ -39,3 +39,5 @@ export { DayDetail } from './day-detail';
 export type { CalendarItem } from '../types/calendar';
 export { SearchBar, type SearchBarProps } from './search-bar';
 export type { SearchResult } from '../types/search';
+export { ReleaseBadge } from './release-badge';
+export { WatchlistToolbar, type WatchlistToolbarProps } from './watchlist-toolbar';

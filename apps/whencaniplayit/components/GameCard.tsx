@@ -1,10 +1,11 @@
-
-
+'use client';
 
 import type { IGDBGame, IGDBGenre } from '@/lib/igdb';
 import { formatReleaseDate } from '@/lib/igdb';
+import { config } from '@/lib/config';
 import { WatchlistToggle } from './WatchlistToggle';
-import { MediaCard } from '@whencani/ui';
+import { useWatchlistIds } from '@/hooks/use-watchlist';
+import { MediaCard, ReleaseBadge, isReleasedRecently } from '@whencani/ui';
 
 
 interface GameCardProps {
@@ -39,6 +40,18 @@ export function GameCard({ game, genres, size }: GameCardProps) {
       : game.summary
     : 'Release details are coming soon.';
 
+  const watchlistIds = useWatchlistIds();
+  const isInWatchlist = watchlistIds.includes(game.id);
+
+  // Convert Unix timestamp to ISO date string for isReleasedRecently
+  const releaseDateISO = releaseDate
+    ? new Date(releaseDate * 1000).toISOString().split('T')[0]
+    : null;
+
+  const isReleased = isReleasedRecently(releaseDateISO, 0);
+  const featureEnabled = config.features.watchlistImprovements;
+  const showBadge = featureEnabled && isInWatchlist && isReleased;
+
   return (
     <MediaCard
       id={game.id}
@@ -50,6 +63,7 @@ export function GameCard({ game, genres, size }: GameCardProps) {
       summary={summary}
       genres={genreNames}
       watchlistToggle={<WatchlistToggle gameId={game.id} className="shadow" />}
+      badge={showBadge ? <ReleaseBadge /> : undefined}
     />
   );
 }

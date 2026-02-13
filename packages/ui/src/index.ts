@@ -1,5 +1,6 @@
 // Utilities
 export { cn } from './utils/cn';
+export * from './utils/watchlist';
 
 // Hooks
 export * from './hooks';

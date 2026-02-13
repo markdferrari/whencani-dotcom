@@ -54,7 +54,7 @@ Group watchlist items into sections:
 | Group | Condition |
 |-------|-----------|
 | **Released** | Release date is in the past |
-| **This week** | Release date is within the next 7 days |
+| **Coming soon** | Release date is within the next 7 days |
 | **This month** | Release date is within the current calendar month (but not this week) |
 | **Later** | Release date is beyond this month |
 | **TBA** | No release date set |
