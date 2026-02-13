@@ -11,42 +11,46 @@ interface NYTCarouselProps {
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
   const href = book.googleBooksId
     ? `/book/${book.googleBooksId}`
-    : book.amazonUrl ?? "#";
+    : null;
 
-  return (
-    <Link href={href} className="group block">
-      <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
-        <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: 160, height: 240 }}>
-          {book.coverUrl ? (
-            <Image
-              src={book.coverUrl}
-              alt={`${book.title} book cover`}
-              width={160}
-              height={240}
-              className="h-full w-full object-cover"
-              priority={false}
-              unoptimized={book.coverUrl.startsWith('/api/image')}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
-              No image
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">#{book.rank}</p>
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-sky-500">
-            {book.title}
-          </h3>
-          {book.author && (
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-              by {book.author}
-            </p>
-          )}
-        </div>
-      </article>
-    </Link>
+  const card = (
+    <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
+      <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: 160, height: 240 }}>
+        {book.coverUrl ? (
+          <Image
+            src={book.coverUrl}
+            alt={`${book.title} book cover`}
+            width={160}
+            height={240}
+            className="h-full w-full object-cover"
+            priority={false}
+            unoptimized={book.coverUrl.startsWith('/api/image')}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
+            No image
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">#{book.rank}</p>
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-sky-500">
+          {book.title}
+        </h3>
+        {book.author && (
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+            by {book.author}
+          </p>
+        )}
+      </div>
+    </article>
   );
+
+  if (href) {
+    return <Link href={href} className="group block">{card}</Link>;
+  }
+
+  return <div className="group block">{card}</div>;
 }
 
 export function NYTCarousel({ list }: NYTCarouselProps) {

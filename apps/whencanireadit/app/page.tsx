@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { config } from "@/lib/config";
 import { getNewBooks, getUpcomingBooks } from "@/lib/google-books";
-import { getFictionBestsellers, getNonfictionBestsellers } from "@/lib/nyt-books";
+import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
 import { NYTCarousel, BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@whencani/ui";
@@ -40,8 +40,12 @@ export default async function Home() {
       getUpcomingBooks(12),
     ]);
 
-    if (results[0].status === "fulfilled") fictionList = results[0].value;
-    if (results[1].status === "fulfilled") nonfictionList = results[1].value;
+    if (results[0].status === "fulfilled" && results[0].value) {
+      fictionList = await enrichWithGoogleIds(results[0].value);
+    }
+    if (results[1].status === "fulfilled" && results[1].value) {
+      nonfictionList = await enrichWithGoogleIds(results[1].value);
+    }
     if (results[2].status === "fulfilled") {
       newBooks = results[2].value;
     } else {

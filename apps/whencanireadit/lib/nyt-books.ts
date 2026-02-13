@@ -1,4 +1,5 @@
 import { config } from './config';
+import { getBookByISBN } from './google-books';
 import type { NYTBestsellerList, NYTBook, NYTListResponse } from './types';
 
 type BestsellerListName =
@@ -56,4 +57,28 @@ export async function getFictionBestsellers(): Promise<NYTBestsellerList> {
 
 export async function getNonfictionBestsellers(): Promise<NYTBestsellerList> {
   return getBestsellerList('combined-print-and-e-book-nonfiction');
+}
+
+/**
+ * Resolve Google Books volume IDs for every book in a list via parallel ISBN lookups.
+ * Books that can't be matched keep `googleBooksId: null`.
+ */
+export async function enrichWithGoogleIds(list: NYTBestsellerList): Promise<NYTBestsellerList> {
+  const enriched = await Promise.all(
+    list.books.map(async (book) => {
+      if (book.googleBooksId) return book;
+
+      const isbn = book.isbn13 || book.isbn10;
+      if (!isbn) return book;
+
+      try {
+        const match = await getBookByISBN(isbn);
+        return match ? { ...book, googleBooksId: match.id } : book;
+      } catch {
+        return book;
+      }
+    }),
+  );
+
+  return { ...list, books: enriched };
 }
