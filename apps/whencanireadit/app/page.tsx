@@ -71,9 +71,7 @@ export default async function Home() {
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
           <aside className="space-y-6 min-w-0">
             {(fictionList || nonfictionList) && (
-              <div className="rounded-2xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-                <NYTSidebar fictionList={fictionList} nonfictionList={nonfictionList} />
-              </div>
+              <NYTSidebar fictionList={fictionList} nonfictionList={nonfictionList} />
             )}
           </aside>
 
@@ -85,10 +83,10 @@ export default async function Home() {
                   <TabsTrigger value="upcoming">Upcoming Releases</TabsTrigger>
                 </TabsList>
                 <TabsContent value="new" className="mt-6">
-                  <BooksCarousel label="New This Week" subtitle="Latest releases from Google Books" books={newBooks} />
+                  <BooksCarousel label="New This Week" books={newBooks} />
                 </TabsContent>
                 <TabsContent value="upcoming" className="mt-6">
-                  <BooksCarousel label="Upcoming Releases" subtitle="Coming soon from Google Books" books={upcomingBooks} />
+                  <BooksCarousel label="Upcoming Releases" books={upcomingBooks} />
                 </TabsContent>
               </Tabs>
             </div>
