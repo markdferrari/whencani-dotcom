@@ -1,5 +1,5 @@
 export interface CalendarItem {
-  id: number;
+  id: number | string;
   title: string;
   imageUrl: string | null;
   href: string;

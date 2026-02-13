@@ -10624,6 +10624,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"whencanireadit@workspace:apps/whencanireadit":
+  version: 0.0.0-use.local
+  resolution: "whencanireadit@workspace:apps/whencanireadit"
+  dependencies:
+    "@radix-ui/react-dropdown-menu": "npm:^2.1.16"
+    "@radix-ui/react-scroll-area": "npm:^1.2.10"
+    "@radix-ui/react-select": "npm:^2.2.6"
+    "@radix-ui/react-slot": "npm:^1.2.4"
+    "@radix-ui/react-tabs": "npm:^1.1.13"
+    "@radix-ui/react-tooltip": "npm:^1.2.8"
+    "@whencani/config": "npm:*"
+    "@whencani/ui": "npm:*"
+    class-variance-authority: "npm:^0.7.1"
+    clsx: "npm:^2.1.1"
+    next: "npm:*"
+    react: "npm:*"
+    react-dom: "npm:*"
+  languageName: unknown
+  linkType: soft
+
 "whencaniwatchit@workspace:apps/whencaniwatchit":
   version: 0.0.0-use.local
   resolution: "whencaniwatchit@workspace:apps/whencaniwatchit"

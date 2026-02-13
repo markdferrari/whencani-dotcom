@@ -10,17 +10,21 @@
     "dev": "yarn workspaces foreach -pA run dev",
     "dev:watch": "yarn workspace whencaniwatchit dev",
     "dev:play": "yarn workspace whencaniplayit dev",
+    "dev:read": "yarn workspace whencanireadit dev",
     "build": "yarn workspaces foreach -A run build",
     "build:watch": "yarn workspace whencaniwatchit build",
     "build:play": "yarn workspace whencaniplayit build",
+    "build:read": "yarn workspace whencanireadit build",
     "lint": "yarn workspaces foreach -A run lint",
     "test": "yarn workspaces foreach -A run test",
     "clean": "rm -rf apps/*/node_modules apps/*/.next packages/*/node_modules node_modules .yarn/cache",
     "deploy:watch": "yarn workspace whencaniwatchit sst:deploy",
     "deploy:play": "yarn workspace whencaniplayit sst:deploy",
-    "deploy:all": "yarn deploy:watch && yarn deploy:play",
+    "deploy:read": "yarn workspace whencanireadit sst:deploy",
+    "deploy:all": "yarn deploy:watch && yarn deploy:play && yarn deploy:read",
     "sst:dev:watch": "yarn workspace whencaniwatchit sst:dev",
-    "sst:dev:play": "yarn workspace whencaniplayit sst:dev"
+    "sst:dev:play": "yarn workspace whencaniplayit sst:dev",
+    "sst:dev:read": "yarn workspace whencanireadit sst:dev"
   },
   "dependencies": {
     "embla-carousel-react": "^8.6.0",
