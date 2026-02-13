@@ -7,12 +7,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'books.google.com',
-        pathname: '/books/content/**',
+        pathname: '/books/**',
       },
       {
         protocol: 'http',
         hostname: 'books.google.com',
-        pathname: '/books/content/**',
+        pathname: '/books/**',
       },
       {
         protocol: 'https',
@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
         pathname: '/du-prd/books/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static01.nyt.com',
+        pathname: '/bestsellers/images/**',
       },
     ],
   },

@@ -66,16 +66,16 @@ function GoogleBookCard({ book }: { book: Book }) {
     <Link href={`/book/${book.id}`} className="group block">
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-100 shadow-sm transition group-hover:shadow-md dark:border-zinc-800/70 dark:bg-zinc-800">
         {book.coverUrl ? (
-          <Image
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
             src={book.coverUrl}
             alt={book.title}
-            fill
-            className="object-cover transition group-hover:scale-105"
-            sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 20vw"
+            className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center p-4 text-center text-sm text-zinc-400">
-            {book.title}
+          <div className="flex h-full items-center justify-center p-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            <span className="line-clamp-3">{book.title}</span>
           </div>
         )}
       </div>
@@ -83,17 +83,35 @@ function GoogleBookCard({ book }: { book: Book }) {
         <p className="text-sm font-semibold leading-tight text-zinc-900 line-clamp-2 dark:text-zinc-100">
           {book.title}
         </p>
-        <p className="text-xs text-zinc-500 line-clamp-1 dark:text-zinc-400">
-          {book.authors.join(", ")}
-        </p>
+        {book.authors.length > 0 && (
+          <p className="text-xs text-zinc-500 line-clamp-1 dark:text-zinc-400">
+            {book.authors.join(", ")}
+          </p>
+        )}
         {book.publishedDate && (
           <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
-            {book.publishedDate}
+            {formatPublishedDate(book.publishedDate)}
           </p>
         )}
       </div>
     </Link>
   );
+}
+
+function formatPublishedDate(dateStr: string): string {
+  // Google Books dates can be "2026", "2026-03", or "2026-03-15"
+  const parts = dateStr.split("-");
+  if (parts.length === 1) return parts[0]; // Just year
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    if (parts.length === 2) {
+      return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
 }
 
 export function BooksCarousel({ label, subtitle, books }: { label: string; subtitle?: string; books: Book[] }) {
