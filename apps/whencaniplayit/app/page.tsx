@@ -112,7 +112,7 @@ export default async function Home({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <main className="mx-auto w-full px-4 py-10 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-10">
-        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
           <h1 className="text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Track every game release that matters to you.
           </h1>
