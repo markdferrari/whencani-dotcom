@@ -2,6 +2,7 @@ import { type Metadata, type ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { WatchlistToggle } from "@/components/WatchlistToggle";
+import { RecordView } from "@/components/RecordView";
 import {
   formatReleaseDate,
   getBackdropUrl,
@@ -347,6 +348,15 @@ export default async function MoviePage({ params }: MoviePageProps) {
           ))}
         </MediaCarousel>
       </main>
+      <RecordView
+        item={{
+          id,
+          title: movie.title,
+          imageUrl: posterUrl,
+          href: `/movie/${id}`,
+          releaseDate: movie.release_date,
+        }}
+      />
     </div>
     </>
   );

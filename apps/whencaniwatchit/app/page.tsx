@@ -13,6 +13,7 @@ import {
 import { TrendingCarousel } from "@/components/TrendingCarousel";
 import { GenreFilter } from "./GenreFilter";
 import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
+import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import { buildCanonicalPath } from "@/lib/seo";
 import { MovieItemListSchema } from "@/lib/schema";
 
@@ -203,6 +204,7 @@ export default async function Home({ searchParams }: PageProps) {
             )}
           </section>
         </div>
+        <RecentlyViewedSection />
       </main>
     </div>
     </>

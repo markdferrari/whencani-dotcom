@@ -4,6 +4,7 @@ import { LatestReviewsSection } from '@/components/LatestReviewsSection';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { TrendingSection } from '@/components/TrendingSection';
 import { GamesSection } from '@/components/GamesSection';
+import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { Suspense } from 'react';
 
 const SITE_URL = 'https://whencaniplayit.com';
@@ -172,6 +173,7 @@ export default async function Home({ searchParams }: PageProps) {
             </div>
           </aside>
         </div>
+        <RecentlyViewedSection />
       </main>
     </div>
   );

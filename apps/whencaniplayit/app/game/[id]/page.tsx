@@ -7,6 +7,7 @@ import { getGameNote } from '@/lib/notes';
 import { GameLinks } from '@/components/GameLinks';
 import { ReviewSection } from '@/components/ReviewSection';
 import { WatchlistToggle } from '@/components/WatchlistToggle';
+import { RecordView } from '@/components/RecordView';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
@@ -458,6 +459,15 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           </MediaCarousel>
         )}
       </main>
+      <RecordView
+        item={{
+          id: gameId,
+          title: game.name,
+          imageUrl: coverUrl,
+          href: `/game/${gameId}`,
+          releaseDate: releaseDateHuman,
+        }}
+      />
     </div>
   );
 }

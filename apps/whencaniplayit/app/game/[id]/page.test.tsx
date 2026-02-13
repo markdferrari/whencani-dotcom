@@ -39,6 +39,10 @@ jest.mock("@whencani/ui/media-carousel", () => ({
   MediaCarousel: ({ label }: { label: string }) => <div>{label}</div>,
 }));
 
+jest.mock("@/components/RecordView", () => ({
+  RecordView: () => null,
+}));
+
 jest.mock("@whencani/ui/screenshot-carousel", () => ({
   ScreenshotCarousel: ({ title }: { title: string }) => <div>Screenshots {title}</div>,
 }));

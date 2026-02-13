@@ -7,6 +7,7 @@ import { generateBuyLinks } from '@/lib/buy-links';
 import { config } from '@/lib/config';
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
+import { RecordView } from '@/components/RecordView';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
@@ -301,6 +302,15 @@ export default async function BookDetailPage({ params }: PageProps) {
           </MediaCarousel>
         )}
       </main>
+      <RecordView
+        item={{
+          id,
+          title: book.title,
+          imageUrl: coverUrl,
+          href: `/book/${id}`,
+          releaseDate: book.publishedDate ? formatPublicationDate(book.publishedDate) : null,
+        }}
+      />
     </div>
   );
 }

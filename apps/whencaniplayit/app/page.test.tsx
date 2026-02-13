@@ -28,6 +28,10 @@ jest.mock('@/components/TrendingSection', () => ({
   TrendingSection: () => <div>TrendingSection</div>,
 }));
 
+jest.mock('@/components/RecentlyViewedSection', () => ({
+  RecentlyViewedSection: () => <div>RecentlyViewedSection</div>,
+}));
+
 describe('Home page', () => {
   it('renders the hero and key sections', async () => {
     const ui = await Home({
