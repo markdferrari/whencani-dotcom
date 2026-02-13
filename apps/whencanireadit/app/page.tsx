@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { config } from "@/lib/config";
 import { getNewBooks, getUpcomingBooks } from "@/lib/google-books";
 import { getFictionBestsellers, getNonfictionBestsellers } from "@/lib/nyt-books";
-import { NYTCarousel, BooksCarousel } from "@/components/HomepageCarousels";
+import { NYTCarousel, BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import type { NYTBestsellerList, Book } from "@/lib/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@whencani/ui";
 
 const SITE_URL = "https://whencanireadit.com";
 
@@ -67,17 +68,36 @@ export default async function Home() {
           </p>
         </section>
 
-        {fictionList && fictionList.books.length > 0 && (
-          <NYTCarousel list={fictionList} />
-        )}
+        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
+          <aside className="space-y-6 min-w-0">
+            {(fictionList || nonfictionList) && (
+              <div className="rounded-2xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+                <NYTSidebar fictionList={fictionList} nonfictionList={nonfictionList} />
+              </div>
+            )}
+          </aside>
 
-        {nonfictionList && nonfictionList.books.length > 0 && (
-          <NYTCarousel list={nonfictionList} />
-        )}
+          <section className="space-y-6 min-w-0">
+            <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+              <Tabs defaultValue="new" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="new">New This Week</TabsTrigger>
+                  <TabsTrigger value="upcoming">Upcoming Releases</TabsTrigger>
+                </TabsList>
+                <TabsContent value="new" className="mt-6">
+                  <BooksCarousel label="New This Week" subtitle="Latest releases from Google Books" books={newBooks} />
+                </TabsContent>
+                <TabsContent value="upcoming" className="mt-6">
+                  <BooksCarousel label="Upcoming Releases" subtitle="Coming soon from Google Books" books={upcomingBooks} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </section>
 
-        <BooksCarousel label="New This Week" books={newBooks} />
-
-        <BooksCarousel label="Upcoming Releases" books={upcomingBooks} />
+          <aside className="space-y-6 hidden lg:block min-w-0">
+            {/* Right sidebar - could add filters or other content here */}
+          </aside>
+        </div>
       </main>
     </div>
   );

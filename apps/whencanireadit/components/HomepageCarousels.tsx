@@ -52,7 +52,10 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
 }
 
 export function NYTCarousel({ list }: NYTCarouselProps) {
-  const displayName = list.listName === 'combined-print-and-e-book-fiction' ? 'Trending Fiction' : list.displayName;
+  const displayName =
+    list.displayName === 'Combined Print & E-Book Fiction' ? 'Trending Fiction' :
+    list.displayName === 'Combined Print & E-Book Nonfiction' ? 'Trending Nonfiction' :
+    list.displayName;
   return (
     <MediaCarousel label={displayName} subtitle={`Updated ${list.publishedDate}`}>
       {list.books.map((book) => (
@@ -64,23 +67,21 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
 
 function GoogleBookCard({ book }: { book: Book }) {
   return (
-    <Link href={`/book/${book.id}`} className="group block">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-100 shadow-sm transition group-hover:shadow-md dark:border-zinc-800/70 dark:bg-zinc-800">
+    <Link href={`/book/${book.id}`} className="group flex gap-3 p-3 rounded-lg border border-zinc-200/70 bg-zinc-50/50 hover:bg-zinc-100/50 transition dark:border-zinc-800/70 dark:bg-zinc-900/50 dark:hover:bg-zinc-800/50">
+      <div className="relative w-12 h-16 flex-shrink-0 overflow-hidden rounded border border-zinc-200/70 bg-zinc-100 dark:border-zinc-800/70 dark:bg-zinc-800">
         {book.coverUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={book.coverUrl}
             alt={book.title}
             className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105"
-            loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center p-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
+          <div className="flex h-full items-center justify-center p-1 text-center text-[8px] text-zinc-400 dark:text-zinc-500">
             <span className="line-clamp-3">{book.title}</span>
           </div>
         )}
       </div>
-      <div className="mt-2 space-y-0.5">
+      <div className="flex-1 min-w-0 space-y-1">
         <p className="text-sm font-semibold leading-tight text-zinc-900 line-clamp-2 dark:text-zinc-100">
           {book.title}
         </p>
@@ -115,13 +116,101 @@ function formatPublishedDate(dateStr: string): string {
   }
 }
 
+export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBestsellerList | null; nonfictionList: NYTBestsellerList | null }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+        NYT Bestsellers
+      </p>
+      {fictionList && fictionList.books.length > 0 && (
+        <div className="space-y-2">
+          <Link href={`/book/${fictionList.books[0].googleBooksId || '#'}`} className="group block">
+            <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-100 shadow-sm transition group-hover:shadow-md dark:border-zinc-800/70 dark:bg-zinc-800">
+              {fictionList.books[0].coverUrl ? (
+                <Image
+                  src={fictionList.books[0].coverUrl}
+                  alt={fictionList.books[0].title}
+                  fill
+                  className="object-cover transition group-hover:scale-105"
+                  sizes="200px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center p-4 text-center text-sm text-zinc-400">
+                  {fictionList.books[0].title}
+                </div>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                  #{fictionList.books[0].rank}
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 space-y-0.5">
+              <p className="text-sm font-semibold leading-tight text-zinc-900 line-clamp-2 dark:text-zinc-100">
+                Trending Fiction
+              </p>
+              <p className="text-xs text-zinc-500 line-clamp-1 dark:text-zinc-400">
+                {fictionList.books[0].title}
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
+      {nonfictionList && nonfictionList.books.length > 0 && (
+        <div className="space-y-2">
+          <Link href={`/book/${nonfictionList.books[0].googleBooksId || '#'}`} className="group block">
+            <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-100 shadow-sm transition group-hover:shadow-md dark:border-zinc-800/70 dark:bg-zinc-800">
+              {nonfictionList.books[0].coverUrl ? (
+                <Image
+                  src={nonfictionList.books[0].coverUrl}
+                  alt={nonfictionList.books[0].title}
+                  fill
+                  className="object-cover transition group-hover:scale-105"
+                  sizes="200px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center p-4 text-center text-sm text-zinc-400">
+                  {nonfictionList.books[0].title}
+                </div>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                  #{nonfictionList.books[0].rank}
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 space-y-0.5">
+              <p className="text-sm font-semibold leading-tight text-zinc-900 line-clamp-2 dark:text-zinc-100">
+                Trending Nonfiction
+              </p>
+              <p className="text-xs text-zinc-500 line-clamp-1 dark:text-zinc-400">
+                {nonfictionList.books[0].title}
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BooksCarousel({ label, subtitle, books }: { label: string; subtitle?: string; books: Book[] }) {
   if (books.length === 0) return null;
   return (
-    <MediaCarousel label={label} subtitle={subtitle}>
-      {books.map((book) => (
-        <GoogleBookCard key={book.id} book={book} />
-      ))}
-    </MediaCarousel>
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+          {label}
+        </p>
+        {subtitle && (
+          <p className="text-sm text-zinc-500">{subtitle}</p>
+        )}
+      </div>
+      <div className="space-y-4 max-h-96 overflow-y-auto">
+        {books.map((book) => (
+          <GoogleBookCard key={book.id} book={book} />
+        ))}
+      </div>
+    </div>
   );
 }
