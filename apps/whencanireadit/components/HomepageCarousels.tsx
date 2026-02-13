@@ -52,8 +52,9 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
 }
 
 export function NYTCarousel({ list }: NYTCarouselProps) {
+  const displayName = list.listName === 'combined-print-and-e-book-fiction' ? 'Trending Fiction' : list.displayName;
   return (
-    <MediaCarousel label={list.displayName} subtitle={`Updated ${list.publishedDate}`}>
+    <MediaCarousel label={displayName} subtitle={`Updated ${list.publishedDate}`}>
       {list.books.map((book) => (
         <NYTBookCard key={book.isbn13 || book.title} book={book} />
       ))}

@@ -116,101 +116,42 @@ export async function getBookByISBN(isbn: string): Promise<Book | null> {
 }
 
 export async function getNewBooks(maxResults = 12): Promise<Book[]> {
-  // Search for recently published books across popular categories
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-
-  // Run multiple targeted queries in parallel for better coverage
-  const queries = [
-    `new+releases+${year}`,
-    `new+books+${month}+${year}`,
-    `bestselling+new+fiction+${year}`,
-  ];
-
-  const results = await Promise.allSettled(
-    queries.map((q) =>
-      fetchGoogleBooks('/volumes', {
-        q,
-        orderBy: 'newest',
-        maxResults: String(maxResults),
-        printType: 'books',
-        langRestrict: 'en',
-      }).then((res) => res.json() as Promise<GoogleBooksSearchResponse>)
-    )
-  );
-
-  const seen = new Set<string>();
-  const books: Book[] = [];
-
-  for (const result of results) {
-    if (result.status !== 'fulfilled') continue;
-    for (const item of result.value.items ?? []) {
-      if (seen.has(item.id)) continue;
-      seen.add(item.id);
-      const book = normalizeVolume(item);
-      // Only include books with covers and authors
-      if (book.coverUrl && book.authors.length > 0) {
-        books.push(book);
-      }
-    }
+  try {
+    const res = await fetchGoogleBooks('/volumes', {
+      q: 'subject:fiction',
+      orderBy: 'newest',
+      maxResults: String(maxResults * 2),
+      printType: 'books',
+      langRestrict: 'en',
+    });
+    const data: GoogleBooksSearchResponse = await res.json();
+    const books = (data.items ?? []).map(normalizeVolume);
+    // Prefer books with covers, but don't discard all if none have covers
+    const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
+    return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
+  } catch (err) {
+    console.error('[getNewBooks] Google Books API failed:', err);
+    return [];
   }
-
-  return books.slice(0, maxResults);
 }
 
 export async function getUpcomingBooks(maxResults = 12): Promise<Book[]> {
-  const now = new Date();
-  const year = now.getFullYear();
-
-  // Google Books doesn't have a clean "upcoming" filter.
-  // Strategy: search for books with future dates, pre-orders, and upcoming keywords
-  const queries = [
-    `new+releases+coming+soon+${year}`,
-    `preorder+books+${year}`,
-    `anticipated+books+${year}`,
-  ];
-
-  const results = await Promise.allSettled(
-    queries.map((q) =>
-      fetchGoogleBooks('/volumes', {
-        q,
-        orderBy: 'newest',
-        maxResults: '20',
-        printType: 'books',
-        langRestrict: 'en',
-      }).then((res) => res.json() as Promise<GoogleBooksSearchResponse>)
-    )
-  );
-
-  const seen = new Set<string>();
-  const books: Book[] = [];
-
-  for (const result of results) {
-    if (result.status !== 'fulfilled') continue;
-    for (const item of result.value.items ?? []) {
-      if (seen.has(item.id)) continue;
-      seen.add(item.id);
-      const book = normalizeVolume(item);
-      if (book.coverUrl && book.authors.length > 0) {
-        books.push(book);
-      }
-    }
+  try {
+    const res = await fetchGoogleBooks('/volumes', {
+      q: 'subject:nonfiction',
+      orderBy: 'newest',
+      maxResults: String(maxResults * 2),
+      printType: 'books',
+      langRestrict: 'en',
+    });
+    const data: GoogleBooksSearchResponse = await res.json();
+    const books = (data.items ?? []).map(normalizeVolume);
+    const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
+    return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
+  } catch (err) {
+    console.error('[getUpcomingBooks] Google Books API failed:', err);
+    return [];
   }
-
-  // Try to prioritize books with future publication dates
-  const upcoming = books.filter((book) => {
-    if (!book.publishedDate) return false;
-    try {
-      return new Date(book.publishedDate) > now;
-    } catch {
-      return false;
-    }
-  });
-
-  // If we found enough with future dates, use those; otherwise include all results
-  const final = upcoming.length >= 4 ? upcoming : books;
-  return final.slice(0, maxResults);
 }
 
 export async function getSimilarBooks(volumeId: string): Promise<Book[]> {

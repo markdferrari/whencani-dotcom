@@ -41,10 +41,18 @@ export default async function Home() {
 
     if (results[0].status === "fulfilled") fictionList = results[0].value;
     if (results[1].status === "fulfilled") nonfictionList = results[1].value;
-    if (results[2].status === "fulfilled") newBooks = results[2].value;
-    if (results[3].status === "fulfilled") upcomingBooks = results[3].value;
-  } catch {
-    // Individual sections handle their own empty states
+    if (results[2].status === "fulfilled") {
+      newBooks = results[2].value;
+    } else {
+      console.error("[Home] getNewBooks failed:", results[2].reason);
+    }
+    if (results[3].status === "fulfilled") {
+      upcomingBooks = results[3].value;
+    } else {
+      console.error("[Home] getUpcomingBooks failed:", results[3].reason);
+    }
+  } catch (err) {
+    console.error("[Home] Unexpected error fetching homepage data:", err);
   }
 
   return (
