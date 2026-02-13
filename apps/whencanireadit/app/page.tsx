@@ -59,7 +59,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-8">
-        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-8 sm:p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-8 sm:p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
           <h1 className="text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Track every book release that matters to you.
           </h1>
@@ -68,7 +68,7 @@ export default async function Home() {
           </p>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
+        <div className="grid gap-8 grid-cols-[160px_1fr] lg:grid-cols-[260px_minmax(0,1fr)_260px]">
           <aside className="space-y-6 min-w-0">
             {(fictionList || nonfictionList) && (
               <NYTSidebar fictionList={fictionList} nonfictionList={nonfictionList} />
@@ -83,10 +83,10 @@ export default async function Home() {
                   <TabsTrigger value="upcoming">Upcoming Releases</TabsTrigger>
                 </TabsList>
                 <TabsContent value="new" className="mt-6">
-                  <BooksCarousel label="New This Week" books={newBooks} />
+                  <BooksCarousel label="" books={newBooks} />
                 </TabsContent>
                 <TabsContent value="upcoming" className="mt-6">
-                  <BooksCarousel label="Upcoming Releases" books={upcomingBooks} />
+                  <BooksCarousel label="" books={upcomingBooks} />
                 </TabsContent>
               </Tabs>
             </div>

@@ -38,6 +38,11 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-sky-500">
             {book.title}
           </h3>
+          {book.author && (
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+              by {book.author}
+            </p>
+          )}
         </div>
       </article>
     </Link>
@@ -68,6 +73,7 @@ function GoogleBookCard({ book }: { book: Book }) {
       imageAlt={`${book.title} book cover`}
       releaseDate={book.publishedDate ? formatPublishedDate(book.publishedDate) : undefined}
       summary={book.description || undefined}
+      authors={book.authors}
       genres={book.categories}
     />
   );

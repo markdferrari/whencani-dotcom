@@ -12,12 +12,14 @@ export interface MediaCardProps {
   imageAlt?: string;
   releaseDate?: string;
   summary?: string;
+  authors?: string[];
   genres?: string[];
   rating?: number;
   ratingCount?: number;
   watchlistToggle?: ReactNode;
   badge?: ReactNode;
   size?: "md" | "sm";
+  showSummary?: boolean;
 }
 
 export function MediaCard({
@@ -28,20 +30,22 @@ export function MediaCard({
   imageAlt,
   releaseDate,
   summary,
+  authors,
   genres,
   rating,
   ratingCount,
   watchlistToggle,
   badge,
   size = "md",
+  showSummary = true,
 }: MediaCardProps) {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const imageHeight = size === "md" ? 120 : 88;
   const imageWidth = size === "md" ? 84 : 64;
 
   return (
-    <article className="flex items-start gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
-      <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: imageWidth, height: imageHeight }}>
+    <article className="flex flex-col md:flex-row md:items-start gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left md:text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
+      <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 mx-auto md:mx-0" style={{ width: imageWidth, height: imageHeight }}>
         {imageUrl ? (
           <Link href={href}>
             <Image
@@ -66,8 +70,8 @@ export function MediaCard({
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1 text-center md:text-left">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
           <div className="min-w-0">
             {releaseDate && (
               <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">{releaseDate}</p>
@@ -77,11 +81,16 @@ export function MediaCard({
                 {title}
               </Link>
             </h3>
+            {authors && authors.length > 0 && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                by {authors.join(', ')}
+              </p>
+            )}
           </div>
           <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
         </div>
 
-        {summary && (
+        {summary && showSummary && (
           <div className="mt-2 hidden md:block">
             <p className={`text-sm text-zinc-600 dark:text-zinc-300 ${!isSummaryExpanded ? 'line-clamp-2' : ''}`}>
               {summary}

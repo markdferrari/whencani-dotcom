@@ -123,7 +123,7 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
       q: `subject:fiction first published ${currentYear}`,
       orderBy: 'newest',
       maxResults: String(maxResults * 2),
-      printType: 'books',
+      printType: 'all',
       langRestrict: 'en',
     });
     const data: GoogleBooksSearchResponse = await res.json();
@@ -144,27 +144,24 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
 
 export async function getUpcomingBooks(maxResults = 12): Promise<Book[]> {
   try {
-    // Get current date for "upcoming books" (future publications)
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // getMonth() is 0-indexed
+    // Get upcoming books (pre-orders) using the showPreorders parameter
     const res = await fetchGoogleBooks('/volumes', {
-      q: `subject:nonfiction published:${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+      q: 'nonfiction',
       orderBy: 'newest',
-      maxResults: String(maxResults * 2),
-      printType: 'books',
+      maxResults: String(maxResults),
+      printType: 'all',
       langRestrict: 'en',
+      showPreorders: 'true',
     });
     const data: GoogleBooksSearchResponse = await res.json();
     const books = (data.items ?? []).map(normalizeVolume);
-    // Filter for books with future publication dates
-    const upcomingBooks = books.filter((b) => {
-      if (!b.publishedDate) return false;
-      const pubDate = new Date(b.publishedDate);
-      return pubDate > now;
+
+    // Filter for books with covers and authors
+    const validBooks = books.filter((b) => {
+      return b.coverUrl && b.authors.length > 0;
     });
-    const withCovers = upcomingBooks.filter((b) => b.coverUrl && b.authors.length > 0);
-    return (withCovers.length > 0 ? withCovers : upcomingBooks).slice(0, maxResults);
+
+    return validBooks;
   } catch (err) {
     console.error('[getUpcomingBooks] Google Books API failed:', err);
     return [];
