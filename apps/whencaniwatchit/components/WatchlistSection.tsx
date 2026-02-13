@@ -67,14 +67,17 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
   const processedMovies = useMemo(() => {
     if (!featureEnabled) return movies;
 
-    let filtered = filterByGenre(movies, genreFilter);
+    // Note: Genre filtering for movies requires genre ID to name mapping
+    // which is not readily available. Skipping genre filter for now.
+    let filtered = movies;
+
     let sorted = sortItems(filtered, sortBy, {
       title: (m) => m.title,
       releaseDate: (m) => m.release_date,
     });
 
     return sorted;
-  }, [movies, genreFilter, sortBy, featureEnabled]);
+  }, [movies, sortBy, featureEnabled]);
 
   // Group by release date if applicable
   const groupedMovies = useMemo(() => {
@@ -86,13 +89,11 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
 
   // Extract unique genres for filter
   const availableGenres = useMemo(() => {
-    if (!featureEnabled) return [];
-
-    // Need to fetch genres for movies
-    const movieGenres: string[] = [];
-    // For now, return empty array - would need genre lookup
-    return extractUniqueGenres(movies.map(m => ({ genres: movieGenres })));
-  }, [movies, featureEnabled]);
+    // Genre filtering for movies requires genre ID to name mapping
+    // which is not readily available in the watchlist context.
+    // Returning empty array to disable genre filter for movies.
+    return [];
+  }, []);
 
   // Export handlers
   const handleExport = (type: 'link' | 'text') => {
@@ -101,9 +102,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       const url = `${window.location.origin}/watchlist?ids=${ids}`;
       navigator.clipboard.writeText(url);
       toast({
-        title: 'Link copied!',
-        description: 'Share this link to show your watchlist.',
-        variant: 'default',
+        title: 'Link copied to clipboard',
+        variant: 'success',
       });
     } else {
       const text = processedMovies
@@ -111,9 +111,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
         .join('\n');
       navigator.clipboard.writeText(text);
       toast({
-        title: 'List copied!',
-        description: 'Your watchlist has been copied as text.',
-        variant: 'default',
+        title: 'Watchlist copied as text',
+        variant: 'success',
       });
     }
   };
@@ -169,8 +168,6 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
             <WatchlistToolbar
               sortBy={sortBy}
               onSortChange={(value) => updateParam('sort', value)}
-              filterGenre={genreFilter}
-              onFilterGenreChange={(value) => updateParam('genre', value)}
               availableGenres={availableGenres}
               onExport={handleExport}
               itemCount={processedMovies.length}

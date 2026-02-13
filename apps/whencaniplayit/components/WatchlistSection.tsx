@@ -66,6 +66,15 @@ function filterByPlatform(games: IGDBGame[], platformId?: string): IGDBGame[] {
   return games.filter(game => game.platforms?.some(p => p.id === id));
 }
 
+// Helper to filter by genre for IGDBGame
+function filterGamesByGenre(games: IGDBGame[], genreName?: string): IGDBGame[] {
+  if (!genreName) return games;
+
+  return games.filter(game =>
+    game.genres?.some(g => g.name === genreName)
+  );
+}
+
 export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSectionProps) {
   const { games, isLoading } = useWatchlistGames();
   const searchParams = useSearchParams();
@@ -99,21 +108,23 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
   const processedGames = useMemo(() => {
     if (!featureEnabled) return games;
 
-    // Convert games to have genre names
-    const gamesWithGenres = games.map(game => ({
+    // Filter by platform and genre (both work with IGDBGame type)
+    let filtered = filterByPlatform(games, platformFilter);
+    filtered = filterGamesByGenre(filtered, genreFilter);
+
+    // Sort (need to provide genre names as strings for sorting)
+    const gamesForSorting = filtered.map(game => ({
       ...game,
-      genres: game.genres?.map(g => g.name) || [],
+      genreNames: game.genres?.map(g => g.name) || [],
     }));
 
-    let filtered = filterByGenre(gamesWithGenres, genreFilter);
-    filtered = filterByPlatform(filtered, platformFilter);
-
-    let sorted = sortItems(filtered, sortBy, {
+    let sorted = sortItems(gamesForSorting, sortBy, {
       title: (g) => g.name,
       releaseDate: (g) => timestampToDate(g.first_release_date),
     });
 
-    return sorted;
+    // Map back to IGDBGame type (remove the temporary genreNames property)
+    return sorted.map(({ genreNames, ...game }) => game as IGDBGame);
   }, [games, genreFilter, platformFilter, sortBy, featureEnabled]);
 
   // Group by release date if applicable
@@ -159,9 +170,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       const url = `${window.location.origin}/watchlist?ids=${ids}`;
       navigator.clipboard.writeText(url);
       toast({
-        title: 'Link copied!',
-        description: 'Share this link to show your watchlist.',
-        variant: 'default',
+        title: 'Link copied to clipboard',
+        variant: 'success',
       });
     } else {
       const text = processedGames
@@ -172,9 +182,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
         .join('\n');
       navigator.clipboard.writeText(text);
       toast({
-        title: 'List copied!',
-        description: 'Your watchlist has been copied as text.',
-        variant: 'default',
+        title: 'Watchlist copied as text',
+        variant: 'success',
       });
     }
   };
