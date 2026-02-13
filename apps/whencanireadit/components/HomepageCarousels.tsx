@@ -5,8 +5,14 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { MediaCard } from "@whencani/ui";
+import { MediaCard, MediaCarousel } from "@whencani/ui";
+import { config } from "@/lib/config";
 import type { NYTBestsellerList, Book } from "@/lib/types";
+
+const ACCENT = {
+  navBorderHover: "hover:border-sky-500",
+  navTextHover: "hover:text-sky-500",
+};
 
 interface NYTCarouselProps {
   list: NYTBestsellerList;
@@ -138,11 +144,36 @@ function CarouselWrapper({ label, subtitle, children }: { label: string; subtitl
   );
 }
 
+function NYTCarouselStandard({ list, displayName }: { list: NYTBestsellerList; displayName: string }) {
+  return (
+    <MediaCarousel
+      label={displayName}
+      subtitle={`Updated ${list.publishedDate}`}
+      slideBasis="flex-[0_0_100%]"
+      showNavigation
+      accentClasses={ACCENT}
+      headerRight={
+        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+          Live
+        </span>
+      }
+    >
+      {list.books.map((book) => (
+        <NYTBookCard key={book.isbn13 || book.title} book={book} />
+      ))}
+    </MediaCarousel>
+  );
+}
+
 export function NYTCarousel({ list }: NYTCarouselProps) {
   const displayName =
     list.displayName === 'Combined Print & E-Book Fiction' ? 'Trending Fiction' :
     list.displayName === 'Combined Print & E-Book Nonfiction' ? 'Trending Nonfiction' :
     list.displayName;
+
+  if (config.features.standardCarousels) {
+    return <NYTCarouselStandard list={list} displayName={displayName} />;
+  }
 
   return (
     <CarouselWrapper label={displayName} subtitle={`Updated ${list.publishedDate}`}>
@@ -188,25 +219,65 @@ function formatPublishedDate(dateStr: string): string {
 }
 
 export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBestsellerList | null; nonfictionList: NYTBestsellerList | null }) {
+  const useStandard = config.features.standardCarousels;
+
   return (
     <div className="space-y-6">
       {fictionList && fictionList.books.length > 0 && (
-        <CarouselWrapper label="Trending Fiction" subtitle={`Updated ${fictionList.publishedDate}`}>
-          {fictionList.books.slice(0, 8).map((book) => (
-            <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
-              <NYTBookCard book={book} />
-            </div>
-          ))}
-        </CarouselWrapper>
+        useStandard ? (
+          <MediaCarousel
+            label="Trending Fiction"
+            subtitle={`Updated ${fictionList.publishedDate}`}
+            slideBasis="flex-[0_0_100%]"
+            showNavigation
+            accentClasses={ACCENT}
+            headerRight={
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+                Live
+              </span>
+            }
+          >
+            {fictionList.books.slice(0, 8).map((book) => (
+              <NYTBookCard key={book.isbn13 || book.title} book={book} />
+            ))}
+          </MediaCarousel>
+        ) : (
+          <CarouselWrapper label="Trending Fiction" subtitle={`Updated ${fictionList.publishedDate}`}>
+            {fictionList.books.slice(0, 8).map((book) => (
+              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+                <NYTBookCard book={book} />
+              </div>
+            ))}
+          </CarouselWrapper>
+        )
       )}
       {nonfictionList && nonfictionList.books.length > 0 && (
-        <CarouselWrapper label="Trending Nonfiction" subtitle={`Updated ${nonfictionList.publishedDate}`}>
-          {nonfictionList.books.slice(0, 8).map((book) => (
-            <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
-              <NYTBookCard book={book} />
-            </div>
-          ))}
-        </CarouselWrapper>
+        useStandard ? (
+          <MediaCarousel
+            label="Trending Nonfiction"
+            subtitle={`Updated ${nonfictionList.publishedDate}`}
+            slideBasis="flex-[0_0_100%]"
+            showNavigation
+            accentClasses={ACCENT}
+            headerRight={
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
+                Live
+              </span>
+            }
+          >
+            {nonfictionList.books.slice(0, 8).map((book) => (
+              <NYTBookCard key={book.isbn13 || book.title} book={book} />
+            ))}
+          </MediaCarousel>
+        ) : (
+          <CarouselWrapper label="Trending Nonfiction" subtitle={`Updated ${nonfictionList.publishedDate}`}>
+            {nonfictionList.books.slice(0, 8).map((book) => (
+              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+                <NYTBookCard book={book} />
+              </div>
+            ))}
+          </CarouselWrapper>
+        )
       )}
     </div>
   );

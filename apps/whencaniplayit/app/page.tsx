@@ -136,9 +136,7 @@ export default async function Home({ searchParams }: PageProps) {
               </div>
             </Suspense>
 
-            <div className="rounded-2xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-              <TrendingSection />
-            </div>
+            <TrendingSection />
           </aside>
 
           <section className="space-y-6 min-w-0">

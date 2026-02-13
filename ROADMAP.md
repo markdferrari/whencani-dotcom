@@ -139,4 +139,6 @@
 ## Amazon Affiliate Program
 
 Use their product api to link stuff on all sites
-Use dynamoDB as a store for related products
+If you're looking at a game, I want to show related movies/books
+Then the relevant product detail page should have a link to buy
+Use dynamoDB as a store for related products - will need advice on the schema and how to hook it up to existing app, auth etc

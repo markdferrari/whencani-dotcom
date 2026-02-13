@@ -34,5 +34,8 @@ export const config = {
     get calendar(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_CALENDAR === 'true';
     },
+    get standardCarousels(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_STANDARD_CAROUSELS === 'true';
+    },
   },
 } as const;
