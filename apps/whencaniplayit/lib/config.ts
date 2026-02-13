@@ -28,5 +28,8 @@ export const config = {
     get standardCarousels(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_STANDARD_CAROUSELS === 'true';
     },
+    get amazonAffiliates(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES === 'true';
+    },
   },
 } as const;
