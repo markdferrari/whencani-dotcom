@@ -17,6 +17,8 @@ interface DetailHeroCardProps {
   posterAspect?: "2/3" | "3/4";
   /** Whether the poster should use unoptimized loading (e.g. proxied images) */
   posterUnoptimized?: boolean;
+  /** Optional extra class(es) applied to the backdrop image (e.g. "blur-sm scale-110") */
+  backdropClassName?: string;
   /** Content rendered in the right column next to the poster */
   children: React.ReactNode;
   className?: string;
@@ -29,6 +31,7 @@ export function DetailHeroCard({
   posterAlt,
   posterAspect = "2/3",
   posterUnoptimized = false,
+  backdropClassName,
   children,
   className,
 }: DetailHeroCardProps) {
@@ -48,7 +51,7 @@ export function DetailHeroCard({
             src={backdropUrl}
             alt={`${title} backdrop`}
             fill
-            className="object-cover"
+            className={cn("object-cover", backdropClassName)}
             priority
             unoptimized={posterUnoptimized}
           />
