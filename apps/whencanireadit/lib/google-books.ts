@@ -117,8 +117,10 @@ export async function getBookByISBN(isbn: string): Promise<Book | null> {
 
 export async function getNewBooks(maxResults = 12): Promise<Book[]> {
   try {
+    // Get current year for "new books" (first publications this year)
+    const currentYear = new Date().getFullYear();
     const res = await fetchGoogleBooks('/volumes', {
-      q: 'subject:fiction',
+      q: `subject:fiction first published ${currentYear}`,
       orderBy: 'newest',
       maxResults: String(maxResults * 2),
       printType: 'books',
@@ -126,9 +128,14 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
     });
     const data: GoogleBooksSearchResponse = await res.json();
     const books = (data.items ?? []).map(normalizeVolume);
-    // Prefer books with covers, but don't discard all if none have covers
-    const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
-    return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
+    // Filter for books actually published this year and prefer books with covers
+    const currentYearBooks = books.filter((b) => {
+      if (!b.publishedDate) return false;
+      const pubYear = new Date(b.publishedDate).getFullYear();
+      return pubYear === currentYear;
+    });
+    const withCovers = currentYearBooks.filter((b) => b.coverUrl && b.authors.length > 0);
+    return (withCovers.length > 0 ? withCovers : currentYearBooks).slice(0, maxResults);
   } catch (err) {
     console.error('[getNewBooks] Google Books API failed:', err);
     return [];
@@ -137,8 +144,12 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
 
 export async function getUpcomingBooks(maxResults = 12): Promise<Book[]> {
   try {
+    // Get current date for "upcoming books" (future publications)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // getMonth() is 0-indexed
     const res = await fetchGoogleBooks('/volumes', {
-      q: 'subject:nonfiction',
+      q: `subject:nonfiction published:${currentYear}-${String(currentMonth).padStart(2, '0')}`,
       orderBy: 'newest',
       maxResults: String(maxResults * 2),
       printType: 'books',
@@ -146,8 +157,14 @@ export async function getUpcomingBooks(maxResults = 12): Promise<Book[]> {
     });
     const data: GoogleBooksSearchResponse = await res.json();
     const books = (data.items ?? []).map(normalizeVolume);
-    const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
-    return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
+    // Filter for books with future publication dates
+    const upcomingBooks = books.filter((b) => {
+      if (!b.publishedDate) return false;
+      const pubDate = new Date(b.publishedDate);
+      return pubDate > now;
+    });
+    const withCovers = upcomingBooks.filter((b) => b.coverUrl && b.authors.length > 0);
+    return (withCovers.length > 0 ? withCovers : upcomingBooks).slice(0, maxResults);
   } catch (err) {
     console.error('[getUpcomingBooks] Google Books API failed:', err);
     return [];
