@@ -16,13 +16,13 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
   return (
     <Link href={href} className="group block">
       <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
-        <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: 84, height: 120 }}>
+        <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900" style={{ width: 160, height: 240 }}>
           {book.coverUrl ? (
             <Image
               src={book.coverUrl}
               alt={`${book.title} book cover`}
-              width={84}
-              height={120}
+              width={160}
+              height={240}
               className="h-full w-full object-cover"
               priority={false}
               unoptimized={book.coverUrl.startsWith('/api/image')}
