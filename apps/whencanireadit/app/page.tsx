@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { config } from "@/lib/config";
-import { getNewBooks, getUpcomingBooks } from "@/lib/google-books";
+import { getNewBooks } from "@/lib/google-books";
 import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
-import { NYTCarousel, BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
+import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import type { NYTBestsellerList, Book } from "@/lib/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@whencani/ui";
 
 const SITE_URL = "https://whencanireadit.com";
 
@@ -30,14 +29,12 @@ export default async function Home() {
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
   let newBooks: Book[] = [];
-  let upcomingBooks: Book[] = [];
 
   try {
     const results = await Promise.allSettled([
       nytEnabled ? getFictionBestsellers() : Promise.resolve(null),
       nytEnabled ? getNonfictionBestsellers() : Promise.resolve(null),
       getNewBooks(12),
-      getUpcomingBooks(12),
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {
@@ -50,11 +47,6 @@ export default async function Home() {
       newBooks = results[2].value;
     } else {
       console.error("[Home] getNewBooks failed:", results[2].reason);
-    }
-    if (results[3].status === "fulfilled") {
-      upcomingBooks = results[3].value;
-    } else {
-      console.error("[Home] getUpcomingBooks failed:", results[3].reason);
     }
   } catch (err) {
     console.error("[Home] Unexpected error fetching homepage data:", err);
@@ -81,18 +73,7 @@ export default async function Home() {
 
           <section className="space-y-6 min-w-0">
             <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-              <Tabs defaultValue="new" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="new">New This Week</TabsTrigger>
-                  <TabsTrigger value="upcoming">Upcoming Releases</TabsTrigger>
-                </TabsList>
-                <TabsContent value="new" className="mt-6">
-                  <BooksCarousel label="" books={newBooks} />
-                </TabsContent>
-                <TabsContent value="upcoming" className="mt-6">
-                  <BooksCarousel label="" books={upcomingBooks} />
-                </TabsContent>
-              </Tabs>
+              <BooksCarousel label="New This Month" books={newBooks} />
             </div>
           </section>
 
