@@ -27,6 +27,7 @@ export default $config({
         name: "www.whencanireadit.com",
         aliases: ["whencanireadit.com"],
         cert: certificateArn,
+        dns: false
       },
       environment: {
         GOOGLE_BOOKS_API_KEY: process.env.GOOGLE_BOOKS_API_KEY!,
@@ -34,8 +35,7 @@ export default $config({
       },
       transform: {
         cdn: (args) => {
-          args.orderedCacheBehavior = [
-            ...(args.orderedCacheBehavior ?? []),
+          args.orderedCacheBehaviors = [
             // Bestsellers API - cache aggressively (updated weekly)
             {
               pathPattern: "/api/books/bestsellers*",

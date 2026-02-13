@@ -28,16 +28,14 @@ export default $config({
         name: "www.whencaniwatchit.com",
         aliases: ["whencaniwatchit.com"],
         cert: certificateArn,
+        dns: false
       },
       environment: {
         TMDB_API_KEY: process.env.TMDB_API_KEY!,
       },
       transform: {
         cdn: (args) => {
-          // Add cache policy for API routes
-          args.orderedCacheBehavior = [
-            ...(args.orderedCacheBehavior ?? []),
-            // TMDB API routes - cache moderately (1 hour)
+          args.orderedCacheBehaviors = [          // TMDB API routes - cache moderately (1 hour)
             {
               pathPattern: "/api/tmdb/*",
               targetOriginId: args.defaultCacheBehavior.targetOriginId,
