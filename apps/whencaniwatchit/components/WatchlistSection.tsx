@@ -9,13 +9,9 @@ import { useWatchlistMovies } from '@/hooks/use-watchlist';
 import { config } from '@/lib/config';
 import {
   WatchlistToolbar,
-  ReleaseBadge,
   useToast,
   groupByReleaseDate,
   sortItems,
-  extractUniqueGenres,
-  filterByGenre,
-  isReleasedRecently,
   type ReleaseGroup,
 } from '@whencani/ui';
 import type { TMDBMovie } from '@/lib/tmdb';
@@ -150,9 +146,9 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       )}
 
       {isLoading ? (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-          {[1, 2, 3, 4].map((slot) => (
-            <div key={slot} className="h-48 rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 dark:border-zinc-800/70 dark:bg-zinc-900/60" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((slot) => (
+            <div key={slot} className="h-24 rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 dark:border-zinc-800/70 dark:bg-zinc-900/60" />
           ))}
         </div>
       ) : movies.length === 0 ? (
@@ -198,12 +194,13 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                       )}
                     </button>
                     {!isCollapsed && (
-                      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+                      <div className="space-y-4">
                         {items.map((movie) => (
                           <MovieCard
                             key={movie.id}
                             movie={movie as TMDBMovie}
-                            size="sm"
+                            mobileLayout="side"
+                            watchlistTogglePosition="below-genres"
                           />
                         ))}
                       </div>
@@ -213,12 +210,13 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
               })}
             </div>
           ) : (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+            <div className="space-y-4">
               {processedMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   movie={movie}
-                  size="sm"
+                  mobileLayout="side"
+                  watchlistTogglePosition="below-genres"
                 />
               ))}
             </div>
