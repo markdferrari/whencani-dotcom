@@ -46,7 +46,7 @@ export default $config({
               compress: true,
               forwardedValues: {
                 queryString: true,
-                headers: ["Accept", "Accept-Encoding"],
+                headers: ["Accept", "Accept-Encoding", "x-forwarded-host"],
                 cookies: { forward: "none" },
               },
               minTtl: 3600, // 1 hour minimum
@@ -63,7 +63,7 @@ export default $config({
               compress: true,
               forwardedValues: {
                 queryString: true,
-                headers: ["Accept", "Accept-Encoding"],
+                headers: ["Accept", "Accept-Encoding", "x-forwarded-host"],
                 cookies: { forward: "none" },
               },
               minTtl: 600, // 10 minutes minimum
