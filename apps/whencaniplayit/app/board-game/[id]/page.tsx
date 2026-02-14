@@ -123,7 +123,7 @@ export default async function BoardGamePage({ params }: PageProps) {
           )}
         </DetailHeroCard>
 
-        <RecordView item={{ id: game.id, title: game.name, imageUrl: posterUrl ?? undefined, href: `/board-game/${game.id}`, releaseDate }} />
+        <RecordView item={{ id: game.id, title: game.name, imageUrl: posterUrl ?? null, href: `/board-game/${game.id}`, releaseDate }} />
       </main>
     </div>
   );
