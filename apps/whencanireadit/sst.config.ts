@@ -33,46 +33,8 @@ export default $config({
         GOOGLE_BOOKS_API_KEY: process.env.GOOGLE_BOOKS_API_KEY!,
         NYT_BOOKS_API_KEY: process.env.NYT_BOOKS_API_KEY!,
       },
-      transform: {
-        cdn: (args) => {
-          args.orderedCacheBehaviors = [
-            // Bestsellers API - cache aggressively (updated weekly)
-            {
-              pathPattern: "/api/books/bestsellers*",
-              targetOriginId: args.defaultCacheBehavior.targetOriginId,
-              viewerProtocolPolicy: "redirect-to-https",
-              allowedMethods: ["GET", "HEAD", "OPTIONS"],
-              cachedMethods: ["GET", "HEAD"],
-              compress: true,
-              forwardedValues: {
-                queryString: true,
-                headers: ["Accept", "Accept-Encoding", "x-forwarded-host"],
-                cookies: { forward: "none" },
-              },
-              minTtl: 3600, // 1 hour minimum
-              defaultTtl: 86400, // 24 hours default
-              maxTtl: 86400, // 24 hours maximum
-            },
-            // Search API - cache lightly
-            {
-              pathPattern: "/api/search",
-              targetOriginId: args.defaultCacheBehavior.targetOriginId,
-              viewerProtocolPolicy: "redirect-to-https",
-              allowedMethods: ["GET", "HEAD", "OPTIONS"],
-              cachedMethods: ["GET", "HEAD"],
-              compress: true,
-              forwardedValues: {
-                queryString: true,
-                headers: ["Accept", "Accept-Encoding", "x-forwarded-host"],
-                cookies: { forward: "none" },
-              },
-              minTtl: 600, // 10 minutes minimum
-              defaultTtl: 3600, // 1 hour default
-              maxTtl: 3600, // 1 hour maximum
-            },
-          ];
-        },
-      },
+      // Cache behavior is handled by the default CloudFront behavior,
+      // which respects Cache-Control headers set by route handlers.
     });
 
     const nodes = site.nodes as {
