@@ -3,9 +3,11 @@ import { getGameGenres, getDeveloperStudios } from '@/lib/igdb';
 import { LatestReviewsSection } from '@/components/LatestReviewsSection';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { TrendingSection } from '@/components/TrendingSection';
+import { TrendingBoardGamesSection } from '@/components/TrendingBoardGamesSection';
 import { GamesSection } from '@/components/GamesSection';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { Suspense } from 'react';
+import { config } from '@/lib/config';
 
 const SITE_URL = 'https://whencaniplayit.com';
 const SITE_NAME = 'WhenCanIPlayIt.com';
@@ -26,6 +28,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const viewParam = params.view || 'upcoming';
   const genreParam = params.genre;
   const studioParam = params.studio;
+  const typeParam = params.type || 'video';
 
   const genres = await getGameGenres().catch(() => []);
   const genreName = genreParam ? genres.find((g) => g.id === parseInt(genreParam, 10))?.name : null;
@@ -39,6 +42,28 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const platformLabel = platformParam !== 'all' ? PLATFORM_LABELS[platformParam] || 'Multi-platform' : null;
   const filterParts = [platformLabel, genreName, studioName].filter(Boolean);
   const filterSuffix = filterParts.length ? ` - ${filterParts.join(', ')}` : '';
+
+  if (typeParam === 'board') {
+    const viewText = viewParam === 'recent' ? 'Trending' : 'Trending';
+    const metaTitle = `${viewText} Board Games${filterSuffix} | ${SITE_NAME}`;
+    const metaDescription = `Discover trending board games${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} from BoardGameGeek.`;
+
+    const queryParams = new URLSearchParams();
+    if (viewParam !== 'upcoming') queryParams.set('view', viewParam);
+    if (platformParam !== 'all') queryParams.set('platform', platformParam);
+    if (genreParam) queryParams.set('genre', genreParam);
+    if (studioParam) queryParams.set('studio', studioParam);
+    if (typeParam && typeParam !== 'video') queryParams.set('type', typeParam);
+    const canonicalUrl = queryParams.toString() ? `${SITE_URL}/?${queryParams.toString()}` : SITE_URL;
+
+    return {
+      title: metaTitle,
+      description: metaDescription,
+      alternates: { canonical: canonicalUrl },
+      openGraph: { title: metaTitle, description: metaDescription, url: canonicalUrl, type: 'website' },
+    };
+  }
+
   const viewText = viewParam === 'recent' ? 'Recently Released' : 'Upcoming';
   const metaTitle = `${viewText} Video Game Releases${filterSuffix} | ${SITE_NAME}`;
   const metaDescription = `Discover ${viewText.toLowerCase()} video game releases${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} with verified release windows and trending review scores.`;
