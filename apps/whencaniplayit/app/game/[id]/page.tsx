@@ -14,17 +14,9 @@ import { MediaCarousel } from '@whencani/ui/media-carousel';
 import MediaCarouselCombined from '@whencani/ui/media-carousel-combined';
 import { ShareButton } from '@whencani/ui';
 import { config } from '@/lib/config';
+import { getAmazonAffiliateUrl, getPlatformFamilyId } from '@/lib/amazon';
 
 const SITE_URL = 'https://whencaniplayit.com';
-
-const AMAZON_AFFILIATE_LINKS: Record<string, string> = {
-  '1': 'https://amzn.to/4kyuwz3', // PlayStation
-  '2': 'https://amzn.to/3MJZ83X', // Xbox
-  '6': 'https://amzn.to/3MmJont', // PC
-  '5': 'https://amzn.to/4ay9CLA', // Nintendo
-};
-
-const AMAZON_AFFILIATE_PRIORITY = ['1', '2', '6', '5'];
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -158,16 +150,6 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     ? formatReleaseBadge(releaseDate)
     : 'TBA';
 
-  // Map platform names to filter IDs
-  const getPlatformId = (platformName: string): string | null => {
-    const name = platformName.toLowerCase();
-    if (name.includes('playstation') || name.includes('ps')) return '1';
-    if (name.includes('xbox')) return '2';
-    if (name.includes('nintendo') || name.includes('switch')) return '5';
-    if (name.includes('pc') || name.includes('windows') || name.includes('linux') || name.includes('mac')) return '6';
-    return null;
-  };
-
   // Get platforms
   const platforms =
     game.release_dates
@@ -239,13 +221,8 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
   const publishers = involvedCompanies.filter((c) => c.role === 'Publisher');
 
   // Determine Amazon affiliate link based on platform priority
-  const platformIds = new Set(
-    platforms.map(getPlatformId).filter((id): id is string => id !== null),
-  );
   const amazonAffiliateUrl = config.features.amazonAffiliates
-    ? AMAZON_AFFILIATE_PRIORITY.find((id) => platformIds.has(id))
-      ? AMAZON_AFFILIATE_LINKS[AMAZON_AFFILIATE_PRIORITY.find((id) => platformIds.has(id))!]
-      : null
+    ? getAmazonAffiliateUrl(platforms)
     : null;
 
   return (
@@ -310,7 +287,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           {platforms.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {platforms.slice(0, 5).map((platform) => {
-                const platformId = getPlatformId(platform);
+                const platformId = getPlatformFamilyId(platform);
                 return platformId ? (
                   <Link
                     key={platform}
