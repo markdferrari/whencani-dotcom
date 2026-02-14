@@ -131,12 +131,15 @@ export function LatestReviewsSection() {
               const openCriticUrl = `https://opencritic.com/game/${review.id}/${slug}`;
               const href = review.igdbId ? `/game/${review.igdbId}?oc=${review.id}` : openCriticUrl;
               const isExternal = href.startsWith("http");
+              const igdbImageUrl = review.igdbCoverUrl
+                ? `/api/image?url=${encodeURIComponent(`https:${review.igdbCoverUrl.replace('t_thumb', 't_cover_big')}`)}`
+                : undefined;
               const rawImageUrl =
-                review.igdbCoverUrl ||
-                review.images.box?.sm ||
+                igdbImageUrl ||
                 review.images.box?.og ||
-                review.images.banner?.sm ||
-                review.images.banner?.og;
+                review.images.box?.sm ||
+                review.images.banner?.og ||
+                review.images.banner?.sm;
               const roundedScore = review.topCriticScore ? Math.round(review.topCriticScore) : undefined;
 
               return (

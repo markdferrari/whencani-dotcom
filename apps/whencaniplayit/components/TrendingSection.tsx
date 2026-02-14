@@ -21,12 +21,15 @@ function TrendingGameCard({ game }: { game: TrendingGame }) {
   const openCriticUrl = `https://opencritic.com/game/${game.id}/${slug}`;
   const href = game.igdbId ? `/game/${game.igdbId}?oc=${game.id}` : openCriticUrl;
   const isExternal = href.startsWith("http");
+  const igdbImageUrl = game.igdbCoverUrl
+    ? `/api/image?url=${encodeURIComponent(`https:${game.igdbCoverUrl.replace('t_thumb', 't_cover_big')}`)}`
+    : undefined;
   const rawImageUrl =
-    game.igdbCoverUrl ||
-    game.images.box?.sm ||
+    igdbImageUrl ||
     game.images.box?.og ||
-    game.images.banner?.sm ||
-    game.images.banner?.og;
+    game.images.box?.sm ||
+    game.images.banner?.og ||
+    game.images.banner?.sm;
   const platformLabel = buildPlatformLabel(game);
   const roundedScore = game.topCriticScore ? Math.round(game.topCriticScore) : undefined;
 
