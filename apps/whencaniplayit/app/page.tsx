@@ -162,6 +162,7 @@ export default async function Home({ searchParams }: PageProps) {
             </Suspense>
 
             <TrendingSection />
+            {config.features.boardGames && <TrendingBoardGamesSection />}
           </aside>
 
           <section className="space-y-6 min-w-0">
