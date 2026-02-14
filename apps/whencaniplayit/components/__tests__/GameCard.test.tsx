@@ -31,6 +31,10 @@ Object.defineProperty(window, 'innerWidth', {
 });
 
 describe('GameCard', () => {
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES;
+  });
+
   const mockGame: IGDBGame = {
     id: 12345,
     name: 'Test Game',
@@ -103,8 +107,40 @@ describe('GameCard', () => {
         },
       ],
     };
-    
+
     render(<GameCard game={gameWithMultiplePlatforms} />);
     expect(screen.getByText('PlayStation 5, PC')).toBeInTheDocument();
+  });
+
+  it('should render Buy now link with ASIN when showAffiliateLink is true', () => {
+    process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES = 'true';
+    const gameWithAsin: IGDBGame = {
+      ...mockGame,
+      external_games: [{ category: 20, uid: 'B0FR45L4H6' }],
+    };
+
+    render(<GameCard game={gameWithAsin} showAffiliateLink />);
+    const buyLink = screen.getByText('Buy now');
+    expect(buyLink).toBeInTheDocument();
+    expect(buyLink.closest('a')).toHaveAttribute(
+      'href',
+      'https://www.amazon.co.uk/dp/B0FR45L4H6?tag=whencaniplayg-21&linkCode=ll2&ref_=as_li_ss_tl',
+    );
+  });
+
+  it('should render Buy now with search fallback when no ASIN', () => {
+    process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES = 'true';
+    render(<GameCard game={mockGame} showAffiliateLink />);
+    const buyLink = screen.getByText('Buy now');
+    expect(buyLink.closest('a')).toHaveAttribute(
+      'href',
+      expect.stringContaining('amazon.co.uk/s?k=Test%20Game'),
+    );
+  });
+
+  it('should not render Buy now when showAffiliateLink is false', () => {
+    process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES = 'true';
+    render(<GameCard game={mockGame} />);
+    expect(screen.queryByText('Buy now')).not.toBeInTheDocument();
   });
 });

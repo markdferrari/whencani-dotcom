@@ -222,7 +222,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
 
   // Determine Amazon affiliate link based on platform priority
   const amazonAffiliateUrl = config.features.amazonAffiliates
-    ? getAmazonAffiliateUrl(platforms)
+    ? getAmazonAffiliateUrl(game.name, game.external_games)
     : null;
 
   return (

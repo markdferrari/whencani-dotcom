@@ -55,7 +55,7 @@ export function GameCard({ game, genres, size, showAffiliateLink = false }: Game
   const showBadge = featureEnabled && isInWatchlist && isReleased;
 
   const amazonUrl = showAffiliateLink && config.features.amazonAffiliates
-    ? getAmazonAffiliateUrl(platforms.filter((name): name is string => Boolean(name)))
+    ? getAmazonAffiliateUrl(game.name, game.external_games)
     : null;
 
   return (
