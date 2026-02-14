@@ -199,6 +199,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                           <MovieCard
                             key={movie.id}
                             movie={movie as TMDBMovie}
+                            mobileLayout="side"
+                            watchlistTogglePosition="below-genres"
                           />
                         ))}
                       </div>
@@ -213,6 +215,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                 <MovieCard
                   key={movie.id}
                   movie={movie}
+                  mobileLayout="side"
+                  watchlistTogglePosition="below-genres"
                 />
               ))}
             </div>

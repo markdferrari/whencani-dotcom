@@ -277,6 +277,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                             game={game as IGDBGame}
                             showAffiliateLink
                             mobileLayout="side"
+                            watchlistTogglePosition="below-genres"
                           />
                         ))}
                       </div>
@@ -293,6 +294,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                   game={game}
                   showAffiliateLink
                   mobileLayout="side"
+                  watchlistTogglePosition="below-genres"
                 />
               ))}
             </div>

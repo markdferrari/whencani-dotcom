@@ -17,6 +17,8 @@ export interface MediaCardProps {
   rating?: number;
   ratingCount?: number;
   watchlistToggle?: ReactNode;
+  /** where to render the watchlist toggle (default is the title row) */
+  watchlistTogglePosition?: 'title' | 'below-genres';
   badge?: ReactNode;
   actionButton?: ReactNode;
   size?: "md" | "sm";
@@ -41,6 +43,7 @@ export function MediaCard({
   rating,
   ratingCount,
   watchlistToggle,
+  watchlistTogglePosition = 'title',
   badge,
   actionButton,
   size = "md",
@@ -108,7 +111,16 @@ export function MediaCard({
               </p>
             )}
           </div>
-          <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
+
+          {watchlistToggle && (
+            watchlistTogglePosition === 'title' ? (
+              <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
+            ) : (
+              // when `below-genres` is requested we still render the toggle in the
+              // title row for large screens only (hidden on small screens)
+              <div className="ml-2 flex-shrink-0 hidden md:block">{watchlistToggle}</div>
+            )
+          )}
         </div>
 
         {summary && showSummary && (
@@ -138,6 +150,13 @@ export function MediaCard({
                 {genre}
               </span>
             ))}
+          </div>
+        )}
+
+        {watchlistToggle && watchlistTogglePosition === 'below-genres' && (
+          // show below-genres only on small screens; hide on md+
+          <div className="mt-3 md:hidden">
+            {watchlistToggle}
           </div>
         )}
 

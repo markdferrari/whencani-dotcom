@@ -73,7 +73,7 @@ export default function RootLayout({
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <a href="https://www.whencaniwatchit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
-                  Like Movies? - Visit WhenCanIWatchIt.com →
+                  Like Movies?  Visit WhenCanIWatchIt.com →
                 </a>
               </div>
               <div>

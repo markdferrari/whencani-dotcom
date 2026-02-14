@@ -15,10 +15,12 @@ interface GameCardProps {
   size?: 'md' | 'sm';
   /** make the card horizontal on small screens with larger cover on the left */
   mobileLayout?: 'stack' | 'side';
+  /** where to render the watchlist toggle (default: title row) */
+  watchlistTogglePosition?: 'title' | 'below-genres';
   showAffiliateLink?: boolean;
 }
 
-export function GameCard({ game, genres, size, mobileLayout = 'stack', showAffiliateLink = false }: GameCardProps) {
+export function GameCard({ game, genres, size, mobileLayout = 'stack', watchlistTogglePosition = 'title', showAffiliateLink = false }: GameCardProps) {
 
   const normalizeIgdbImage = (url?: string, variant = 't_cover_big') =>
     url
