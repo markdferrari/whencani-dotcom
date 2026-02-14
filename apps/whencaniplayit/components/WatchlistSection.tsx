@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { useWatchlistGames } from '@/hooks/use-watchlist';
+import { useBoardGameWatchlistGames } from '@/hooks/use-board-game-watchlist';
+import { BoardGameCard } from './BoardGameCard';
 import { config } from '@/lib/config';
 import {
   WatchlistToolbar,
@@ -76,12 +78,21 @@ function filterGamesByGenre(games: IGDBGame[], genreName?: string): IGDBGame[] {
 }
 
 export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSectionProps) {
-  const { games, isLoading } = useWatchlistGames();
   const searchParams = useSearchParams();
+  const typeParam = searchParams.get('type') || 'game';
+  const isBoardType = typeParam === 'board' && config.features.boardGames;
+
+  const { games: igdbGames, isLoading: igdbLoading } = useWatchlistGames();
+  const { games: boardGames, isLoading: boardLoading } = useBoardGameWatchlistGames();
+
+  // Choose the active dataset depending on the type param
+  const games = isBoardType ? (boardGames as any) : (igdbGames as any);
+  const isLoading = isBoardType ? boardLoading : igdbLoading;
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const featureEnabled = config.features.watchlistImprovements;
+  const featureEnabled = config.features.watchlistImprovements; 
 
   // Read URL params
   const sortBy = (searchParams.get('sort') || 'date-added') as 'date-added' | 'release-soonest' | 'release-latest' | 'alphabetical';
@@ -104,8 +115,9 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
     });
   };
 
-  // Apply filtering and sorting
+  // Apply filtering and sorting (IGDB games only)
   const processedGames = useMemo(() => {
+    if (isBoardType) return games;
     if (!featureEnabled) return games;
 
     // Filter by platform and genre (both work with IGDBGame type)
@@ -125,10 +137,11 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
 
     // Map back to IGDBGame type (remove the temporary genreNames property)
     return sorted.map(({ genreNames, ...game }) => game as IGDBGame);
-  }, [games, genreFilter, platformFilter, sortBy, featureEnabled]);
+  }, [games, genreFilter, platformFilter, sortBy, featureEnabled, isBoardType]);
 
-  // Group by release date if applicable
+  // Group by release date if applicable (IGDB only)
   const groupedGames = useMemo(() => {
+    if (isBoardType) return null;
     if (featureEnabled && sortBy === 'release-soonest') {
       return groupByReleaseDate(
         processedGames.map(g => ({
@@ -138,7 +151,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       );
     }
     return null;
-  }, [processedGames, sortBy, featureEnabled]);
+  }, [processedGames, sortBy, featureEnabled, isBoardType]);
 
   // Extract unique genres and platforms for filters
   const availableGenres = useMemo(() => {
@@ -211,6 +224,22 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             Your favourites in one place
           </h2>
+          {config.features.boardGames && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={() => updateParam('type', '')}
+                className={`rounded-full px-3 py-1 text-sm font-medium ${!isBoardType ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 dark:bg-zinc-950/50'}`}
+              >
+                Games
+              </button>
+              <button
+                onClick={() => updateParam('type', 'board')}
+                className={`rounded-full px-3 py-1 text-sm font-medium ${isBoardType ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 dark:bg-zinc-950/50'}`}
+              >
+                Board games
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -235,7 +264,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
         </div>
       ) : (
         <>
-          {featureEnabled && !isShared && (
+          {featureEnabled && !isShared && !isBoardType && (
             <WatchlistToolbar
               sortBy={sortBy}
               onSortChange={(value) => updateParam('sort', value)}
@@ -287,6 +316,15 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                   </div>
                 );
               })}
+            </div>
+          ) : isBoardType ? (
+            <div className="mt-6 space-y-4">
+              {games.map((game: any) => (
+                <BoardGameCard
+                  key={game.id}
+                  game={game}
+                />
+              ))}
             </div>
           ) : (
             <div className="mt-6 space-y-4">
