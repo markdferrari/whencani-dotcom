@@ -33,62 +33,8 @@ export default $config({
       environment: {
         TMDB_API_KEY: process.env.TMDB_API_KEY!,
       },
-      transform: {
-        cdn: (args) => {
-          args.orderedCacheBehaviors = [          // TMDB API routes - cache moderately (1 hour)
-            {
-              pathPattern: "/api/tmdb/*",
-              targetOriginId: args.defaultCacheBehavior.targetOriginId,
-              viewerProtocolPolicy: "redirect-to-https",
-              allowedMethods: ["GET", "HEAD", "OPTIONS"],
-              cachedMethods: ["GET", "HEAD"],
-              compress: true,
-              forwardedValues: {
-                queryString: true,
-                headers: ["Accept", "Accept-Encoding"],
-                cookies: { forward: "none" },
-              },
-              minTtl: 1800, // 30 minutes minimum
-              defaultTtl: 3600, // 1 hour default
-              maxTtl: 7200, // 2 hours maximum
-            },
-            // Geocoding API - cache for 7 days (very stable data)
-            {
-              pathPattern: "/api/geocode",
-              targetOriginId: args.defaultCacheBehavior.targetOriginId,
-              viewerProtocolPolicy: "redirect-to-https",
-              allowedMethods: ["GET", "HEAD"],
-              cachedMethods: ["GET", "HEAD"],
-              compress: true,
-              forwardedValues: {
-                queryString: true,
-                headers: [],
-                cookies: { forward: "none" },
-              },
-              minTtl: 86400, // 24 hours minimum
-              defaultTtl: 604800, // 7 days default
-              maxTtl: 604800, // 7 days maximum
-            },
-            // Nearby cinemas - cache for 24 hours
-            {
-              pathPattern: "/api/cinemas/nearby",
-              targetOriginId: args.defaultCacheBehavior.targetOriginId,
-              viewerProtocolPolicy: "redirect-to-https",
-              allowedMethods: ["GET", "HEAD"],
-              cachedMethods: ["GET", "HEAD"],
-              compress: true,
-              forwardedValues: {
-                queryString: true,
-                headers: [],
-                cookies: { forward: "none" },
-              },
-              minTtl: 3600, // 1 hour minimum
-              defaultTtl: 86400, // 24 hours default
-              maxTtl: 86400, // 24 hours maximum
-            },
-          ];
-        },
-      },
+      // Cache behavior is handled by the default CloudFront behavior,
+      // which respects Cache-Control headers set by route handlers.
     });
 
     const nodes = site.nodes as {
