@@ -140,11 +140,11 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
   }, [games, genreFilter, platformFilter, sortBy, featureEnabled, isBoardType]);
 
   // Group by release date if applicable (IGDB only)
-  const groupedGames = useMemo(() => {
+  const groupedGames = useMemo<Record<ReleaseGroup, (IGDBGame & { releaseDate?: string | null })[]> | null>(() => {
     if (isBoardType) return null;
     if (featureEnabled && sortBy === 'release-soonest') {
       return groupByReleaseDate(
-        processedGames.map(g => ({
+        processedGames.map((g: IGDBGame) => ({
           ...g,
           releaseDate: timestampToDate(g.first_release_date),
         }))
@@ -179,7 +179,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
   // Export handlers
   const handleExport = (type: 'link' | 'text') => {
     if (type === 'link') {
-      const ids = processedGames.map(g => g.id).join(',');
+      const ids = processedGames.map((g: IGDBGame) => g.id).join(',');
       const url = `${window.location.origin}/watchlist?ids=${ids}`;
       navigator.clipboard.writeText(url);
       toast({
@@ -188,7 +188,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       });
     } else {
       const text = processedGames
-        .map(g => {
+        .map((g: IGDBGame) => {
           const releaseDate = timestampToDate(g.first_release_date) || 'TBA';
           return `${g.name} - ${releaseDate}`;
         })
@@ -328,7 +328,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {processedGames.map((game) => (
+              {processedGames.map((game: IGDBGame) => (
                 <GameCard
                   key={game.id}
                   game={game}

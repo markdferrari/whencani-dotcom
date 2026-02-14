@@ -19,7 +19,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ platform?: string; view?: string; genre?: string; studio?: string }>;
+  searchParams: Promise<{ platform?: string; view?: string; genre?: string; studio?: string; type?: string }>;
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
@@ -53,7 +53,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     if (platformParam !== 'all') queryParams.set('platform', platformParam);
     if (genreParam) queryParams.set('genre', genreParam);
     if (studioParam) queryParams.set('studio', studioParam);
-    if (typeParam && typeParam !== 'video') queryParams.set('type', typeParam);
+    queryParams.set('type', typeParam);
     const canonicalUrl = queryParams.toString() ? `${SITE_URL}/?${queryParams.toString()}` : SITE_URL;
 
     return {
