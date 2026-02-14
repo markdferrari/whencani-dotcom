@@ -6,6 +6,8 @@ import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 const SITE_URL = "https://whencanireadit.com";
 
 export const metadata: Metadata = {
