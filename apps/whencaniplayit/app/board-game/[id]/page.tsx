@@ -73,7 +73,7 @@ export default async function BoardGamePage({ params }: PageProps) {
           backdropUrl={backdropUrl}
           posterUrl={posterUrl}
           posterAlt={`${game.name} box art`}
-          posterAspect="1/1"
+          posterAspect="3/4"
           posterUnoptimized
           className="mt-6"
           posterFooter={
