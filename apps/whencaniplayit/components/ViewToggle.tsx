@@ -3,16 +3,23 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 
-const VIEWS = [
-  { id: 'upcoming', name: 'Coming Soon' },
-  { id: 'recent', name: 'Recently Released' },
-];
-
 export function ViewToggle() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentView = searchParams.get('view') || 'upcoming';
+  const currentType = searchParams.get('type') || 'video';
   const [isPending, startTransition] = useTransition();
+
+  const VIEWS =
+    currentType === 'board'
+      ? [
+          { id: 'upcoming', name: 'Popular' },
+          { id: 'recent', name: 'New Releases' },
+        ]
+      : [
+          { id: 'upcoming', name: 'Coming Soon' },
+          { id: 'recent', name: 'Recently Released' },
+        ];
 
   const handleViewChange = (viewId: string) => {
     startTransition(() => {
