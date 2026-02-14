@@ -1,4 +1,5 @@
 export const WATCHLIST_COOKIE_NAME = 'watchlist';
+export const BOARD_GAME_WATCHLIST_COOKIE_NAME = 'watchlist_bg';
 export const WATCHLIST_MAX_ITEMS = 100;
 
 export function parseWatchlistCookie(value?: string | null) {
