@@ -9,13 +9,9 @@ import { useWatchlistGames } from '@/hooks/use-watchlist';
 import { config } from '@/lib/config';
 import {
   WatchlistToolbar,
-  ReleaseBadge,
   useToast,
   groupByReleaseDate,
   sortItems,
-  extractUniqueGenres,
-  filterByGenre,
-  isReleasedRecently,
   type ReleaseGroup,
 } from '@whencani/ui';
 import type { IGDBGame } from '@/lib/igdb';

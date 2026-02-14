@@ -5,8 +5,9 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { MediaCard, MediaCarousel } from "@whencani/ui";
+import { MediaCard, MediaCarousel, ReleaseBadge, isReleasedRecently } from "@whencani/ui";
 import { config } from "@/lib/config";
+import { useBookshelfIds } from "@/hooks/use-bookshelf";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 const ACCENT = {
@@ -187,6 +188,12 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
 }
 
 function GoogleBookCard({ book }: { book: Book }) {
+  const bookshelfIds = useBookshelfIds();
+  const isInBookshelf = bookshelfIds.includes(book.id);
+  const isReleased = isReleasedRecently(book.publishedDate, 0);
+  const featureEnabled = config.features.bookshelfImprovements;
+  const showBadge = featureEnabled && isInBookshelf && isReleased;
+
   return (
     <MediaCard
       id={book.id}
@@ -198,6 +205,7 @@ function GoogleBookCard({ book }: { book: Book }) {
       summary={book.description || undefined}
       authors={book.authors}
       genres={book.categories}
+      badge={showBadge ? <ReleaseBadge /> : undefined}
     />
   );
 }
