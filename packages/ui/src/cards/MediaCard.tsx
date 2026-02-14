@@ -18,6 +18,7 @@ export interface MediaCardProps {
   ratingCount?: number;
   watchlistToggle?: ReactNode;
   badge?: ReactNode;
+  actionButton?: ReactNode;
   size?: "md" | "sm";
   showSummary?: boolean;
 }
@@ -36,6 +37,7 @@ export function MediaCard({
   ratingCount,
   watchlistToggle,
   badge,
+  actionButton,
   size = "md",
   showSummary = true,
 }: MediaCardProps) {
@@ -120,7 +122,11 @@ export function MediaCard({
           </div>
         )}
 
-        {/* platforms removed: show genres above instead */}
+        {actionButton && (
+          <div className="mt-3">
+            {actionButton}
+          </div>
+        )}
       </div>
 
       {(rating !== undefined || ratingCount !== undefined) && (

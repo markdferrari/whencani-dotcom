@@ -578,7 +578,8 @@ export async function getGamesByIds(ids: number[]): Promise<IGDBGame[]> {
 
   const query = `
     fields id, name, summary, cover.url, first_release_date, platforms.name, screenshots.url,
-      release_dates.human, release_dates.date, release_dates.date_format, release_dates.platform.name, release_dates.platform.id, genres.name;
+      release_dates.human, release_dates.date, release_dates.date_format, release_dates.platform.name, release_dates.platform.id, genres.name,
+      external_games.category, external_games.uid;
     where id = (${normalizedIds.join(',')});
     limit ${normalizedIds.length};
   `;

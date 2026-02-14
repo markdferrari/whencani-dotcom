@@ -3,6 +3,7 @@
 import type { IGDBGame, IGDBGenre } from '@/lib/igdb';
 import { formatReleaseDate } from '@/lib/igdb';
 import { config } from '@/lib/config';
+import { getAmazonAffiliateUrl } from '@/lib/amazon';
 import { WatchlistToggle } from './WatchlistToggle';
 import { useWatchlistIds } from '@/hooks/use-watchlist';
 import { MediaCard, ReleaseBadge, isReleasedRecently } from '@whencani/ui';
@@ -12,9 +13,10 @@ interface GameCardProps {
   game: IGDBGame;
   genres?: IGDBGenre[];
   size?: 'md' | 'sm';
+  showAffiliateLink?: boolean;
 }
 
-export function GameCard({ game, genres, size }: GameCardProps) {
+export function GameCard({ game, genres, size, showAffiliateLink = false }: GameCardProps) {
 
   const normalizeIgdbImage = (url?: string, variant = 't_cover_big') =>
     url
@@ -52,6 +54,10 @@ export function GameCard({ game, genres, size }: GameCardProps) {
   const featureEnabled = config.features.watchlistImprovements;
   const showBadge = featureEnabled && isInWatchlist && isReleased;
 
+  const amazonUrl = showAffiliateLink && config.features.amazonAffiliates
+    ? getAmazonAffiliateUrl(game.name, game.external_games)
+    : null;
+
   return (
     <MediaCard
       id={game.id}
@@ -64,6 +70,17 @@ export function GameCard({ game, genres, size }: GameCardProps) {
       genres={genreNames}
       watchlistToggle={<WatchlistToggle gameId={game.id} className="shadow" />}
       badge={showBadge ? <ReleaseBadge /> : undefined}
+      actionButton={amazonUrl ? (
+        <a
+          href={amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-sky-600 active:bg-sky-700"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Buy now
+        </a>
+      ) : undefined}
     />
   );
 }
