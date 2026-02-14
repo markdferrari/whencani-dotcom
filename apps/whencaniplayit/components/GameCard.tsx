@@ -13,10 +13,12 @@ interface GameCardProps {
   game: IGDBGame;
   genres?: IGDBGenre[];
   size?: 'md' | 'sm';
+  /** make the card horizontal on small screens with larger cover on the left */
+  mobileLayout?: 'stack' | 'side';
   showAffiliateLink?: boolean;
 }
 
-export function GameCard({ game, genres, size, showAffiliateLink = false }: GameCardProps) {
+export function GameCard({ game, genres, size, mobileLayout = 'stack', showAffiliateLink = false }: GameCardProps) {
 
   const normalizeIgdbImage = (url?: string, variant = 't_cover_big') =>
     url
@@ -68,6 +70,8 @@ export function GameCard({ game, genres, size, showAffiliateLink = false }: Game
       releaseDate={releaseDateHuman}
       summary={summary}
       genres={genreNames}
+      size={size}
+      mobileLayout={mobileLayout}
       watchlistToggle={<WatchlistToggle gameId={game.id} className="shadow" />}
       badge={showBadge ? <ReleaseBadge /> : undefined}
       actionButton={amazonUrl ? (
