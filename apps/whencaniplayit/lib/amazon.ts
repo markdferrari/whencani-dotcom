@@ -45,6 +45,15 @@ export function getAmazonAffiliateUrl(
 }
 
 /**
+ * Generate an Amazon search URL tailored for board games (no ASIN available from BGG)
+ */
+export function getAmazonBoardGameUrl(gameName: string): string {
+  const { domain, tag } = config.amazon;
+  const query = `${gameName} board game`;
+  return `https://www.${domain}/s?k=${encodeURIComponent(query)}&tag=${tag}&linkCode=ll2&ref_=as_li_ss_tl`;
+}
+
+/**
  * Map a platform name to its broad platform family ID.
  * Used by the game detail page for platform pill links.
  */

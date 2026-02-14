@@ -35,5 +35,8 @@ export const config = {
     get amazonAffiliates(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_AMAZON_AFFILIATES === 'true';
     },
+    get boardGames(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_BOARD_GAMES === 'true';
+    },
   },
 } as const;

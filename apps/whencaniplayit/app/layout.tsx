@@ -20,13 +20,13 @@ const SITE_NAME = "WhenCanIPlayIt.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "WhenCanIPlayIt.com - Video Game Release Tracker",
+    default: "WhenCanIPlayIt.com - Game Release Tracker",
     template: "%s | WhenCanIPlayIt.com",
   },
   description:
-    "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+    "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
   keywords: [
-    "video game releases",
+    "game releases",
     "game release tracker",
     "upcoming games",
     "recent releases",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WhenCanIPlayIt.com",
     description:
-      "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
     url: SITE_URL,
     siteName: SITE_NAME,
     type: "website",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhenCanIPlayIt.com",
     description:
-      "Track verified video game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
   },
 };
 
@@ -82,7 +82,7 @@ export default function RootLayout({
                 </a>
               </div>            
               <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
-                Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a>
+                Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a> &amp; <a href="https://boardgamegeek.com/" target="_blank" rel="noopener noreferrer" className="underline">BoardGameGeek</a>
               </div>
             </div>
           </footer>

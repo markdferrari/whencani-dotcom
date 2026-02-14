@@ -13,18 +13,22 @@ const PLATFORMS = [
 
 interface PlatformFilterProps {
   genres: Array<{ id: number; name: string }>;
+  showBoardGames?: boolean;
 }
 
-export function PlatformFilter({ genres }: PlatformFilterProps) {
+export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPlatform = searchParams.get('platform') || 'all';
   const currentGenre = searchParams.get('genre') || '';
   const currentStudio = searchParams.get('studio') || '';
+  const currentType = searchParams.get('type') || 'video';
 
   const [studios, setStudios] = useState<Array<{ id: number; name: string }>>([]);
   const [studioLoading, setStudioLoading] = useState(true);
   const [studioError, setStudioError] = useState(false);
+  const [bggCategories, setBggCategories] = useState<string[]>([]);
+  const [bggLoading, setBggLoading] = useState(false);
 
   const handleSelectChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -68,22 +72,92 @@ export function PlatformFilter({ genres }: PlatformFilterProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showBoardGames || currentType !== 'board') return;
+    let active = true;
+    setBggLoading(true);
+    void (async () => {
+      try {
+        const res = await fetch('/api/board-games');
+        if (!res.ok) throw new Error('Failed to load BGG categories');
+        const json = await res.json();
+        if (!active) return;
+        setBggCategories(json.categories || []);
+      } catch (err) {
+        console.error(err);
+        if (!active) return;
+        setBggCategories([]);
+      } finally {
+        if (!active) return;
+        setBggLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [currentType, showBoardGames]);
+
   return (
     <div className="grid gap-4">
-      <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-        Platform
-        <select
-          value={currentPlatform}
-          onChange={(event) => handleSelectChange('platform', event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
-        >
-          {PLATFORMS.map((platform) => (
-            <option key={platform.id} value={platform.id}>
-              {platform.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {showBoardGames && (
+        <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+          Game Type
+          <select
+            value={currentType}
+            onChange={(e) => handleSelectChange('type', e.target.value)}
+            className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+          >
+            <option value="video">Video Games</option>
+            <option value="board">Board Games</option>
+          </select>
+        </label>
+      )}
+
+      {currentType !== 'board' && (
+        <>
+          <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+            Platform
+            <select
+              value={currentPlatform}
+              onChange={(event) => handleSelectChange('platform', event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+            >
+              {PLATFORMS.map((platform) => (
+                <option key={platform.id} value={platform.id}>
+                  {platform.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+            Studio
+            <select
+              value={currentStudio}
+              onChange={(event) => handleSelectChange('studio', event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+            >
+              <option value="">All studios</option>
+              {studios.map((studio) => (
+                <option key={studio.id} value={studio.id.toString()}>
+                  {studio.name}
+                </option>
+              ))}
+            </select>
+            {studioLoading && (
+              <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">
+                Loading studios…
+              </span>
+            )}
+            {studioError && (
+              <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-red-500">
+                Failed to load studios
+              </span>
+            )}
+          </label>
+        </>
+      )}
 
       <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
         Genre
@@ -93,37 +167,22 @@ export function PlatformFilter({ genres }: PlatformFilterProps) {
           className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
         >
           <option value="">All genres</option>
-          {genres.map((genre) => (
-            <option key={genre.id} value={genre.id.toString()}>
-              {genre.name}
-            </option>
-          ))}
+          {currentType === 'board' ? (
+            bggCategories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))
+          ) : (
+            genres.map((genre) => (
+              <option key={genre.id} value={genre.id.toString()}>
+                {genre.name}
+              </option>
+            ))
+          )}
         </select>
-      </label>
-
-      <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-        Studio
-        <select
-          value={currentStudio}
-          onChange={(event) => handleSelectChange('studio', event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
-        >
-          <option value="">All studios</option>
-          {studios.map((studio) => (
-            <option key={studio.id} value={studio.id.toString()}>
-              {studio.name}
-            </option>
-          ))}
-        </select>
-        {studioLoading && (
-          <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-            Loading studios…
-          </span>
-        )}
-        {studioError && (
-          <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-red-500">
-            Failed to load studios
-          </span>
+        {currentType === 'board' && bggLoading && (
+          <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">Loading categories…</span>
         )}
       </label>
     </div>

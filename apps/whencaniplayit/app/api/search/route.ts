@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { searchGames } from '../../../lib/igdb';
 import { getHighResImageUrl } from '../../../lib/utils';
+import { config } from '@/lib/config';
+import { searchBoardGames, getBoardGamesByIds, type BGGBoardGame } from '@/lib/bgg';
 
 export async function GET(req: Request) {
   try {
@@ -11,8 +13,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const games = await searchGames(query);
-    const results = games.map((game) => ({
+    // Run IGDB search and (optionally) BGG search in parallel for lowest latency
+    const igdbPromise = searchGames(query);
+    const bggPromise = config.features.boardGames ? searchBoardGames(query) : Promise.resolve([]);
+
+    const [igdbGames, bggSearchResults] = await Promise.all([igdbPromise, bggPromise]);
+
+    const igdbResults = igdbGames.map((game) => ({
       id: game.id,
       title: game.name,
       imageUrl: getHighResImageUrl(game.cover?.url) ?? null,
@@ -26,8 +33,39 @@ export async function GET(req: Request) {
       href: `/game/${game.id}`,
     }));
 
+    let bggResults = [] as Array<{ id: number; title: string; imageUrl: string | null; releaseDate: string | null; href: string }>;
+
+    if (bggSearchResults && bggSearchResults.length > 0) {
+      // Fetch details for the top few BGG matches to get thumbnails
+      const ids = bggSearchResults.slice(0, 6).map((r) => r.id);
+      const details = await getBoardGamesByIds(ids);
+
+      bggResults = details.map((g) => ({
+        id: g.id,
+        title: g.name,
+        imageUrl: g.thumbnail ?? g.image ?? null,
+        releaseDate: g.yearPublished ? String(g.yearPublished) : null,
+        href: `/board-game/${g.id}`,
+      }));
+    }
+
+    // Concatenate IGDB results first, then BGG results (UI uses href to distinguish)
+    const results = [...igdbResults, ...bggResults].slice(0, 12);
+
     return NextResponse.json({ results });
-  } catch {
+  } catch (err) {
+    console.error('search route error', err);
     return NextResponse.json({ results: [] }, { status: 500 });
   }
+}
+
+// Exported for unit testing the BGG -> SearchResult mapping
+export function mapBGGDetailsToSearchResults(details: BGGBoardGame[]) {
+  return details.map((g) => ({
+    id: g.id,
+    title: g.name,
+    imageUrl: g.thumbnail ?? g.image ?? null,
+    releaseDate: g.yearPublished ? String(g.yearPublished) : null,
+    href: `/board-game/${g.id}`,
+  }));
 }
