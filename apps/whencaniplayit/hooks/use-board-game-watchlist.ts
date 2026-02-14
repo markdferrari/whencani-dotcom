@@ -5,7 +5,7 @@ import type { BGGBoardGame } from '@/lib/bgg';
 import { BOARD_GAME_WATCHLIST_COOKIE_NAME, parseWatchlistCookie } from '@/lib/watchlist';
 import { useToast } from '@/components/ui';
 
-const WATCHLIST_EVENT_NAME = 'watchlist:update';
+const WATCHLIST_EVENT_NAME = 'watchlist_bg:update';
 
 function readCookieValue(name: string) {
   if (typeof document === 'undefined') return null;

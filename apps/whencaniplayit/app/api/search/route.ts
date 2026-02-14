@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { searchGames } from '../../../lib/igdb';
 import { getHighResImageUrl } from '../../../lib/utils';
 import { config } from '@/lib/config';
-import { searchBoardGames, getBoardGamesByIds } from '@/lib/bgg';
+import { searchBoardGames, getBoardGamesByIds, type BGGBoardGame } from '@/lib/bgg';
 
 export async function GET(req: Request) {
   try {
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
 }
 
 // Exported for unit testing the BGG -> SearchResult mapping
-export function mapBGGDetailsToSearchResults(details: Array<any>) {
+export function mapBGGDetailsToSearchResults(details: BGGBoardGame[]) {
   return details.map((g) => ({
     id: g.id,
     title: g.name,

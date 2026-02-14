@@ -82,7 +82,7 @@ export default function RootLayout({
                 </a>
               </div>            
               <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
-                Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a>
+                Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a> &amp; <a href="https://boardgamegeek.com/" target="_blank" rel="noopener noreferrer" className="underline">BoardGameGeek</a>
               </div>
             </div>
           </footer>

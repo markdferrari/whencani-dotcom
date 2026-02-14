@@ -44,9 +44,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   const filterSuffix = filterParts.length ? ` - ${filterParts.join(', ')}` : '';
 
   if (typeParam === 'board') {
-    const viewText = viewParam === 'recent' ? 'Trending' : 'Trending';
+    const viewText = viewParam === 'recent' ? 'New' : 'Popular';
     const metaTitle = `${viewText} Board Games${filterSuffix} | ${SITE_NAME}`;
-    const metaDescription = `Discover trending board games${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} from BoardGameGeek.`;
+    const metaDescription = `Discover ${viewText.toLowerCase()} board games${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} from BoardGameGeek.`;
 
     const queryParams = new URLSearchParams();
     if (viewParam !== 'upcoming') queryParams.set('view', viewParam);
@@ -65,8 +65,8 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   }
 
   const viewText = viewParam === 'recent' ? 'Recently Released' : 'Upcoming';
-  const metaTitle = `${viewText} game Releases${filterSuffix} | ${SITE_NAME}`;
-  const metaDescription = `Discover ${viewText.toLowerCase()} game releases${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} with verified release windows and trending review scores.`;
+  const metaTitle = `${viewText} Video Game Releases${filterSuffix} | ${SITE_NAME}`;
+  const metaDescription = `Discover ${viewText.toLowerCase()} video game releases${filterParts.length ? ` for ${filterParts.join(', ')}` : ''} with verified release windows and trending review scores.`;
 
   const queryParams = new URLSearchParams();
   if (viewParam !== 'upcoming') queryParams.set('view', viewParam);
@@ -100,8 +100,8 @@ function buildStructuredData(viewParam: string, genres: any[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'game Release Tracker',
-    description: 'Browse verified game release windows and trending reviews',
+    name: 'Video Game Release Tracker',
+    description: 'Browse verified video game release windows and trending reviews',
     url: siteUrl,
     isPartOf: {
       '@type': 'WebSite',
@@ -111,7 +111,7 @@ function buildStructuredData(viewParam: string, genres: any[]) {
     mainEntity: {
       '@type': 'ItemList',
       name: viewParam === 'recent' ? 'Recently Released Games' : 'Upcoming Game Releases',
-      description: `${viewParam === 'recent' ? 'Recently released' : 'Upcoming'} game titles across all major platforms`,
+      description: `${viewParam === 'recent' ? 'Recently released' : 'Upcoming'} video game titles across all major platforms`,
       itemListElement: genres.slice(0, 8).map((genre, index) => ({
         '@type': 'ListItem',
         position: index + 1,

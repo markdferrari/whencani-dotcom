@@ -2,6 +2,8 @@
 
 import { MediaCard } from '@whencani/ui';
 import { getAmazonBoardGameUrl } from '@/lib/amazon';
+import { stripHtml } from '@/lib/bgg';
+import { config } from '@/lib/config';
 import { BoardGameWatchlistToggle } from './BoardGameWatchlistToggle';
 import type { BGGBoardGame } from '@/lib/bgg';
 
@@ -15,19 +17,15 @@ export function BoardGameCard({ game, size, showAffiliateLink = false }: BoardGa
   const imageUrl = game.image || game.thumbnail || '/game-placeholder.svg';
   const title = game.name;
   const releaseDate = game.yearPublished ? String(game.yearPublished) : 'TBA';
-  const summary = game.description
-    ? game.description.length > 140
-      ? `${game.description.slice(0, 140)}…`
-      : game.description
+  const plainDesc = game.description ? stripHtml(game.description) : '';
+  const summary = plainDesc
+    ? plainDesc.length > 140
+      ? `${plainDesc.slice(0, 140)}…`
+      : plainDesc
     : 'No description available.';
   const genres = game.categories || [];
-  const extraInfo = [] as string[];
-  if (typeof game.minPlayers === 'number' && typeof game.maxPlayers === 'number') {
-    extraInfo.push(`${game.minPlayers}-${game.maxPlayers} players`);
-  }
-  if (game.playingTime) extraInfo.push(`${game.playingTime} mins`);
 
-  const amazonUrl = showAffiliateLink ? getAmazonBoardGameUrl(game.name) : null;
+  const amazonUrl = showAffiliateLink && config.features.amazonAffiliates ? getAmazonBoardGameUrl(game.name) : null;
 
   return (
     <MediaCard
@@ -39,6 +37,7 @@ export function BoardGameCard({ game, size, showAffiliateLink = false }: BoardGa
       releaseDate={releaseDate}
       summary={summary}
       genres={genres}
+      size={size}
       watchlistToggle={<BoardGameWatchlistToggle gameId={game.id} className="shadow" />}
       actionButton={amazonUrl ? (
         <a
