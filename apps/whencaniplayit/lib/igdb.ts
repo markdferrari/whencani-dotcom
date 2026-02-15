@@ -759,10 +759,10 @@ export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
     value: number;
   }
 
-  console.log('Fetching popularity data (types 2 and 10)...');
+  //console.log('Fetching popularity data (types 2 and 10)...');
   const popularityData = await igdbRequest<PopularityEntry[]>('popularity_primitives', popularityQuery);
-  console.log('Popularity data received:', popularityData.length, 'entries');
-  console.log('Sample entry:', popularityData[0]);
+  //console.log('Popularity data received:', popularityData.length, 'entries');
+  //console.log('Sample entry:', popularityData[0]);
 
   // Group by game and calculate weighted score (0.3 for type 2, 0.7 for type 10)
   const gameScores = new Map<number, { type2: number; type10: number; weightedScore: number }>();
@@ -780,8 +780,8 @@ export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
       existing.type10 += entry.value;
     }
 
-    // Recalculate weighted score (0.1 for type 2, 0.9 for type 10)
-    existing.weightedScore = 0.1 * existing.type2 + 0.9 * existing.type10;
+    // Recalculate weighted score (0.05 for type 2, 0.9 for type 10)
+    existing.weightedScore = 0.05 * existing.type2 + 0.9 * existing.type10;
 
     gameScores.set(gameId, existing);
   }

@@ -61,7 +61,7 @@ function PopularEmptyState() {
 function PopularSectionStandard({ games }: { games: IGDBGame[] }) {
   return (
     <MediaCarousel
-      label="Popular"
+      label="Popular Today"
       slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_30%]"
       showNavigation
       accentClasses={ACCENT}

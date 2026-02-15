@@ -28,6 +28,8 @@ export interface MediaCardProps {
    */
   mobileLayout?: 'stack' | 'side';
   showSummary?: boolean;
+  /** Make the card full height to fill its container */
+  fullHeight?: boolean;
 }
 
 export function MediaCard({
@@ -49,6 +51,7 @@ export function MediaCard({
   size = "md",
   mobileLayout = 'stack',
   showSummary = true,
+  fullHeight = false,
 }: MediaCardProps) {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const imageHeight = size === "md" ? 120 : 88;
@@ -68,7 +71,7 @@ export function MediaCard({
     : (size === 'md' ? 'w-[84px] h-[120px]' : 'w-[64px] h-[88px]');
 
   return (
-    <article className={`flex ${rootFlexClass} gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left md:text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70`}>
+    <article className={`flex ${rootFlexClass} gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left md:text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70 ${fullHeight ? 'h-full' : ''}`}>
       <div className={`relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 ${imageContainerClass} ${mobileLayout === 'side' ? 'mx-0' : 'mx-auto md:mx-0'}`}>
         {imageUrl ? (
           <Link href={href}>
