@@ -104,9 +104,6 @@ function TrendingLoadingState() {
             Trending
           </p>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">
-          Live
-        </span>
       </div>
       <div className="flex h-full items-center justify-center rounded-lg border border-zinc-200/70 bg-white/80 p-6 text-center dark:border-zinc-800/70 dark:bg-zinc-900/80 mt-5">
         <div>
@@ -127,9 +124,6 @@ function TrendingEmptyState() {
             Trending
           </p>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">
-          Live
-        </span>
       </div>
       <div className="flex h-full items-center justify-center rounded-lg border border-zinc-200/70 bg-white/80 p-6 text-center dark:border-zinc-800/70 dark:bg-zinc-900/80 mt-5">
         <div>
@@ -148,11 +142,6 @@ function TrendingSectionStandard({ games }: { games: TrendingGame[] }) {
       slideBasis="flex-[0_0_100%]"
       showNavigation
       accentClasses={ACCENT}
-      headerRight={
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">
-          Live
-        </span>
-      }
     >
       {games.map((game) => (
         <TrendingGameCard key={`${game.id}-carousel`} game={game} />
@@ -195,9 +184,6 @@ function TrendingSectionLegacy({ games }: { games: TrendingGame[] }) {
             Trending
           </p>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">
-          Live
-        </span>
       </div>
       <div className="relative mt-5 group">
         <div className="overflow-hidden" ref={emblaRef}>

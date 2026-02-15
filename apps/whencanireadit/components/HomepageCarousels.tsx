@@ -101,9 +101,6 @@ function CarouselWrapper({ label, subtitle, children }: { label: string; subtitl
             <p className="text-sm text-zinc-500">{subtitle}</p>
           )}
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
       </div>
       <div className="relative mt-5 group">
         <div className="overflow-hidden" ref={emblaRef}>
@@ -153,11 +150,6 @@ function NYTCarouselStandard({ list, displayName }: { list: NYTBestsellerList; d
       slideBasis="flex-[0_0_100%]"
       showNavigation
       accentClasses={ACCENT}
-      headerRight={
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
-      }
     >
       {list.books.map((book) => (
         <NYTBookCard key={book.isbn13 || book.title} book={book} />
@@ -239,11 +231,6 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
             slideBasis="flex-[0_0_100%]"
             showNavigation
             accentClasses={ACCENT}
-            headerRight={
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-                Live
-              </span>
-            }
           >
             {fictionList.books.slice(0, 8).map((book) => (
               <NYTBookCard key={book.isbn13 || book.title} book={book} />
@@ -267,11 +254,6 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
             slideBasis="flex-[0_0_100%]"
             showNavigation
             accentClasses={ACCENT}
-            headerRight={
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-                Live
-              </span>
-            }
           >
             {nonfictionList.books.slice(0, 8).map((book) => (
               <NYTBookCard key={book.isbn13 || book.title} book={book} />

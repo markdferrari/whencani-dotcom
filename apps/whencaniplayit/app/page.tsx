@@ -3,6 +3,7 @@ import { getGameGenres, getDeveloperStudios } from '@/lib/igdb';
 import { LatestReviewsSection } from '@/components/LatestReviewsSection';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { TrendingSection } from '@/components/TrendingSection';
+import { PopularSection } from '@/components/PopularSection';
 import { GamesSection } from '@/components/GamesSection';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { Suspense } from 'react';
@@ -120,6 +121,8 @@ export default async function Home({ searchParams }: PageProps) {
             Upcoming launches, review momentum, and multi-platform tracking—all in one place.
           </p>
         </section>
+
+        <PopularSection />
 
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
           <aside className="space-y-6 min-w-0">
