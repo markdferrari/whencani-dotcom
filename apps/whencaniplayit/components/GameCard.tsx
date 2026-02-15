@@ -18,9 +18,11 @@ interface GameCardProps {
   /** where to render the watchlist toggle (default: title row) */
   watchlistTogglePosition?: 'title' | 'below-genres';
   showAffiliateLink?: boolean;
+  /** Make the card full height to fill its container */
+  fullHeight?: boolean;
 }
 
-export function GameCard({ game, genres, size, mobileLayout = 'stack', watchlistTogglePosition = 'title', showAffiliateLink = false }: GameCardProps) {
+export function GameCard({ game, genres, size, mobileLayout = 'stack', watchlistTogglePosition = 'title', showAffiliateLink = false, fullHeight = false }: GameCardProps) {
 
   const normalizeIgdbImage = (url?: string, variant = 't_cover_big') =>
     url
@@ -87,6 +89,7 @@ export function GameCard({ game, genres, size, mobileLayout = 'stack', watchlist
           Buy now
         </a>
       ) : undefined}
+      fullHeight={fullHeight}
     />
   );
 }

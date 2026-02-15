@@ -62,7 +62,7 @@ function PopularSectionStandard({ games }: { games: IGDBGame[] }) {
   return (
     <MediaCarousel
       label="Popular"
-      slideBasis="flex-[0_0_100%]"
+      slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_30%]"
       showNavigation
       accentClasses={ACCENT}
       headerRight={
@@ -72,7 +72,7 @@ function PopularSectionStandard({ games }: { games: IGDBGame[] }) {
       }
     >
       {games.map((game) => (
-        <GameCard key={`${game.id}-carousel`} game={game} size="md" />
+        <GameCard key={`${game.id}-carousel`} game={game} size="md" fullHeight />
       ))}
     </MediaCarousel>
   );

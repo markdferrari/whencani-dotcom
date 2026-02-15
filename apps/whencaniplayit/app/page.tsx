@@ -122,6 +122,8 @@ export default async function Home({ searchParams }: PageProps) {
           </p>
         </section>
 
+        <PopularSection />
+
         <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
           <aside className="space-y-6 min-w-0">
             <Suspense fallback={
@@ -138,7 +140,6 @@ export default async function Home({ searchParams }: PageProps) {
             </Suspense>
 
             <TrendingSection />
-            <PopularSection />
           </aside>
 
           <section className="space-y-6 min-w-0">
