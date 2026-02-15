@@ -739,3 +739,43 @@ export async function getGamesForDateRange(
 
   return Array.from(gamesById.values());
 }
+
+/**
+ * Fetch popular games using IGDB popularity API (type 2: Want to Play)
+ */
+export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
+  // Get popularity data for type 2 (Want to Play) only
+  const popularityQuery = `
+    fields game_id, value;
+    where popularity_type = 2;
+    sort value desc;
+    limit ${limit};
+  `;
+
+  interface PopularityEntry {
+    game_id: number;
+    value: number;
+  }
+
+  console.log('Fetching popularity data (type 2 only)...');
+  const popularityData = await igdbRequest<PopularityEntry[]>('popularity_primitives', popularityQuery);
+  console.log('Popularity data received:', popularityData.length, 'entries');
+  console.log('Sample entry:', popularityData[0]);
+
+  // Extract game IDs in order of popularity (already sorted by value desc)
+  const gameIds = popularityData
+    .filter(entry => entry.game_id && typeof entry.game_id === 'number')
+    .map(entry => entry.game_id);
+
+  console.log('Top game IDs:', gameIds);
+
+  if (gameIds.length === 0) {
+    return [];
+  }
+
+  // Fetch full game data for these IDs
+  const games = await getGamesByIds(gameIds);
+  console.log('Games fetched:', games.length);
+
+  return games;
+}

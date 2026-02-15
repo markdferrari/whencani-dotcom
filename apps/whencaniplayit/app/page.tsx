@@ -3,6 +3,7 @@ import { getGameGenres, getDeveloperStudios } from '@/lib/igdb';
 import { LatestReviewsSection } from '@/components/LatestReviewsSection';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { TrendingSection } from '@/components/TrendingSection';
+import { PopularSection } from '@/components/PopularSection';
 import { GamesSection } from '@/components/GamesSection';
 import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { Suspense } from 'react';
@@ -137,6 +138,7 @@ export default async function Home({ searchParams }: PageProps) {
             </Suspense>
 
             <TrendingSection />
+            <PopularSection />
           </aside>
 
           <section className="space-y-6 min-w-0">
