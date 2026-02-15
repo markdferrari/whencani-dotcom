@@ -741,40 +741,67 @@ export async function getGamesForDateRange(
 }
 
 /**
- * Fetch popular games using IGDB popularity API (type 2: Want to Play)
+ * Fetch popular games using IGDB popularity API with equal weighting
+ * Combines types 2 (Want to Play) and 10 (Playing) with equal weights (0.5 each)
  */
 export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
-  // Get popularity data for type 2 (Want to Play) only
+  // Get popularity data for types 2 and 10
   const popularityQuery = `
-    fields game_id, value;
-    where popularity_type = 2;
+    fields game_id, popularity_type, value;
+    where popularity_type = (2,10);
     sort value desc;
-    limit ${limit};
+    limit 300;
   `;
 
   interface PopularityEntry {
     game_id: number;
+    popularity_type: number;
     value: number;
   }
 
-  console.log('Fetching popularity data (type 2 only)...');
+  console.log('Fetching popularity data (types 2 and 10)...');
   const popularityData = await igdbRequest<PopularityEntry[]>('popularity_primitives', popularityQuery);
   console.log('Popularity data received:', popularityData.length, 'entries');
   console.log('Sample entry:', popularityData[0]);
 
-  // Extract game IDs in order of popularity (already sorted by value desc)
-  const gameIds = popularityData
-    .filter(entry => entry.game_id && typeof entry.game_id === 'number')
-    .map(entry => entry.game_id);
+  // Group by game and calculate weighted score (equal weights for types 2 and 10)
+  const gameScores = new Map<number, { type2: number; type10: number; weightedScore: number }>();
 
-  console.log('Top game IDs:', gameIds);
+  for (const entry of popularityData) {
+    if (!entry.game_id || typeof entry.game_id !== 'number') continue;
 
-  if (gameIds.length === 0) {
+    const gameId = entry.game_id;
+    const existing = gameScores.get(gameId) || { type2: 0, type10: 0, weightedScore: 0 };
+
+    // Add value to the appropriate type
+    if (entry.popularity_type === 2) {
+      existing.type2 += entry.value;
+    } else if (entry.popularity_type === 10) {
+      existing.type10 += entry.value;
+    }
+
+    // Recalculate weighted score (0.9 for type 10, 0.1 for type 2)
+    existing.weightedScore = 0.1 * existing.type2 + 0.9 * existing.type10;
+
+    gameScores.set(gameId, existing);
+  }
+
+  console.log('Game scores calculated:', gameScores.size, 'games');
+
+  // Get top game IDs by weighted score
+  const topGameIds = Array.from(gameScores.entries())
+    .sort((a, b) => b[1].weightedScore - a[1].weightedScore)
+    .slice(0, limit)
+    .map(([gameId]) => gameId);
+
+  console.log('Top game IDs:', topGameIds);
+
+  if (topGameIds.length === 0) {
     return [];
   }
 
   // Fetch full game data for these IDs
-  const games = await getGamesByIds(gameIds);
+  const games = await getGamesByIds(topGameIds);
   console.log('Games fetched:', games.length);
 
   return games;
