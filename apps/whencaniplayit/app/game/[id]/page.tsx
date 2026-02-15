@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getGameById, getSimilarGamesById, formatReleaseDate } from '@/lib/igdb';
 import { getGameNote } from '@/lib/notes';
 import { GameLinks } from '@/components/GameLinks';
+import { LatestNews } from '@/components/LatestNews';
 import { ReviewSection } from '@/components/ReviewSection';
 import { WatchlistToggle } from '@/components/WatchlistToggle';
 import { RecordView } from '@/components/RecordView';
@@ -381,6 +382,9 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
               <p className="mt-2 text-zinc-900 dark:text-zinc-50">{collectionName}</p>
             </div>
           )}
+
+          {/* Latest News */}
+          <LatestNews gameName={game.name} />
 
         </DetailHeroCard>
 
