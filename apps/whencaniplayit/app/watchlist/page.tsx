@@ -30,6 +30,15 @@ export default async function WatchlistPage({ searchParams }: PageProps) {
         </section>
 
         <WatchlistSection overrideIds={overrideIds} isShared={!!overrideIds} />
+
+        <div className="flex gap-4 mt-6">
+          <a
+            href="/watchlist"
+            className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
+          >
+            My Movies
+          </a>
+        </div>
       </main>
     </div>
   );
