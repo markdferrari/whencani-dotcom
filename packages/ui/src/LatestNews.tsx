@@ -1,4 +1,4 @@
-import Parser = require('rss-parser');
+import Parser from 'rss-parser';
 import { MediaCarousel } from './components/media-carousel';
 
 export interface LatestNewsProps {
