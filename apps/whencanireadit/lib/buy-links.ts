@@ -13,13 +13,13 @@ export function generateBuyLinks(book: Book, countryCode?: string): BuyLink[] {
         url: `https://uk.bookshop.org/a/${bookshopUkAffiliateTag}/${isbn}`,
         icon: 'bookshop',
       });
-    } else {
-      links.push({
-        name: 'Support your local - buy from Bookshop.org',
-        url: `https://bookshop.org/a/${bookshopUsAffiliateTag}/${isbn}`,
-        icon: 'bookshop',
-      });
-    }
+    }// else {
+     // links.push({
+     //   name: 'Support your local - buy from Bookshop.org',
+     //   url: `https://bookshop.org/a/${bookshopUsAffiliateTag}/${isbn}`,
+     //   icon: 'bookshop',
+     // });
+    //}
   }
 
   // Always add Kindle Unlimited 
