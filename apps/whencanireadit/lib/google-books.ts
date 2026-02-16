@@ -95,14 +95,8 @@ export async function searchBooks(query: string, maxResults = 10): Promise<Book[
 }
 
 export async function getBookById(volumeId: string): Promise<Book | null> {
-  try {
-    const res = await fetchGoogleBooks(`/volumes/${volumeId}`);
-    const raw: GoogleBooksVolumeResponse = await res.json();
-    const book = normalizeVolume(raw);
-    return enrichCover(book);
-  } catch {
-    return null;
-  }
+  // Deprecated: always use getBookByISBN for /book/[id] route
+  return getBookByISBN(volumeId);
 }
 
 export async function getBookByISBN(isbn: string): Promise<Book | null> {

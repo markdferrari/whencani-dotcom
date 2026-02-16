@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getBookById, getSimilarBooks } from '@/lib/google-books';
+import { getBookByISBN, getSimilarBooks } from '@/lib/google-books';
 import { generateBuyLinks } from '@/lib/buy-links';
 import { config } from '@/lib/config';
 import { BookshelfToggle } from '@/components/BookshelfToggle';
@@ -57,8 +57,8 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const book = await getBookById(id).catch(() => null);
-
+  // Treat id as ISBN
+  const book = await getBookByISBN(id);
   if (!book) {
     return {};
   }
@@ -93,15 +93,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
-
-  const [book, similarBooks] = await Promise.all([
-    getBookById(id),
-    getSimilarBooks(id),
-  ]);
-
+  // Treat id as ISBN
+  const book = await getBookByISBN(id);
   if (!book) {
     notFound();
   }
+  const similarBooks = await getSimilarBooks(id);
 
   const coverUrl = book.coverUrl;
   const backdropUrl = book.coverUrlLarge ?? book.coverUrl;
