@@ -8,6 +8,7 @@ import { config } from '@/lib/config';
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
 import { RecordView } from '@/components/RecordView';
+import { LatestNews } from '@whencani/ui';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
@@ -259,6 +260,9 @@ export default async function BookDetailPage({ params }: PageProps) {
           {buyLinks.length > 0 && (
             <BuyLinks links={buyLinks} isPreorder={isPreorder} />
           )}
+
+          {/* Latest News */}
+          <LatestNews gameName={book.title} />
         </DetailHeroCard>
 
         {/* Similar books carousel */}

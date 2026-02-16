@@ -23,6 +23,8 @@ import { ShareButton } from "@whencani/ui";
 import { MediaCarousel } from "@whencani/ui/media-carousel";
 import MediaCarouselCombined from "@whencani/ui/media-carousel-combined";
 
+import { LatestNews } from "@whencani/ui";
+
 type MoviePageProps = {
   params: Promise<{ id: string }>;
 };
@@ -267,14 +269,8 @@ export default async function MoviePage({ params }: MoviePageProps) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/60 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950/30 dark:text-zinc-300">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-              Reviews (placeholder)
-            </p>
-            <p className="mt-2">
-              This is where OpenCritic-style badges and reviews will plug in later.
-            </p>
-          </div>
+          {/* Latest News */}
+          <LatestNews gameName={movie.title} />
         </DetailHeroCard>
 
         {/* Trailer / Media carousel */}
@@ -287,6 +283,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
             className="mt-6"
           />
         )}
+
 
         {/* Find Showtimes */}
         <section className="mt-6 rounded-3xl shadow-sm sm:p-10">
