@@ -270,7 +270,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </div>
 
           {/* Latest News */}
-          <LatestNews gameName={movie.title} />
+          <LatestNews productName={movie.title} productType="movie" />
         </DetailHeroCard>
 
         {/* Trailer / Media carousel */}
