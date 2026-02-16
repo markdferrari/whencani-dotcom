@@ -2,7 +2,10 @@ import Parser from 'rss-parser';
 import { MediaCarousel } from './components/media-carousel';
 
 export interface LatestNewsProps {
-  gameName: string;
+  productName: string;
+  productType: 'game' | 'book' | 'movie';
+  extraSearchQuery?: string;
+  numberOfArticles?: number;
 }
 
 interface NewsItem {
@@ -12,18 +15,33 @@ interface NewsItem {
   contentSnippet?: string;
 }
 
-export async function LatestNews({ gameName }: LatestNewsProps) {
+export async function LatestNews({ productName, productType, extraSearchQuery = '', numberOfArticles = 6 }: LatestNewsProps) {
   try {
     const parser = new Parser();
-    const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(gameName)}&hl=en-US&gl=US&ceid=US:en`;
+    let category = '';
+    switch (productType) {
+      case 'game':
+        category = 'video game';
+        break;
+      case 'book':
+        category = 'book';
+        break;
+      case 'movie':
+        category = 'movie';
+        break;
+      default:
+        category = '';
+    }
+    const query = category ? `${productName} ${category} ${extraSearchQuery}` : `${productName} ${extraSearchQuery}`;
+    const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     const feed = await parser.parseURL(feedUrl);
 
     if (!feed.items || feed.items.length === 0) {
       return null;
     }
 
-    // Take up to 6 articles
-    const newsItems = feed.items.slice(0, 6) as NewsItem[];
+    // Take up to the specified number of articles
+    const newsItems = feed.items.slice(0, numberOfArticles) as NewsItem[];
 
     return (
       <div className="mt-4">

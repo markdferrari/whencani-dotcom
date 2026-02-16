@@ -262,7 +262,7 @@ export default async function BookDetailPage({ params }: PageProps) {
           )}
 
           {/* Latest News */}
-          <LatestNews gameName={book.title} />
+          <LatestNews productName={book.title} productType='book' extraSearchQuery={book.authors.join(' ')} numberOfArticles={3}/>
         </DetailHeroCard>
 
         {/* Similar books carousel */}

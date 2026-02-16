@@ -384,7 +384,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
           )}
 
           {/* Latest News */}
-          <LatestNews gameName={game.name} />
+          <LatestNews productName={game.name} productType="game" />
 
         </DetailHeroCard>
 
