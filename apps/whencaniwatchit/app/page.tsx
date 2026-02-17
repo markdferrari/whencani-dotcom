@@ -217,7 +217,7 @@ export default async function Home({ searchParams }: PageProps) {
                           : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
                       }`}
                     >
-                      Now Streaming
+                      Now Streaming (Movies)
                     </Link>
                   </div>
                   <div className="mt-5 space-y-4">
