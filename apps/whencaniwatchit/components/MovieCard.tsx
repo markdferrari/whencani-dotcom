@@ -16,9 +16,11 @@ type MovieCardProps = {
   mobileLayout?: 'stack' | 'side';
   /** where to render the watchlist toggle (default: title row) */
   watchlistTogglePosition?: 'title' | 'below-genres';
+  /** base path for the card link, e.g. '/movie' or '/show' */
+  hrefBase?: string;
 };
 
-export function MovieCard({ movie, genres = [], size = "md", hideRating = false, mobileLayout = 'stack', watchlistTogglePosition = 'title' }: MovieCardProps) {
+export function MovieCard({ movie, genres = [], size = "md", hideRating = false, mobileLayout = 'stack', watchlistTogglePosition = 'title', hrefBase = '/movie' }: MovieCardProps) {
   const posterUrl = getPosterUrl(movie.poster_path, size === "md" ? "w342" : "w300");
   const summary = movie.overview
     ? movie.overview.length > 110
@@ -36,7 +38,7 @@ export function MovieCard({ movie, genres = [], size = "md", hideRating = false,
   return (
     <MediaCard
       id={movie.id}
-      href={`/movie/${movie.id}`}
+      href={`${hrefBase}/${movie.id}`}
       title={movie.title}
       imageUrl={posterUrl || undefined}
       imageAlt={`${movie.title} poster`}
