@@ -11,6 +11,9 @@ const BGG_BASE = 'https://boardgamegeek.com/xmlapi2';
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
 
+// Read BGG API token from environment (optional)
+const BGG_API_TOKEN = process.env.BGG_API_TOKEN;
+
 // ---------------------------------------------------------------------------
 // Lightweight types for the parsed XML shapes we care about
 // ---------------------------------------------------------------------------
@@ -98,7 +101,12 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 function abortFetchWithTimeout(input: RequestInfo, init?: RequestInit, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
-  const merged: RequestInit = { ...(init ?? {}), signal: controller.signal };
+  // Merge headers and include Authorization if token available.
+  const existingHeaders = (init && init.headers) ?? {};
+  const authHeader: HeadersInit = BGG_API_TOKEN ? { Authorization: `Bearer ${BGG_API_TOKEN}` } : {};
+  const mergedHeaders: HeadersInit = { ...(existingHeaders as Record<string, string>), ...authHeader };
+
+  const merged: RequestInit = { ...(init ?? {}), headers: mergedHeaders, signal: controller.signal };
 
   return fetch(input, merged).finally(() => clearTimeout(id));
 }
