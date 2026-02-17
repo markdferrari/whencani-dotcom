@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GameCard } from './GameCard';
 import { useWatchlistGames } from '@/hooks/use-watchlist';
+import { useBoardGameWatchlistGames } from '@/hooks/use-board-game-watchlist';
+import { BoardGameCard } from './BoardGameCard';
 import { config } from '@/lib/config';
 import {
   WatchlistToolbar,
@@ -72,12 +74,19 @@ function filterGamesByGenre(games: IGDBGame[], genreName?: string): IGDBGame[] {
 }
 
 export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSectionProps) {
-  const { games, isLoading } = useWatchlistGames();
   const searchParams = useSearchParams();
+  const typeParam = searchParams.get('type') || 'game';
+  const isBoardType = typeParam === 'board' && config.features.boardGames;
+
+  const { games: igdbGames, isLoading: igdbLoading } = useWatchlistGames();
+  const { games: boardGames, isLoading: boardLoading } = useBoardGameWatchlistGames();
+
+  const isLoading = isBoardType ? boardLoading : igdbLoading;
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const featureEnabled = config.features.watchlistImprovements;
+  const featureEnabled = config.features.watchlistImprovements; 
 
   // Read URL params
   const sortBy = (searchParams.get('sort') || 'date-added') as 'date-added' | 'release-soonest' | 'release-latest' | 'alphabetical';
@@ -100,12 +109,13 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
     });
   };
 
-  // Apply filtering and sorting
-  const processedGames = useMemo(() => {
-    if (!featureEnabled) return games;
+  // Apply filtering and sorting (IGDB games only)
+  const processedGames = useMemo((): IGDBGame[] => {
+    if (isBoardType) return [];
+    if (!featureEnabled) return igdbGames;
 
     // Filter by platform and genre (both work with IGDBGame type)
-    let filtered = filterByPlatform(games, platformFilter);
+    let filtered = filterByPlatform(igdbGames, platformFilter);
     filtered = filterGamesByGenre(filtered, genreFilter);
 
     // Sort (need to provide genre names as strings for sorting)
@@ -114,34 +124,35 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       genreNames: game.genres?.map(g => g.name) || [],
     }));
 
-    let sorted = sortItems(gamesForSorting, sortBy, {
+    const sorted = sortItems(gamesForSorting, sortBy, {
       title: (g) => g.name,
       releaseDate: (g) => timestampToDate(g.first_release_date),
     });
 
     // Map back to IGDBGame type (remove the temporary genreNames property)
     return sorted.map(({ genreNames, ...game }) => game as IGDBGame);
-  }, [games, genreFilter, platformFilter, sortBy, featureEnabled]);
+  }, [igdbGames, genreFilter, platformFilter, sortBy, featureEnabled, isBoardType]);
 
-  // Group by release date if applicable
-  const groupedGames = useMemo(() => {
+  // Group by release date if applicable (IGDB only)
+  const groupedGames = useMemo<Record<ReleaseGroup, (IGDBGame & { releaseDate?: string | null })[]> | null>(() => {
+    if (isBoardType) return null;
     if (featureEnabled && sortBy === 'release-soonest') {
       return groupByReleaseDate(
-        processedGames.map(g => ({
+        processedGames.map((g: IGDBGame) => ({
           ...g,
           releaseDate: timestampToDate(g.first_release_date),
         }))
       );
     }
     return null;
-  }, [processedGames, sortBy, featureEnabled]);
+  }, [processedGames, sortBy, featureEnabled, isBoardType]);
 
-  // Extract unique genres and platforms for filters
+  // Extract unique genres and platforms for filters (IGDB only)
   const availableGenres = useMemo(() => {
     if (!featureEnabled) return [];
 
     const genreMap = new Map<number, string>();
-    for (const game of games) {
+    for (const game of igdbGames) {
       if (game.genres) {
         for (const genre of game.genres) {
           genreMap.set(genre.id, genre.name);
@@ -152,17 +163,17 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
     return Array.from(genreMap.entries())
       .map(([id, name]) => ({ id: String(id), name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [games, featureEnabled]);
+  }, [igdbGames, featureEnabled]);
 
   const availablePlatforms = useMemo(() => {
     if (!featureEnabled) return [];
-    return extractUniquePlatforms(games);
-  }, [games, featureEnabled]);
+    return extractUniquePlatforms(igdbGames);
+  }, [igdbGames, featureEnabled]);
 
   // Export handlers
   const handleExport = (type: 'link' | 'text') => {
     if (type === 'link') {
-      const ids = processedGames.map(g => g.id).join(',');
+      const ids = processedGames.map((g: IGDBGame) => g.id).join(',');
       const url = `${window.location.origin}/watchlist?ids=${ids}`;
       navigator.clipboard.writeText(url);
       toast({
@@ -171,7 +182,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
       });
     } else {
       const text = processedGames
-        .map(g => {
+        .map((g: IGDBGame) => {
           const releaseDate = timestampToDate(g.first_release_date) || 'TBA';
           return `${g.name} - ${releaseDate}`;
         })
@@ -207,6 +218,22 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             Your favourites in one place
           </h2>
+          {config.features.boardGames && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={() => updateParam('type', '')}
+                className={`rounded-full px-3 py-1 text-sm font-medium ${!isBoardType ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 dark:bg-zinc-950/50'}`}
+              >
+                Games
+              </button>
+              <button
+                onClick={() => updateParam('type', 'board')}
+                className={`rounded-full px-3 py-1 text-sm font-medium ${isBoardType ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-700 dark:bg-zinc-950/50'}`}
+              >
+                Board games
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -222,7 +249,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
             <div key={slot} className="h-24 rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 dark:border-zinc-800/70 dark:bg-zinc-900/60" />
           ))}
         </div>
-      ) : games.length === 0 ? (
+      ) : (isBoardType ? boardGames : igdbGames).length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 p-8 text-center text-sm text-zinc-600 dark:border-zinc-800/70 dark:bg-zinc-900/60 dark:text-zinc-300">
           <p className="mb-3">No favourites yet.</p>
           <Link href="/" className="text-sm font-semibold text-sky-600 hover:text-sky-500 dark:text-sky-400">
@@ -231,7 +258,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
         </div>
       ) : (
         <>
-          {featureEnabled && !isShared && (
+          {featureEnabled && !isShared && !isBoardType && (
             <WatchlistToolbar
               sortBy={sortBy}
               onSortChange={(value) => updateParam('sort', value)}
@@ -286,9 +313,18 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                 );
               })}
             </div>
+          ) : isBoardType ? (
+            <div className="mt-6 space-y-4">
+              {boardGames.map((game) => (
+                <BoardGameCard
+                  key={game.id}
+                  game={game}
+                />
+              ))}
+            </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {processedGames.map((game) => (
+              {processedGames.map((game: IGDBGame) => (
                 <GameCard
                   key={game.id}
                   game={game}

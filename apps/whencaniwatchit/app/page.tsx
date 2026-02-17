@@ -174,7 +174,7 @@ export default async function Home({ searchParams }: PageProps) {
             ) : (
               <>
                 <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap sm:flex-nowrap justify-center sm:justify-start gap-3">
                     <Link
                       href="/?view=upcoming"
                       scroll={false}
