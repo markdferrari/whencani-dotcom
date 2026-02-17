@@ -2,83 +2,88 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getBookById, getSimilarBooks } from '@/lib/google-books';
+import type { ReactNode } from 'react';
+
+import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books';
 import { generateBuyLinks } from '@/lib/buy-links';
 import { config } from '@/lib/config';
+import type { Book } from '@/lib/types';
+import { headers } from 'next/headers';
+
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
 import { RecordView } from '@/components/RecordView';
-import { LatestNews } from '@whencani/ui';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
 import { ShareButton } from '@whencani/ui';
+import { LatestNews } from '@whencani/ui';
 
-const SITE_URL = config.app.url;
+const SITE_URL = config.app?.url || 'https://whencanireadit.com';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | undefined>>;
+}
+
+function isISBN(str: string): boolean {
+  const cleaned = str.replace(/-/g, '');
+  return /^(?:\d{10}|\d{13}|\d{9}[\dXx])$/.test(cleaned);
 }
 
 function formatPublicationDate(dateStr: string): string {
-  const parts = dateStr.split('-');
-  if (parts.length === 1) return parts[0];
   try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    if (parts.length === 2) {
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   } catch {
     return dateStr;
   }
 }
 
-function formatLanguageName(code: string): string {
+function formatLanguageName(lang: string | null): string {
+  if (!lang) return 'Unknown';
   try {
-    const name = new Intl.DisplayNames(['en'], { type: 'language' }).of(code);
-    return name ?? code;
+    // Use Intl.DisplayNames when available
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore-next-line
+    if (typeof Intl !== 'undefined' && (Intl as any).DisplayNames) {
+      // @ts-ignore
+      const dn = new Intl.DisplayNames(['en'], { type: 'language' });
+      return dn.of(lang) ?? lang;
+    }
   } catch {
-    return code;
+    // ignore
   }
+  return lang;
 }
 
-function InfoCard({ label, value }: { label: string; value: string }) {
+function InfoCard({ label, value }: { label: string; value: string | ReactNode }) {
   return (
-    <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
-      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-        {label}
-      </p>
-      <p className="mt-2 text-zinc-900 dark:text-zinc-50">{value}</p>
+    <div className="rounded-2xl border border-zinc-100/70 bg-white p-3 text-sm shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900/80">
+      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{label}</div>
+      <div className="mt-1 text-sm text-zinc-900 dark:text-zinc-50">{value}</div>
     </div>
   );
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const book = await getBookById(id).catch(() => null);
+  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
+  if (!book) return {};
 
-  if (!book) {
-    return {};
-  }
-
-  const authorLabel = book.authors.length > 0 ? ` by ${book.authors.join(', ')}` : '';
-  const description = book.description
-    ? book.description.replace(/<[^>]*>/g, '').substring(0, 160)
-    : `Check out ${book.title}${authorLabel} on WhenCanIReadIt.com`;
   const coverImage = book.coverUrlLarge ?? book.coverUrl ?? undefined;
+  const authorLabel = book.authors && book.authors.length > 0 ? ` — ${book.authors.join(', ')}` : '';
+  const description = book.description ? book.description.replace(/<[^>]*>/g, '').substring(0, 160) : `Check out ${book.title} on ${SITE_URL}`;
 
   return {
     title: `${book.title}${authorLabel} | WhenCanIReadIt.com`,
     description,
-    alternates: {
-      canonical: `${SITE_URL}/book/${id}`,
-    },
+    alternates: { canonical: `${SITE_URL}/book/${book.id}` },
     openGraph: {
       title: `${book.title}${authorLabel}`,
       description,
-      url: `${SITE_URL}/book/${id}`,
+      url: `${SITE_URL}/book/${book.id}`,
       type: 'book',
       images: coverImage ? [{ url: coverImage, alt: book.title }] : [],
     },
@@ -94,36 +99,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const [book, similarBooks] = await Promise.all([
-    getBookById(id),
-    getSimilarBooks(id),
-  ]);
-
+  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
   if (!book) {
     notFound();
   }
 
-  const coverUrl = book.coverUrl;
-  const backdropUrl = book.coverUrlLarge ?? book.coverUrl;
-  const buyLinks = config.features.buyLinks ? generateBuyLinks(book) : [];
-  const pageUrl = `${SITE_URL}/book/${id}`;
+  const similarBooks = await getSimilarBooks(book.id);
+
+  const coverUrl = book.coverUrl ?? null;
+  const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
+  const hdrs = await headers();
+  const countryCode = (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) as string | undefined;
+  const buyLinks = config.features?.buyLinks ? generateBuyLinks(book, countryCode) : [];
+  const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 
-  // Schema.org structured data
   const bookSchema = {
     '@context': 'https://schema.org',
     '@type': 'Book',
     name: book.title,
     ...(book.subtitle && { alternativeHeadline: book.subtitle }),
     author: book.authors.map((a) => ({ '@type': 'Person', name: a })),
-    ...(book.publisher && {
-      publisher: { '@type': 'Organization', name: book.publisher },
-    }),
+    ...(book.publisher && { publisher: { '@type': 'Organization', name: book.publisher } }),
     ...(book.publishedDate && { datePublished: book.publishedDate }),
     ...(book.isbn13 && { isbn: book.isbn13 }),
-    ...(book.description && {
-      description: book.description.replace(/<[^>]*>/g, '').substring(0, 500),
-    }),
+    ...(book.description && { description: book.description.replace(/<[^>]*>/g, '').substring(0, 500) }),
     ...(book.pageCount && { numberOfPages: book.pageCount }),
     ...(book.language && { inLanguage: book.language }),
     ...(book.coverUrlLarge && { image: book.coverUrlLarge }),
@@ -141,10 +141,7 @@ export default async function BookDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(bookSchema) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(bookSchema) }} />
       <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl">
         <DetailBackLink href="/" />
 
@@ -157,164 +154,78 @@ export default async function BookDetailPage({ params }: PageProps) {
           backdropClassName="blur-sm scale-110"
           className="mt-6"
         >
-          {/* Title + Bookshelf + Share */}
           <div>
             <div className="flex items-start justify-between gap-4">
-              <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
-                {book.title}
-              </h1>
+              <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">{book.title}</h1>
               <div className="flex items-center gap-2">
-                <ShareButton
-                  title={`${book.title} — WhenCanIReadIt.com`}
-                  text={
-                    book.publishedDate
-                      ? `${book.title} by ${book.authors.join(', ')}. Check it out!`
-                      : `Check out ${book.title} on WhenCanIReadIt.com`
-                  }
-                  url={pageUrl}
-                />
+                <ShareButton title={`${book.title} — WhenCanIReadIt.com`} text={book.publishedDate ? `${book.title} by ${book.authors.join(', ')}. Check it out!` : `Check out ${book.title} on WhenCanIReadIt.com`} url={pageUrl} />
                 <BookshelfToggle bookId={book.id} className="shadow" />
               </div>
             </div>
-            {book.subtitle && (
-              <p className="mt-1 text-lg text-zinc-600 dark:text-zinc-300">
-                {book.subtitle}
-              </p>
-            )}
+            {book.subtitle && <p className="mt-1 text-lg text-zinc-600 dark:text-zinc-300">{book.subtitle}</p>}
           </div>
 
-          {/* Author(s) */}
-          {book.authors.length > 0 && (
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              by {book.authors.join(', ')}
-            </p>
-          )}
+          {book.authors.length > 0 && <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">by {book.authors.join(', ')}</p>}
 
-          {/* Publication date badge */}
           {book.publishedDate && (
             <div className="flex flex-wrap gap-3">
-              <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">
-                {formatPublicationDate(book.publishedDate)}
-              </span>
-              {isPreorder && (
-                <span className="rounded-full bg-zinc-50 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-sky-600 dark:bg-zinc-900/70 dark:text-sky-400">
-                  Pre-order
-                </span>
-              )}
+              <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">{formatPublicationDate(book.publishedDate)}</span>
+              {isPreorder && <span className="rounded-full bg-zinc-50 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-sky-600 dark:bg-zinc-900/70 dark:text-sky-400">Pre-order</span>}
             </div>
           )}
 
-          {/* Genre/category pills */}
           {book.categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {book.categories.map((category) => (
-                <span
-                  key={category}
-                  className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-400"
-                >
-                  {category}
-                </span>
+                <span key={category} className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-400">{category}</span>
               ))}
             </div>
           )}
 
-          {/* Collapsible description */}
           {book.description ? (
             <details className="group">
               <summary className="cursor-pointer list-none text-sm leading-relaxed text-zinc-700 dark:text-zinc-200 [&::-webkit-details-marker]:hidden">
-                <div
-                  className="line-clamp-2 group-open:line-clamp-none"
-                  dangerouslySetInnerHTML={{ __html: book.description }}
-                />
-                <span className="mt-1 block text-xs font-semibold text-sky-600 group-open:hidden dark:text-sky-400">
-                  Show more
-                </span>
-                <span className="mt-1 hidden text-xs font-semibold text-sky-600 group-open:block dark:text-sky-400">
-                  Show less
-                </span>
+                <div className="line-clamp-2 group-open:line-clamp-none" dangerouslySetInnerHTML={{ __html: book.description }} />
+                <span className="mt-1 block text-xs font-semibold text-sky-600 group-open:hidden dark:text-sky-400">Show more</span>
+                <span className="mt-1 hidden text-xs font-semibold text-sky-600 group-open:block dark:text-sky-400">Show less</span>
               </summary>
             </details>
           ) : (
-            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
-              Description is not available yet.
-            </p>
+            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">Description is not available yet.</p>
           )}
 
-          {/* Info cards */}
           <div className="grid gap-4 sm:grid-cols-2">
-            {book.publisher && (
-              <InfoCard label="Publisher" value={book.publisher} />
-            )}
-            {book.pageCount && (
-              <InfoCard label="Page Count" value={String(book.pageCount)} />
-            )}
-            {(book.isbn13 ?? book.isbn10) && (
-              <InfoCard label="ISBN" value={(book.isbn13 ?? book.isbn10)!} />
-            )}
-            {book.language && (
-              <InfoCard label="Language" value={formatLanguageName(book.language)} />
-            )}
+            {book.publisher && <InfoCard label="Publisher" value={book.publisher} />}
+            {book.pageCount && <InfoCard label="Page Count" value={String(book.pageCount)} />}
+            {(book.isbn13 ?? book.isbn10) && <InfoCard label="ISBN" value={(book.isbn13 ?? book.isbn10) as string} />}
+            {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          {/* Buy / Pre-order links */}
-          {buyLinks.length > 0 && (
-            <BuyLinks links={buyLinks} isPreorder={isPreorder} />
-          )}
+          {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
 
-          {/* Latest News */}
-          <LatestNews productName={book.title} productType='book' extraSearchQuery={book.authors.join(' ')} numberOfArticles={3}/>
+          <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>
 
-        {/* Similar books carousel */}
         {similarBooks.length > 0 && (
-          <MediaCarousel
-            label="You might also like"
-            slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]"
-            className="mt-8"
-          >
+          <MediaCarousel label="You might also like" slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]" className="mt-8">
             {similarBooks.slice(0, 6).map((similar) => (
-              <Link
-                key={similar.id}
-                href={`/book/${similar.id}`}
-                className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80"
-              >
+              <Link key={similar.id} href={`/book/${similar.isbn13 ?? similar.isbn10 ?? similar.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
                 <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
                   {similar.coverUrl ? (
-                    <Image
-                      src={similar.coverUrl}
-                      alt={`${similar.title} cover`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px"
-                    />
+                    <Image src={similar.coverUrl} alt={`${similar.title} cover`} fill className="object-cover" sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">
-                      No cover
-                    </div>
+                    <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">No cover</div>
                   )}
                 </div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                  {similar.title}
-                </p>
-                {similar.authors.length > 0 && (
-                  <p className="mt-0.5 text-xs text-zinc-500">
-                    {similar.authors[0]}
-                  </p>
-                )}
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{similar.title}</p>
+                {similar.authors.length > 0 && <p className="mt-0.5 text-xs text-zinc-500">{similar.authors[0]}</p>}
               </Link>
             ))}
           </MediaCarousel>
         )}
       </main>
-      <RecordView
-        item={{
-          id,
-          title: book.title,
-          imageUrl: coverUrl,
-          href: `/book/${id}`,
-          releaseDate: book.publishedDate ? formatPublicationDate(book.publishedDate) : null,
-        }}
-      />
+
+      <RecordView item={{ id: book.id, title: book.title, imageUrl: coverUrl, href: `/book/${book.id}`, releaseDate: book.publishedDate ? formatPublicationDate(book.publishedDate) : null }} />
     </div>
   );
 }

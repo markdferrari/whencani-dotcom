@@ -20,9 +20,7 @@ interface NYTCarouselProps {
 }
 
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
-  const href = book.googleBooksId
-    ? `/book/${book.googleBooksId}`
-    : null;
+  const href = book.isbn13 ?? book.isbn10 ?? book.googleBooksId ?? null;
 
   const card = (
     <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -58,7 +56,7 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
   );
 
   if (href) {
-    return <Link href={href} className="group block">{card}</Link>;
+    return <Link href={`/book/${href}`} className="group block">{card}</Link>;
   }
 
   return <div className="group block">{card}</div>;
@@ -185,11 +183,12 @@ function GoogleBookCard({ book }: { book: Book }) {
   const isReleased = isReleasedRecently(book.publishedDate, 0);
   const featureEnabled = config.features.bookshelfImprovements;
   const showBadge = featureEnabled && isInBookshelf && isReleased;
+  const preferredId = book.isbn13 ?? book.isbn10 ?? book.id;
 
   return (
     <MediaCard
       id={book.id}
-      href={`/book/${book.id}`}
+      href={`/book/${preferredId}`}
       title={book.title}
       imageUrl={book.coverUrl || undefined}
       imageAlt={`${book.title} book cover`}
