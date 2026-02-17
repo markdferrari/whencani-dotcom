@@ -8,6 +8,7 @@ import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books'
 import { generateBuyLinks } from '@/lib/buy-links';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
+import { headers } from 'next/headers';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
@@ -107,7 +108,9 @@ export default async function BookDetailPage({ params }: PageProps) {
 
   const coverUrl = book.coverUrl ?? null;
   const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
-  const buyLinks = config.features?.buyLinks ? generateBuyLinks(book) : [];
+  const hdrs = await headers();
+  const countryCode = (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) as string | undefined;
+  const buyLinks = config.features?.buyLinks ? generateBuyLinks(book, countryCode) : [];
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 
