@@ -33,7 +33,7 @@ export default async function WatchlistPage({ searchParams }: PageProps) {
 
         <div className="flex gap-4 mt-6">
           <a
-            href="/watchlist"
+            href="https://whencaniwatchit.com/watchlist"
             className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
           >
             My Movies
