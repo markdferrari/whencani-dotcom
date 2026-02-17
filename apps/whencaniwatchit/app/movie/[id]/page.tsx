@@ -12,6 +12,7 @@ import {
   getMovieVideos,
   getPersonExternalIds,
   getPosterUrl,
+  getMovieWatchProvidersWithLink,
   getProfileUrl,
 } from "@/lib/tmdb";
 import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
@@ -149,6 +150,13 @@ export default async function MoviePage({ params }: MoviePageProps) {
     .slice(0, 3)
     .map((member) => member.name);
 
+  // Fetch watch providers to determine streaming availability and primary platform
+  const { providers, link: providersLink } = await getMovieWatchProvidersWithLink(movie.id);
+  const primaryProvider = providers.length > 0 ? providers[0] : null;
+  const isAmazonProvider = primaryProvider && /amazon|prime/i.test(primaryProvider.provider_name);
+  const amazonAffiliateUrl = "https://www.amazon.co.uk/gp/video/primesignup?ref_=acph_piv&tag=whencaniplayg-21";
+  const providerHref = isAmazonProvider ? amazonAffiliateUrl : providersLink ?? undefined;
+
   // Generate structured data schemas
   const movieSchemaJson = MovieSchema("https://whencaniwatchit.com", {
     id: movie.id,
@@ -245,6 +253,43 @@ export default async function MoviePage({ params }: MoviePageProps) {
               </Link>
             ))}
           </div>
+
+          {primaryProvider && (
+            <div className="mt-3">
+              {providerHref ? (
+                <a
+                  href={providerHref}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="inline-flex items-center gap-3 rounded-full border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:shadow dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:text-zinc-200"
+                >
+                  {primaryProvider.logo_path && (
+                    <Image
+                      src={getPosterUrl(primaryProvider.logo_path, "w92") ?? ""}
+                      alt={primaryProvider.provider_name}
+                      width={28}
+                      height={28}
+                      className="rounded"
+                    />
+                  )}
+                  <span>{primaryProvider.provider_name}</span>
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-3 rounded-full border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:text-zinc-200">
+                  {primaryProvider.logo_path && (
+                    <Image
+                      src={getPosterUrl(primaryProvider.logo_path, "w92") ?? ""}
+                      alt={primaryProvider.provider_name}
+                      width={28}
+                      height={28}
+                      className="rounded"
+                    />
+                  )}
+                  <span>{primaryProvider.provider_name}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
             {movie.overview || "Synopsis is not available yet."}

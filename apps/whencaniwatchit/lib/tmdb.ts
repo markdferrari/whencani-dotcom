@@ -389,6 +389,25 @@ export const getMovieWatchProviders = async (movieId: number) => {
   }
 };
 
+export const getMovieWatchProvidersWithLink = async (movieId: number) => {
+  try {
+    const data = await tmdbFetch<TMDBWatchProviderData>(`/movie/${movieId}/watch/providers`);
+    const usProviders = data.results?.US;
+    if (!usProviders) return { providers: [], link: undefined };
+
+    const providers: TMDBWatchProvider[] = [
+      ...(usProviders.flatrate || []),
+      ...(usProviders.rent || []),
+      ...(usProviders.buy || []),
+    ];
+
+    const unique = providers.filter((p, i, arr) => arr.findIndex(x => x.provider_id === p.provider_id) === i);
+    return { providers: unique, link: usProviders.link };
+  } catch {
+    return { providers: [], link: undefined };
+  }
+};
+
 export const getMoviesByIds = async (ids: number[]): Promise<TMDBMovie[]> => {
   if (ids.length === 0) {
     return [];
