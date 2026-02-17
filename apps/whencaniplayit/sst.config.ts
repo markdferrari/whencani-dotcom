@@ -32,6 +32,7 @@ export default $config({
         IGDB_CLIENT_ID: process.env.IGDB_CLIENT_ID!,
         IGDB_CLIENT_SECRET: process.env.IGDB_CLIENT_SECRET!,
         RAPID_API_KEY: process.env.RAPID_API_KEY!,
+        BGG_API_TOKEN: process.env.BGG_API_TOKEN!,
       },
       // Cache behavior is handled by the default CloudFront behavior,
       // which respects Cache-Control headers set by route handlers.
