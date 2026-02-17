@@ -42,7 +42,10 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
           const data = await response.json();
 
           if (!response.ok) {
-            setError(data.error || 'Failed to fetch board games');
+            setError(
+              (data && data.error ? `${data.error} — ` : '') +
+                `Request failed (${response.status}${response.statusText ? ' ' + response.statusText : ''})`
+            );
             setBoardGames([]);
           } else {
             setError(null);
@@ -55,7 +58,10 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
           const data = await response.json();
 
           if (!response.ok) {
-            setError(data.error || 'Failed to fetch games');
+            setError(
+              (data && data.error ? `${data.error} — ` : '') +
+                `Request failed (${response.status}${response.statusText ? ' ' + response.statusText : ''})`
+            );
             setVideoGames([]);
             setGenres([]);
           } else {
@@ -65,7 +71,8 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
           }
         }
       } catch (err) {
-        setError('Failed to fetch games');
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`Failed to fetch games: ${msg}`);
         setVideoGames([]);
         setBoardGames([]);
       }

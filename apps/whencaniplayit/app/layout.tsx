@@ -69,7 +69,7 @@ export default function RootLayout({
         <ToastProvider>
           <Header />
           {children}
-          <footer className="border-t border-zinc-200/70 bg-white/80 py-6 dark:border-zinc-800/80 dark:bg-zinc-950/80">
+          <footer className="relative border-t border-zinc-200/70 bg-white/80 py-6 dark:border-zinc-800/80 dark:bg-zinc-950/80">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <a href="https://www.whencaniwatchit.com" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-zinc-700 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-sky-400 transition">
@@ -84,7 +84,13 @@ export default function RootLayout({
               <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
                 Data provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer" className="underline">IGDB</a> &amp; <a href="https://boardgamegeek.com/" target="_blank" rel="noopener noreferrer" className="underline">BoardGameGeek</a>
               </div>
+              
             </div>
+            {/* BGG logo in bottom-right of footer (responsive) */}
+            <a href="https://boardgamegeek.com/" target="_blank" rel="noopener noreferrer" className="pointer-events-auto">
+              <img src="/bgg.png" alt="BoardGameGeek" className="hidden sm:block absolute right-4 bottom-3 w-20 opacity-90 dark:opacity-80 transition" />
+              <img src="/bgg.png" alt="BoardGameGeek" className="block sm:hidden absolute right-3 bottom-3 w-14 opacity-90 dark:opacity-80 transition" />
+            </a>
           </footer>
         </ToastProvider>
       </body>

@@ -9,27 +9,23 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const view = url.searchParams.get('view') || 'hot';
 
-    if (view === 'hot') {
-      const hot = await getHotBoardGames(20);
-      // enrich by fetching full thing details for the hot IDs (best-effort)
-      const ids = hot.map((g) => g.id);
-      const games = await getBoardGamesByIds(ids).catch(() => []);
+    // Currently we only support the BGG "hot" endpoint. Treat other
+    // view values as a best-effort fallback to 'hot' so the client does
+    // not receive a 400 Bad Request when requesting e.g. 'upcoming'.
+    const hot = await getHotBoardGames(20);
+    // enrich by fetching full thing details for the hot IDs (best-effort)
+    const ids = hot.map((g) => g.id);
+    const games = await getBoardGamesByIds(ids).catch(() => []);
 
-      // derive categories
-      const categories = Array.from(new Set(games.flatMap((g) => g.categories || []))).slice(0, 50);
+    // derive categories
+    const categories = Array.from(new Set(games.flatMap((g) => g.categories || []))).slice(0, 50);
 
-      return new Response(JSON.stringify({ games, categories }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': SUCCESS_CACHE_CONTROL,
-        },
-      });
-    }
-
-    return new Response(JSON.stringify({ games: [], categories: [] }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ games, categories }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': SUCCESS_CACHE_CONTROL,
+      },
     });
   } catch (error) {
     console.error('Failed to fetch board-games', error);
