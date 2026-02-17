@@ -75,15 +75,15 @@ export function MediaCard({
       <div className={`relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 ${imageContainerClass} ${mobileLayout === 'side' ? 'mx-0' : 'mx-auto md:mx-0'}`}>
         {imageUrl ? (
           <Link href={href}>
-            <Image
-              src={imageUrl}
-              alt={imageAlt || `${title} cover`}
-              width={imageWidth}
-              height={imageHeight}
-              className="h-full w-full object-cover cursor-pointer"
-              priority={false}
-              unoptimized={imageUrl.startsWith('/api/image')}
-            />
+              <Image
+                src={imageUrl}
+                alt={imageAlt || `${title} cover`}
+                width={imageWidth}
+                height={imageHeight}
+                className="h-full w-full object-cover cursor-pointer"
+                priority={false}
+                unoptimized={!!imageUrl && (imageUrl.startsWith('/api/image') || imageUrl.includes('cf.geekdo-images.com'))}
+              />
           </Link>
         ) : (
           <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
