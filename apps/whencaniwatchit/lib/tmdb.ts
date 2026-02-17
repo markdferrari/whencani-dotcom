@@ -408,6 +408,111 @@ export const getMovieWatchProvidersWithLink = async (movieId: number) => {
   }
 };
 
+export const getTVWatchProviders = async (tvId: number) => {
+  try {
+    const data = await tmdbFetch<TMDBWatchProviderData>(`/tv/${tvId}/watch/providers`);
+    const usProviders = data.results?.US;
+    if (!usProviders) return [];
+
+    const providers: TMDBWatchProvider[] = [
+      ...(usProviders.flatrate || []),
+      ...(usProviders.rent || []),
+      ...(usProviders.buy || []),
+    ];
+
+    return providers.filter((p, i, arr) => arr.findIndex(x => x.provider_id === p.provider_id) === i);
+  } catch {
+    return [];
+  }
+};
+
+export const getTVWatchProvidersWithLink = async (tvId: number) => {
+  try {
+    const data = await tmdbFetch<TMDBWatchProviderData>(`/tv/${tvId}/watch/providers`);
+    const usProviders = data.results?.US;
+    if (!usProviders) return { providers: [], link: undefined };
+
+    const providers: TMDBWatchProvider[] = [
+      ...(usProviders.flatrate || []),
+      ...(usProviders.rent || []),
+      ...(usProviders.buy || []),
+    ];
+
+    const unique = providers.filter((p, i, arr) => arr.findIndex(x => x.provider_id === p.provider_id) === i);
+    return { providers: unique, link: usProviders.link };
+  } catch {
+    return { providers: [], link: undefined };
+  }
+};
+
+// Return recently released TV shows that are available on streaming providers
+export const getNowStreamingTVRecent = async (limit = 12, genreId?: number, providerId?: number) => {
+  const data = await tmdbFetch<TMDBListResponse>("/trending/tv/week");
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  // TMDB TV objects have `name` and `first_air_date`; normalize to movie-like shape
+  const normalized = data.results.map((item) => ({
+    id: item.id,
+    title: 
+      (item as any).name || item.title || "",
+    overview: item.overview,
+    release_date: 
+      (item as any).first_air_date || item.release_date || null,
+    poster_path: item.poster_path,
+    backdrop_path: item.backdrop_path,
+    vote_average: item.vote_average,
+    vote_count: item.vote_count,
+    popularity: item.popularity,
+    genre_ids: item.genre_ids,
+  })) as TMDBMovie[];
+
+  let shows = normalized
+    .filter((show) => {
+      if (!show.release_date) return false;
+      const releaseDate = new Date(show.release_date);
+      if (releaseDate < sixtyDaysAgo || releaseDate > new Date()) {
+        return false;
+      }
+      if (genreId && !show.genre_ids?.includes(genreId)) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.release_date ?? "").getTime();
+      const dateB = new Date(b.release_date ?? "").getTime();
+      return dateB - dateA;
+    });
+
+  if (providerId === 0) {
+    return shows.slice(0, limit);
+  }
+
+  if (providerId) {
+    const filtered: TMDBMovie[] = [];
+    for (const show of shows) {
+      const providers = await getTVWatchProviders(show.id);
+      if (providers.some((p) => p.provider_id === providerId)) {
+        filtered.push(show);
+      }
+      if (filtered.length >= limit) break;
+    }
+    return filtered;
+  }
+
+  const withProviders: TMDBMovie[] = [];
+  for (const show of shows) {
+    const providers = await getTVWatchProviders(show.id);
+    if (providers.length > 0) {
+      withProviders.push(show);
+    }
+    if (withProviders.length >= limit) break;
+  }
+
+  return withProviders;
+};
+
 export const getMoviesByIds = async (ids: number[]): Promise<TMDBMovie[]> => {
   if (ids.length === 0) {
     return [];
@@ -453,6 +558,38 @@ export const getMovieVideos = async (id: string) => {
 
 export const getMovieImages = async (id: string) => {
   return tmdbFetch<TMDBImagesResponse>(`/movie/${id}/images`, { include_image_language: "en,null" });
+};
+
+export type TMDBTVDetails = {
+  id: number;
+  name: string;
+  overview: string;
+  first_air_date: string | null;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genres: TMDBGenre[];
+  episode_run_time?: number[];
+  production_companies?: { id: number; name: string }[];
+  tagline?: string | null;
+};
+
+export const getTVDetails = async (id: string) => {
+  return tmdbFetch<TMDBTVDetails>(`/tv/${id}`);
+};
+
+export const getTVCredits = async (id: string) => {
+  return tmdbFetch<TMDBCredits>(`/tv/${id}/credits`);
+};
+
+export const getTVVideos = async (id: string) => {
+  return tmdbFetch<{ results: TMDBVideo[] }>(`/tv/${id}/videos`);
+};
+
+export const getTVImages = async (id: string) => {
+  return tmdbFetch<TMDBImagesResponse>(`/tv/${id}/images`, { include_image_language: "en,null" });
 };
 
 export const getMoviesForDateRange = async (startDate: string, endDate: string, genreId?: number) => {

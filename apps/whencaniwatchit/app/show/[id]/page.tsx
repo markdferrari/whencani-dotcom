@@ -1,0 +1,406 @@
+import { type Metadata, type ResolvingMetadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { WatchlistToggle } from "@/components/WatchlistToggle";
+import { RecordView } from "@/components/RecordView";
+import {
+  formatReleaseDate,
+  getBackdropUrl,
+  getTVCredits,
+  getTVDetails,
+  getTVImages,
+  getTVVideos,
+  getPersonExternalIds,
+  getPosterUrl,
+  getProfileUrl,
+  getTVWatchProvidersWithLink,
+} from "@/lib/tmdb";
+import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
+import { MovieSchema, BreadcrumbListSchema, ShowSchema } from "@/lib/schema";
+import { DetailBackLink } from "@whencani/ui/detail-back-link";
+import { DetailHeroCard } from "@whencani/ui/detail-hero-card";
+import { ShareButton } from "@whencani/ui";
+import { MediaCarousel } from "@whencani/ui/media-carousel";
+import MediaCarouselCombined from "@whencani/ui/media-carousel-combined";
+
+import { LatestNews } from "@whencani/ui";
+
+type ShowPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+const formatRuntime = (runtime: number | null) => {
+  if (!runtime) {
+    return null;
+  }
+  const hours = Math.floor(runtime / 60);
+  const minutes = runtime % 60;
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+  return `${hours}h ${minutes}m`;
+};
+
+export async function generateMetadata(
+  { params }: ShowPageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  try {
+    const { id } = await params;
+    const show = await getTVDetails(id);
+
+    const releaseYear = show.first_air_date ? new Date(show.first_air_date).getFullYear() : null;
+    const title = `${show.name}${releaseYear ? ` (${releaseYear})` : ""} — Release Date & Where to Watch`;
+    const description = show.overview || "Discover release dates, trailers, cast, and where to watch this TV show.";
+
+    const backdropUrl = getBackdropUrl(show.backdrop_path, "w1280");
+    const posterUrl = getPosterUrl(show.poster_path, "w342");
+    const imageUrl = backdropUrl || posterUrl;
+
+    const canonical = `https://whencaniwatchit.com/show/${id}`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical,
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonical,
+        type: "video.tv_show",
+        images: imageUrl ? [{ url: imageUrl, alt: `${show.name} poster` }] : [],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: imageUrl ? [imageUrl] : [],
+      },
+    };
+  } catch (error) {
+    return {
+      title: "TV Show Details",
+      description: "View TV show details, release dates, and where to watch.",
+    };
+  }
+}
+
+export default async function ShowPage({ params }: ShowPageProps) {
+  const { id } = await params;
+
+  const [show, credits, videos, images] = await Promise.all([
+    getTVDetails(id),
+    getTVCredits(id),
+    getTVVideos(id),
+    getTVImages(id),
+  ]);
+
+  const posterUrl = getPosterUrl(show.poster_path, "w342");
+  const backdropUrl = getBackdropUrl(show.backdrop_path, "w1280");
+  const topCastRaw = credits.cast
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 10);
+
+  const externalIds = await Promise.all(
+    topCastRaw.map(async (member) => {
+      try {
+        return await getPersonExternalIds(member.id);
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  const topCast = topCastRaw.map((member, index) => {
+    const imdbId = externalIds[index]?.imdb_id ?? null;
+    return {
+      id: member.id,
+      name: member.name,
+      character: member.character,
+      department: member.known_for_department ?? null,
+      profileUrl: getProfileUrl(member.profile_path),
+      imdbUrl: imdbId ? `https://www.imdb.com/name/${imdbId}/` : null,
+    };
+  });
+
+  const youtubeVideos = videos.results.filter((video) =>
+    video.site?.toLowerCase?.() === "youtube",
+  );
+  const trailerVideo =
+    youtubeVideos.find((video) => video.type?.toLowerCase?.().includes("trailer") && video.official) ??
+    youtubeVideos[0];
+  const trailerEmbedUrl = trailerVideo
+    ? `https://www.youtube.com/embed/${trailerVideo.key}?rel=0&modestbranding=1`
+    : null;
+
+  const screenshotUrls = images.backdrops
+    .sort((a, b) => b.vote_average - a.vote_average)
+    .slice(0, 5)
+    .map((img) => getBackdropUrl(img.file_path, "w1280"))
+    .filter((url): url is string => url !== null);
+
+  const director = credits.crew.find((member) => member.job === "Director")?.name;
+  const producers = credits.crew
+    .filter((member) => member.job === "Producer")
+    .slice(0, 3)
+    .map((member) => member.name);
+
+  // Fetch watch providers to determine streaming availability and primary platform
+  const { providers, link: providersLink } = await getTVWatchProvidersWithLink(show.id);
+  const primaryProvider = providers.length > 0 ? providers[0] : null;
+  const isAmazonProvider = primaryProvider && /amazon|prime/i.test(primaryProvider.provider_name);
+  const amazonAffiliateUrl = "http://www.amazon.co.uk/gp/video/primesignup?ref_=acph_piv&tag=whencaniplayg-21";
+  const providerHref = isAmazonProvider ? amazonAffiliateUrl : providersLink ?? undefined;
+
+  const showSchemaJson = ShowSchema("https://whencaniwatchit.com", {
+    id: show.id,
+    title: show.name,
+    overview: show.overview,
+    release_date: show.first_air_date,
+    poster_path: show.poster_path,
+    backdrop_path: show.backdrop_path,
+    vote_average: show.vote_average,
+    vote_count: show.vote_count,
+    director,
+    cast: topCast.slice(0, 5).map((actor) => ({ name: actor.name })),
+  });
+
+  const breadcrumbSchemaJson = BreadcrumbListSchema("https://whencaniwatchit.com", show.name);
+
+  // runtime for TV: take first episode runtime if available
+  const runtime = (show.episode_run_time && show.episode_run_time.length > 0) ? show.episode_run_time[0] : null;
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: showSchemaJson }}
+        suppressHydrationWarning
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: breadcrumbSchemaJson }}
+        suppressHydrationWarning
+      />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
+      <main className="mx-auto w-full max-w-[min(100vw,360px)] px-4 py-8 sm:px-6 sm:max-w-[min(100vw,640px)] lg:px-8 lg:max-w-7xl">
+        <DetailBackLink href="/" />
+
+        {/* Hero Card */}
+        <DetailHeroCard
+          title={show.name}
+          backdropUrl={backdropUrl}
+          posterUrl={posterUrl}
+          posterAlt={`${show.name} poster`}
+          className="mt-6"
+        >
+          <div>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+                {show.name}
+              </h1>
+              <div className="flex items-center gap-2">
+                <ShareButton
+                  title={`${show.name} — WhenCanIWatchIt.com`}
+                  text={show.first_air_date ? `${show.name} releases on ${formatReleaseDate(show.first_air_date)}. Check it out!` : `Check out ${show.name} on WhenCanIWatchIt.com`}
+                  url={`https://whencaniwatchit.com/show/${id}`}
+                />
+                <WatchlistToggle movieId={Number(id)} className="shadow" />
+              </div>
+            </div>            
+            {show.tagline && (
+              <p className="mt-2 text-sm italic text-zinc-600 dark:text-zinc-300">
+                {show.tagline}
+              </p>
+            )}
+          </div>
+
+          {/* Release date */}
+          <div className="flex flex-wrap gap-3">
+            <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">
+              {formatReleaseDate(show.first_air_date)}
+            </span>
+          </div>
+
+          {/* Other metadata */}
+          <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
+            <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+              {show.vote_average.toFixed(1)} / 10
+            </span>
+            {formatRuntime(runtime) && (
+              <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+                {formatRuntime(runtime)}
+              </span>
+            )}
+            {director && (
+              <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
+                Dir. {director}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {show.genres.map((genre) => (
+              <Link
+                key={genre.id}
+                href={`/?view=upcoming&genre=${genre.id}`}
+                className="rounded-full border border-zinc-200/70 px-3 py-1 text-xs text-zinc-600 transition hover:border-sky-500 hover:text-sky-600 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-sky-400 dark:hover:text-sky-400"
+              >
+                {genre.name}
+              </Link>
+            ))}
+          </div>
+
+          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+            {show.overview || "Synopsis is not available yet."}
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Studio
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {show.production_companies?.[0]?.name ?? "TBD"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Producers
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {producers.length > 0 ? producers.join(", ") : "TBD"}
+              </p>
+            </div>
+          </div>
+
+          {/* Provider button */}
+          {primaryProvider && (
+            <div className="mt-3">
+              {providerHref ? (
+                <a
+                  href={providerHref}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="inline-flex items-center gap-3 rounded-full border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:shadow dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:text-zinc-200"
+                >
+                  {primaryProvider.logo_path && (
+                    <Image
+                      src={getPosterUrl(primaryProvider.logo_path, "w92") ?? ""}
+                      alt={primaryProvider.provider_name}
+                      width={28}
+                      height={28}
+                      className="rounded"
+                    />
+                  )}
+                  <span>{primaryProvider.provider_name}</span>
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-3 rounded-full border border-zinc-200/70 bg-white/90 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:text-zinc-200">
+                  {primaryProvider.logo_path && (
+                    <Image
+                      src={getPosterUrl(primaryProvider.logo_path, "w92") ?? ""}
+                      alt={primaryProvider.provider_name}
+                      width={28}
+                      height={28}
+                      className="rounded"
+                    />
+                  )}
+                  <span>{primaryProvider.provider_name}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Latest News */}
+          <LatestNews productName={show.name} productType="tv" />
+        </DetailHeroCard>
+
+        {/* Trailer / Media carousel */}
+        {(trailerEmbedUrl || screenshotUrls.length > 0) && (
+          <MediaCarouselCombined
+            trailerEmbedUrl={trailerEmbedUrl}
+            screenshots={screenshotUrls}
+            title={show.name}
+            unoptimized
+            className="mt-6"
+          />
+        )}
+
+        {/* Find Showtimes */}
+        <section className="mt-6 rounded-3xl shadow-sm sm:p-10">
+          <FindShowtimes />
+        </section>
+
+        {/* Cast */}
+        <MediaCarousel label="Cast" subtitle="Top billed" className="mt-8">
+          {topCast.map((member) => (
+            <div
+              key={member.id}
+              className="rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900/80"
+            >
+              <div className="relative mb-3 aspect-square overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
+                {member.profileUrl ? (
+                  member.imdbUrl ? (
+                    <a
+                      href={member.imdbUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative block h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+                      aria-label={`View ${member.name} on IMDb`}
+                    >
+                      <Image
+                        src={member.profileUrl}
+                        alt={member.name}
+                        fill
+                        className="object-cover transition duration-200 hover:scale-[1.02]"
+                        sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px"
+                      />
+                    </a>
+                  ) : (
+                    <Image
+                      src={member.profileUrl}
+                      alt={member.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px"
+                    />
+                  )
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">
+                    No photo
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                {member.name}
+              </p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                {member.character}
+              </p>
+              {member.department && (
+                <p className="mt-1 text-[0.65rem] uppercase tracking-[0.3em] text-zinc-500">
+                  {member.department}
+                </p>
+              )}
+            </div>
+          ))}
+        </MediaCarousel>
+
+      </main>
+      <RecordView
+        item={{
+          id,
+          title: show.name,
+          imageUrl: posterUrl,
+          href: `/show/${id}`,
+          releaseDate: show.first_air_date,
+        }}
+      />
+    </div>
+    </>
+  );
+}

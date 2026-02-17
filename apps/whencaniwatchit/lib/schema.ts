@@ -109,3 +109,35 @@ export function BreadcrumbListSchema(baseUrl: string, pageName: string): string 
     ],
   });
 }
+
+export function ShowSchema(
+  baseUrl: string,
+  show: {
+    id: string | number;
+    title: string;
+    overview?: string | null;
+    release_date?: string | null;
+    poster_path?: string | null;
+    backdrop_path?: string | null;
+    vote_average?: number | null;
+    vote_count?: number | null;
+    director?: string | null;
+    cast?: Array<{ name: string }> | null;
+  }
+): string {
+  const schema: any = {
+    "@context": "https://schema.org",
+    "@type": "TVSeries",
+    name: show.title,
+    url: `${baseUrl}/show/${show.id}`,
+  };
+
+  if (show.overview) schema.description = show.overview;
+  if (show.poster_path || show.backdrop_path) schema.image = `https://image.tmdb.org/t/p/w342${show.poster_path || show.backdrop_path}`;
+  if (show.release_date) schema.datePublished = show.release_date;
+  if (show.director) schema.director = { "@type": "Person", name: show.director };
+  if (show.cast && show.cast.length > 0) schema.actor = show.cast.slice(0, 5).map((a) => ({ "@type": "Person", name: a.name }));
+  if (show.vote_average && show.vote_count) schema.aggregateRating = { "@type": "AggregateRating", ratingValue: parseFloat(show.vote_average.toFixed(1)), ratingCount: show.vote_count };
+
+  return JSON.stringify(schema);
+}

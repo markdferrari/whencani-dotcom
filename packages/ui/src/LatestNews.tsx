@@ -3,7 +3,7 @@ import { MediaCarousel } from './components/media-carousel';
 
 export interface LatestNewsProps {
   productName: string;
-  productType: 'game' | 'book' | 'movie';
+  productType: 'game' | 'book' | 'movie' | 'tv' | 'other';
   extraSearchQuery?: string;
   numberOfArticles?: number;
 }
@@ -29,6 +29,9 @@ export async function LatestNews({ productName, productType, extraSearchQuery = 
       case 'movie':
         category = 'movie';
         break;
+      case 'tv':
+        category = 'tv show';
+        break;        
       default:
         category = '';
     }
