@@ -28,7 +28,7 @@ function buildProductUrl(asin: string): string {
 
 function buildSearchUrl(gameName: string): string {
   const { domain, tag } = config.amazon;
-  return `https://www.${domain}/s?k=${encodeURIComponent(gameName)}&tag=${tag}&linkCode=ll2&ref_=as_li_ss_tl`;
+  return `https://www.${domain}/s?k=${encodeURIComponent(gameName)}+game&tag=${tag}&linkCode=ll2&ref_=as_li_ss_tl`;
 }
 
 /**

@@ -5,8 +5,9 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { MediaCard, MediaCarousel } from "@whencani/ui";
+import { MediaCard, MediaCarousel, ReleaseBadge, isReleasedRecently } from "@whencani/ui";
 import { config } from "@/lib/config";
+import { useBookshelfIds } from "@/hooks/use-bookshelf";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 const ACCENT = {
@@ -19,9 +20,7 @@ interface NYTCarouselProps {
 }
 
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
-  const href = book.googleBooksId
-    ? `/book/${book.googleBooksId}`
-    : null;
+  const href = book.isbn13 ?? book.isbn10 ?? book.googleBooksId ?? null;
 
   const card = (
     <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -57,7 +56,7 @@ function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
   );
 
   if (href) {
-    return <Link href={href} className="group block">{card}</Link>;
+    return <Link href={`/book/${href}`} className="group block">{card}</Link>;
   }
 
   return <div className="group block">{card}</div>;
@@ -100,9 +99,6 @@ function CarouselWrapper({ label, subtitle, children }: { label: string; subtitl
             <p className="text-sm text-zinc-500">{subtitle}</p>
           )}
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
       </div>
       <div className="relative mt-5 group">
         <div className="overflow-hidden" ref={emblaRef}>
@@ -152,11 +148,6 @@ function NYTCarouselStandard({ list, displayName }: { list: NYTBestsellerList; d
       slideBasis="flex-[0_0_100%]"
       showNavigation
       accentClasses={ACCENT}
-      headerRight={
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
-      }
     >
       {list.books.map((book) => (
         <NYTBookCard key={book.isbn13 || book.title} book={book} />
@@ -187,10 +178,17 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
 }
 
 function GoogleBookCard({ book }: { book: Book }) {
+  const bookshelfIds = useBookshelfIds();
+  const isInBookshelf = bookshelfIds.includes(book.id);
+  const isReleased = isReleasedRecently(book.publishedDate, 0);
+  const featureEnabled = config.features.bookshelfImprovements;
+  const showBadge = featureEnabled && isInBookshelf && isReleased;
+  const preferredId = book.isbn13 ?? book.isbn10 ?? book.id;
+
   return (
     <MediaCard
       id={book.id}
-      href={`/book/${book.id}`}
+      href={`/book/${preferredId}`}
       title={book.title}
       imageUrl={book.coverUrl || undefined}
       imageAlt={`${book.title} book cover`}
@@ -198,6 +196,7 @@ function GoogleBookCard({ book }: { book: Book }) {
       summary={book.description || undefined}
       authors={book.authors}
       genres={book.categories}
+      badge={showBadge ? <ReleaseBadge /> : undefined}
     />
   );
 }
@@ -231,11 +230,6 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
             slideBasis="flex-[0_0_100%]"
             showNavigation
             accentClasses={ACCENT}
-            headerRight={
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-                Live
-              </span>
-            }
           >
             {fictionList.books.slice(0, 8).map((book) => (
               <NYTBookCard key={book.isbn13 || book.title} book={book} />
@@ -259,11 +253,6 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
             slideBasis="flex-[0_0_100%]"
             showNavigation
             accentClasses={ACCENT}
-            headerRight={
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-                Live
-              </span>
-            }
           >
             {nonfictionList.books.slice(0, 8).map((book) => (
               <NYTBookCard key={book.isbn13 || book.title} book={book} />

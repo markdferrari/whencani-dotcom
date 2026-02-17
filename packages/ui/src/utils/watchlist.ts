@@ -187,6 +187,11 @@ export function isReleasedRecently(
     return false;
   }
 
+  // threshold of 0 means "any past release date"
+  if (daysThreshold === 0) {
+    return true;
+  }
+
   // Check if within threshold
   const thresholdDate = new Date(today);
   thresholdDate.setDate(today.getDate() - daysThreshold);

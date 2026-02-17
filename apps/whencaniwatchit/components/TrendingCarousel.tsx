@@ -68,11 +68,6 @@ function TrendingCarouselStandard({ movies, title }: TrendingCarouselProps) {
       showNavigation
       wheelScroll
       accentClasses={ACCENT}
-      headerRight={
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
-      }
     >
       {movies.map((movie) => (
         <TrendingCard key={movie.id} movie={movie} />
@@ -136,9 +131,6 @@ function TrendingCarouselLegacy({ movies, title }: TrendingCarouselProps) {
             {title}
           </p>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
       </div>
       <div className="relative mt-5 group">
         <div className="overflow-hidden" ref={emblaRef}>

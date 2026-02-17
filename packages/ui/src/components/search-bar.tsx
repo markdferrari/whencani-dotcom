@@ -449,8 +449,9 @@ export function SearchBar({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto overscroll-contain">
-              {renderResults()}
+            <div className="flex-1 overflow-y-auto overscroll-contain block">
+              {/* Show results dropdown on mobile if open or query is present */}
+              {(isOpen || query.trim().length > 0) && renderResults()}
             </div>
           </div>
         )}

@@ -6,18 +6,17 @@ import { RecordView } from "@/components/RecordView";
 import {
   formatReleaseDate,
   getBackdropUrl,
-  getMovieCredits,
-  getMovieDetails,
-  getMovieImages,
-  getMovieVideos,
+  getTVCredits,
+  getTVDetails,
+  getTVImages,
+  getTVVideos,
   getPersonExternalIds,
   getPosterUrl,
-  getMovieWatchProvidersWithLink,
   getProfileUrl,
+  getTVWatchProvidersWithLink,
 } from "@/lib/tmdb";
 import FindShowtimes from "@/components/FindShowtimes/FindShowtimes";
-import { buildMovieCanonical } from "@/lib/seo";
-import { MovieSchema, BreadcrumbListSchema } from "@/lib/schema";
+import { MovieSchema, BreadcrumbListSchema, ShowSchema } from "@/lib/schema";
 import { DetailBackLink } from "@whencani/ui/detail-back-link";
 import { DetailHeroCard } from "@whencani/ui/detail-hero-card";
 import { ShareButton } from "@whencani/ui";
@@ -26,7 +25,7 @@ import MediaCarouselCombined from "@whencani/ui/media-carousel-combined";
 
 import { LatestNews } from "@whencani/ui";
 
-type MoviePageProps = {
+type ShowPageProps = {
   params: Promise<{ id: string }>;
 };
 
@@ -43,23 +42,22 @@ const formatRuntime = (runtime: number | null) => {
 };
 
 export async function generateMetadata(
-  { params }: MoviePageProps,
+  { params }: ShowPageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   try {
     const { id } = await params;
-    const movie = await getMovieDetails(id);
+    const show = await getTVDetails(id);
 
-    const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
-    const title = `${movie.title}${releaseYear ? ` (${releaseYear})` : ""} — Release Date & Where to Watch`;
-    const description =
-      movie.overview || "Discover release dates, trailers, cast, and where to watch this movie.";
+    const releaseYear = show.first_air_date ? new Date(show.first_air_date).getFullYear() : null;
+    const title = `${show.name}${releaseYear ? ` (${releaseYear})` : ""} — Release Date & Where to Watch`;
+    const description = show.overview || "Discover release dates, trailers, cast, and where to watch this TV show.";
 
-    const backdropUrl = getBackdropUrl(movie.backdrop_path, "w1280");
-    const posterUrl = getPosterUrl(movie.poster_path, "w342");
+    const backdropUrl = getBackdropUrl(show.backdrop_path, "w1280");
+    const posterUrl = getPosterUrl(show.poster_path, "w342");
     const imageUrl = backdropUrl || posterUrl;
 
-    const canonical = buildMovieCanonical("https://whencaniwatchit.com", id);
+    const canonical = `https://whencaniwatchit.com/show/${id}`;
 
     return {
       title,
@@ -71,8 +69,8 @@ export async function generateMetadata(
         title,
         description,
         url: canonical,
-        type: "video.movie",
-        images: imageUrl ? [{ url: imageUrl, alt: `${movie.title} poster` }] : [],
+        type: "video.tv_show",
+        images: imageUrl ? [{ url: imageUrl, alt: `${show.name} poster` }] : [],
       },
       twitter: {
         card: "summary_large_image",
@@ -83,23 +81,24 @@ export async function generateMetadata(
     };
   } catch (error) {
     return {
-      title: "Movie Details",
-      description: "View movie details, release dates, and where to watch.",
+      title: "TV Show Details",
+      description: "View TV show details, release dates, and where to watch.",
     };
   }
 }
-export default async function MoviePage({ params }: MoviePageProps) {
+
+export default async function ShowPage({ params }: ShowPageProps) {
   const { id } = await params;
 
-  const [movie, credits, videos, images] = await Promise.all([
-    getMovieDetails(id),
-    getMovieCredits(id),
-    getMovieVideos(id),
-    getMovieImages(id),
+  const [show, credits, videos, images] = await Promise.all([
+    getTVDetails(id),
+    getTVCredits(id),
+    getTVVideos(id),
+    getTVImages(id),
   ]);
 
-  const posterUrl = getPosterUrl(movie.poster_path, "w342");
-  const backdropUrl = getBackdropUrl(movie.backdrop_path, "w1280");
+  const posterUrl = getPosterUrl(show.poster_path, "w342");
+  const backdropUrl = getBackdropUrl(show.backdrop_path, "w1280");
   const topCastRaw = credits.cast
     .slice()
     .sort((a, b) => a.order - b.order)
@@ -137,7 +136,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
     ? `https://www.youtube.com/embed/${trailerVideo.key}?rel=0&modestbranding=1`
     : null;
 
-  // Get backdrop images for screenshots, sorted by vote average, limit to 5
   const screenshotUrls = images.backdrops
     .sort((a, b) => b.vote_average - a.vote_average)
     .slice(0, 5)
@@ -151,33 +149,35 @@ export default async function MoviePage({ params }: MoviePageProps) {
     .map((member) => member.name);
 
   // Fetch watch providers to determine streaming availability and primary platform
-  const { providers, link: providersLink } = await getMovieWatchProvidersWithLink(movie.id);
+  const { providers, link: providersLink } = await getTVWatchProvidersWithLink(show.id);
   const primaryProvider = providers.length > 0 ? providers[0] : null;
   const isAmazonProvider = primaryProvider && /amazon|prime/i.test(primaryProvider.provider_name);
-  const amazonAffiliateUrl = "https://www.amazon.co.uk/gp/video/primesignup?ref_=acph_piv&tag=whencaniplayg-21";
+  const amazonAffiliateUrl = "http://www.amazon.co.uk/gp/video/primesignup?ref_=acph_piv&tag=whencaniplayg-21";
   const providerHref = isAmazonProvider ? amazonAffiliateUrl : providersLink ?? undefined;
 
-  // Generate structured data schemas
-  const movieSchemaJson = MovieSchema("https://whencaniwatchit.com", {
-    id: movie.id,
-    title: movie.title,
-    overview: movie.overview,
-    release_date: movie.release_date,
-    poster_path: movie.poster_path,
-    backdrop_path: movie.backdrop_path,
-    vote_average: movie.vote_average,
-    vote_count: movie.vote_count,
+  const showSchemaJson = ShowSchema("https://whencaniwatchit.com", {
+    id: show.id,
+    title: show.name,
+    overview: show.overview,
+    release_date: show.first_air_date,
+    poster_path: show.poster_path,
+    backdrop_path: show.backdrop_path,
+    vote_average: show.vote_average,
+    vote_count: show.vote_count,
     director,
     cast: topCast.slice(0, 5).map((actor) => ({ name: actor.name })),
   });
 
-  const breadcrumbSchemaJson = BreadcrumbListSchema("https://whencaniwatchit.com", movie.title);
+  const breadcrumbSchemaJson = BreadcrumbListSchema("https://whencaniwatchit.com", show.name);
+
+  // runtime for TV: take first episode runtime if available
+  const runtime = (show.episode_run_time && show.episode_run_time.length > 0) ? show.episode_run_time[0] : null;
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: movieSchemaJson }}
+        dangerouslySetInnerHTML={{ __html: showSchemaJson }}
         suppressHydrationWarning
       />
       <script
@@ -191,29 +191,29 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
         {/* Hero Card */}
         <DetailHeroCard
-          title={movie.title}
+          title={show.name}
           backdropUrl={backdropUrl}
           posterUrl={posterUrl}
-          posterAlt={`${movie.title} poster`}
+          posterAlt={`${show.name} poster`}
           className="mt-6"
         >
           <div>
             <div className="flex items-start justify-between gap-4">
               <h1 className="mt-3 text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
-                {movie.title}
+                {show.name}
               </h1>
               <div className="flex items-center gap-2">
                 <ShareButton
-                  title={`${movie.title} — WhenCanIWatchIt.com`}
-                  text={movie.release_date ? `${movie.title} releases on ${formatReleaseDate(movie.release_date)}. Check it out!` : `Check out ${movie.title} on WhenCanIWatchIt.com`}
-                  url={`https://whencaniwatchit.com/movie/${id}`}
+                  title={`${show.name} — WhenCanIWatchIt.com`}
+                  text={show.first_air_date ? `${show.name} releases on ${formatReleaseDate(show.first_air_date)}. Check it out!` : `Check out ${show.name} on WhenCanIWatchIt.com`}
+                  url={`https://whencaniwatchit.com/show/${id}`}
                 />
                 <WatchlistToggle movieId={Number(id)} className="shadow" />
               </div>
             </div>            
-            {movie.tagline && (
+            {show.tagline && (
               <p className="mt-2 text-sm italic text-zinc-600 dark:text-zinc-300">
-                {movie.tagline}
+                {show.tagline}
               </p>
             )}
           </div>
@@ -221,18 +221,18 @@ export default async function MoviePage({ params }: MoviePageProps) {
           {/* Release date */}
           <div className="flex flex-wrap gap-3">
             <span className="rounded-full bg-sky-500 px-4 py-2 text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30">
-              {formatReleaseDate(movie.release_date)}
+              {formatReleaseDate(show.first_air_date)}
             </span>
           </div>
 
           {/* Other metadata */}
           <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-zinc-500">
             <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-              {movie.vote_average.toFixed(1)} / 10
+              {show.vote_average.toFixed(1)} / 10
             </span>
-            {formatRuntime(movie.runtime) && (
+            {formatRuntime(runtime) && (
               <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                {formatRuntime(movie.runtime)}
+                {formatRuntime(runtime)}
               </span>
             )}
             {director && (
@@ -243,7 +243,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {movie.genres.map((genre) => (
+            {show.genres.map((genre) => (
               <Link
                 key={genre.id}
                 href={`/?view=upcoming&genre=${genre.id}`}
@@ -254,6 +254,30 @@ export default async function MoviePage({ params }: MoviePageProps) {
             ))}
           </div>
 
+          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+            {show.overview || "Synopsis is not available yet."}
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Studio
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {show.production_companies?.[0]?.name ?? "TBD"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
+                Producers
+              </p>
+              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
+                {producers.length > 0 ? producers.join(", ") : "TBD"}
+              </p>
+            </div>
+          </div>
+
+          {/* Provider button */}
           {primaryProvider && (
             <div className="mt-3">
               {providerHref ? (
@@ -291,31 +315,8 @@ export default async function MoviePage({ params }: MoviePageProps) {
             </div>
           )}
 
-          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
-            {movie.overview || "Synopsis is not available yet."}
-          </p>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-                Studio
-              </p>
-              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
-                {movie.production_companies?.[0]?.name ?? "TBD"}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-zinc-200/70 bg-white/80 p-4 text-sm dark:border-zinc-800/80 dark:bg-zinc-950/40">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">
-                Producers
-              </p>
-              <p className="mt-2 text-zinc-900 dark:text-zinc-50">
-                {producers.length > 0 ? producers.join(", ") : "TBD"}
-              </p>
-            </div>
-          </div>
-
           {/* Latest News */}
-          <LatestNews productName={movie.title} productType="movie" />
+          <LatestNews productName={show.name} productType="tv" />
         </DetailHeroCard>
 
         {/* Trailer / Media carousel */}
@@ -323,12 +324,11 @@ export default async function MoviePage({ params }: MoviePageProps) {
           <MediaCarouselCombined
             trailerEmbedUrl={trailerEmbedUrl}
             screenshots={screenshotUrls}
-            title={movie.title}
+            title={show.name}
             unoptimized
             className="mt-6"
           />
         )}
-
 
         {/* Find Showtimes */}
         <section className="mt-6 rounded-3xl shadow-sm sm:p-10">
@@ -389,14 +389,15 @@ export default async function MoviePage({ params }: MoviePageProps) {
             </div>
           ))}
         </MediaCarousel>
+
       </main>
       <RecordView
         item={{
           id,
-          title: movie.title,
+          title: show.name,
           imageUrl: posterUrl,
-          href: `/movie/${id}`,
-          releaseDate: movie.release_date,
+          href: `/show/${id}`,
+          releaseDate: show.first_air_date,
         }}
       />
     </div>

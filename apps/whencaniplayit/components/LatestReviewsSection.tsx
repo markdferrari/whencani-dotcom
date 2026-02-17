@@ -74,9 +74,6 @@ export function LatestReviewsSection() {
               Latest Reviews
             </p>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-            Live
-          </span>
         </div>
         <div className="flex h-full items-center justify-center rounded-lg border border-zinc-200/70 bg-white/80 p-6 text-center dark:border-zinc-800/70 dark:bg-zinc-900/80 mt-5">
           <div>
@@ -97,9 +94,6 @@ export function LatestReviewsSection() {
               Latest Reviews
             </p>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-            Live
-          </span>
         </div>
         <div className="flex h-full items-center justify-center rounded-lg border border-zinc-200/70 bg-white/80 p-6 text-center dark:border-zinc-800/70 dark:bg-zinc-900/80 mt-5">
           <div>
@@ -119,9 +113,6 @@ export function LatestReviewsSection() {
             Latest Reviews
           </p>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-500">
-          Live
-        </span>
       </div>
       <div className="relative mt-5 group">
         <div className="overflow-hidden" ref={emblaRef}>
@@ -131,12 +122,15 @@ export function LatestReviewsSection() {
               const openCriticUrl = `https://opencritic.com/game/${review.id}/${slug}`;
               const href = review.igdbId ? `/game/${review.igdbId}?oc=${review.id}` : openCriticUrl;
               const isExternal = href.startsWith("http");
+              const igdbImageUrl = review.igdbCoverUrl
+                ? `/api/image?url=${encodeURIComponent(`https:${review.igdbCoverUrl.replace('t_thumb', 't_cover_big')}`)}`
+                : undefined;
               const rawImageUrl =
-                review.igdbCoverUrl ||
-                review.images.box?.sm ||
+                igdbImageUrl ||
                 review.images.box?.og ||
-                review.images.banner?.sm ||
-                review.images.banner?.og;
+                review.images.box?.sm ||
+                review.images.banner?.og ||
+                review.images.banner?.sm;
               const roundedScore = review.topCriticScore ? Math.round(review.topCriticScore) : undefined;
 
               return (

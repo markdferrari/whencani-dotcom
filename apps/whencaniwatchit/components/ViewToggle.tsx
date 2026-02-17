@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 const VIEWS = [
-  { id: "now_playing", name: "Now Playing" },
+  { id: "now_playing", name: "Now In Cinemas" },
   { id: "upcoming", name: "Coming Soon" },
 ];
 

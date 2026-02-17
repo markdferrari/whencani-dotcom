@@ -6,6 +6,10 @@ import type {
   GoogleBooksSearchResponse,
 } from './types';
 
+// Simple in-memory cache to reduce Google Books API calls during dev and low-traffic periods.
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
+const jsonCache = new Map<string, { expires: number; data: unknown }>();
+
 function normalizeVolume(raw: GoogleBooksVolumeResponse): Book {
   const info = raw.volumeInfo;
   const identifiers = info.industryIdentifiers ?? [];
@@ -67,7 +71,7 @@ async function enrichCover(book: Book): Promise<Book> {
   return book;
 }
 
-async function fetchGoogleBooks(path: string, params: Record<string, string> = {}): Promise<Response> {
+async function fetchGoogleBooksJson<T = unknown>(path: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${config.googleBooks.baseUrl}${path}`);
   if (config.googleBooks.apiKey) {
     url.searchParams.set('key', config.googleBooks.apiKey);
@@ -76,28 +80,38 @@ async function fetchGoogleBooks(path: string, params: Record<string, string> = {
     url.searchParams.set(key, value);
   }
 
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+  const key = url.toString();
+  const cached = jsonCache.get(key);
+  if (cached && cached.expires > Date.now()) {
+    return cached.data as T;
+  }
+
+  const res = await fetch(key, { next: { revalidate: 3600 } });
   if (!res.ok) {
     throw new Error(`Google Books API error: ${res.status} ${res.statusText}`);
   }
-  return res;
+  const json = (await res.json()) as T;
+  try {
+    jsonCache.set(key, { expires: Date.now() + CACHE_TTL, data: json as unknown });
+  } catch {
+    // ignore cache set failures
+  }
+  return json;
 }
 
 export async function searchBooks(query: string, maxResults = 10): Promise<Book[]> {
-  const res = await fetchGoogleBooks('/volumes', {
+  const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
     q: query,
     maxResults: String(maxResults),
     printType: 'books',
     langRestrict: 'en',
   });
-  const data: GoogleBooksSearchResponse = await res.json();
   return (data.items ?? []).map(normalizeVolume);
 }
 
 export async function getBookById(volumeId: string): Promise<Book | null> {
   try {
-    const res = await fetchGoogleBooks(`/volumes/${volumeId}`);
-    const raw: GoogleBooksVolumeResponse = await res.json();
+    const raw = await fetchGoogleBooksJson<GoogleBooksVolumeResponse>(`/volumes/${volumeId}`);
     const book = normalizeVolume(raw);
     return enrichCover(book);
   } catch {
@@ -106,29 +120,29 @@ export async function getBookById(volumeId: string): Promise<Book | null> {
 }
 
 export async function getBookByISBN(isbn: string): Promise<Book | null> {
-  const res = await fetchGoogleBooks('/volumes', {
-    q: `isbn:${isbn}`,
-    maxResults: '1',
-  });
-  const data: GoogleBooksSearchResponse = await res.json();
-  if (!data.items?.length) return null;
-  return normalizeVolume(data.items[0]);
+  try {
+    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
+      q: `isbn:${isbn}`,
+      maxResults: '1',
+    });
+    if (!data.items?.length) return null;
+    return normalizeVolume(data.items[0]);
+  } catch {
+    return null;
+  }
 }
 
 export async function getNewBooks(maxResults = 12): Promise<Book[]> {
   try {
-    // Get books published this month (falls back to current year)
     const currentYear = new Date().getFullYear();
-    const res = await fetchGoogleBooks('/volumes', {
+    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
       q: `subject:fiction first published ${currentYear}`,
       orderBy: 'newest',
       maxResults: String(maxResults * 2),
       printType: 'all',
       langRestrict: 'en',
     });
-    const data: GoogleBooksSearchResponse = await res.json();
     const books = (data.items ?? []).map(normalizeVolume);
-    // Filter for books actually published this year and prefer books with covers
     const currentYearBooks = books.filter((b) => {
       if (!b.publishedDate) return false;
       const pubYear = new Date(b.publishedDate).getFullYear();
@@ -144,9 +158,7 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
 
 export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
   try {
-    // Try the associated volumes endpoint first
-    const res = await fetchGoogleBooks(`/volumes/${volumeId}/associated`);
-    const data: GoogleBooksSearchResponse = await res.json();
+    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>(`/volumes/${volumeId}/associated`);
     if (data.items?.length) {
       return data.items.map(normalizeVolume);
     }
@@ -155,7 +167,6 @@ export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
   }
 
   try {
-    // Fallback: search by same categories/authors
     const book = await getBookById(volumeId);
     if (!book) return [];
 

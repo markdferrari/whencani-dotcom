@@ -17,7 +17,7 @@ export default async function WatchlistPage({ searchParams }: PageProps) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_45%)]">
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+        <section className="hidden sm:blockrounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-500">
             Watchlist
           </p>
@@ -30,6 +30,15 @@ export default async function WatchlistPage({ searchParams }: PageProps) {
         </section>
 
         <WatchlistSection overrideIds={overrideIds} isShared={!!overrideIds} />
+
+        <div className="flex gap-4 mt-6">
+          <a
+            href="https://whencaniwatchit.com/watchlist"
+            className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
+          >
+            My Movies
+          </a>
+        </div>
       </main>
     </div>
   );

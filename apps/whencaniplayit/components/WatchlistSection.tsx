@@ -11,13 +11,9 @@ import { BoardGameCard } from './BoardGameCard';
 import { config } from '@/lib/config';
 import {
   WatchlistToolbar,
-  ReleaseBadge,
   useToast,
   groupByReleaseDate,
   sortItems,
-  extractUniqueGenres,
-  filterByGenre,
-  isReleasedRecently,
   type ReleaseGroup,
 } from '@whencani/ui';
 import type { IGDBGame } from '@/lib/igdb';
@@ -307,6 +303,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                             key={game.id}
                             game={game as IGDBGame}
                             showAffiliateLink
+                            mobileLayout="side"
+                            watchlistTogglePosition="below-genres"
                           />
                         ))}
                       </div>
@@ -331,6 +329,8 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
                   key={game.id}
                   game={game}
                   showAffiliateLink
+                  mobileLayout="side"
+                  watchlistTogglePosition="below-genres"
                 />
               ))}
             </div>

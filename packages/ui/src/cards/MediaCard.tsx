@@ -17,10 +17,19 @@ export interface MediaCardProps {
   rating?: number;
   ratingCount?: number;
   watchlistToggle?: ReactNode;
+  /** where to render the watchlist toggle (default is the title row) */
+  watchlistTogglePosition?: 'title' | 'below-genres';
   badge?: ReactNode;
   actionButton?: ReactNode;
   size?: "md" | "sm";
+  /**
+   * Controls the layout on small screens. Defaults to `stack` (image above text).
+   * Use `side` to render image on the left and content on the right for small viewports.
+   */
+  mobileLayout?: 'stack' | 'side';
   showSummary?: boolean;
+  /** Make the card full height to fill its container */
+  fullHeight?: boolean;
 }
 
 export function MediaCard({
@@ -36,18 +45,34 @@ export function MediaCard({
   rating,
   ratingCount,
   watchlistToggle,
+  watchlistTogglePosition = 'title',
   badge,
   actionButton,
   size = "md",
+  mobileLayout = 'stack',
   showSummary = true,
+  fullHeight = false,
 }: MediaCardProps) {
   const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const imageHeight = size === "md" ? 120 : 88;
   const imageWidth = size === "md" ? 84 : 64;
 
+  // root layout changes to a horizontal row at small screens when mobileLayout === 'side'
+  const rootFlexClass = mobileLayout === 'side'
+    ? 'flex-row items-start'
+    : 'flex-col md:flex-row md:items-start';
+
+  // visual container sizes are responsive; keep the intrinsic image width/height for Next/Image
+  const imageContainerClass = mobileLayout === 'side'
+    ? (size === 'md'
+        ? 'w-[96px] h-[136px] md:w-[84px] md:h-[120px]'
+        : 'w-[72px] h-[100px] md:w-[64px] md:h-[88px]'
+      )
+    : (size === 'md' ? 'w-[84px] h-[120px]' : 'w-[64px] h-[88px]');
+
   return (
-    <article className="flex flex-col md:flex-row md:items-start gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left md:text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
-      <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 mx-auto md:mx-0" style={{ width: imageWidth, height: imageHeight }}>
+    <article className={`flex ${rootFlexClass} gap-4 rounded-2xl border border-zinc-100/80 bg-white p-4 text-left md:text-left shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70 ${fullHeight ? 'h-full' : ''}`}>
+      <div className={`relative flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 ${imageContainerClass} ${mobileLayout === 'side' ? 'mx-0' : 'mx-auto md:mx-0'}`}>
         {imageUrl ? (
           <Link href={href}>
             <Image
@@ -89,7 +114,16 @@ export function MediaCard({
               </p>
             )}
           </div>
-          <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
+
+          {watchlistToggle && (
+            watchlistTogglePosition === 'title' ? (
+              <div className="ml-2 flex-shrink-0">{watchlistToggle}</div>
+            ) : (
+              // when `below-genres` is requested we still render the toggle in the
+              // title row for large screens only (hidden on small screens)
+              <div className="ml-2 flex-shrink-0 hidden md:block">{watchlistToggle}</div>
+            )
+          )}
         </div>
 
         {summary && showSummary && (
@@ -119,6 +153,13 @@ export function MediaCard({
                 {genre}
               </span>
             ))}
+          </div>
+        )}
+
+        {watchlistToggle && watchlistTogglePosition === 'below-genres' && (
+          // show below-genres only on small screens; hide on md+
+          <div className="mt-3 md:hidden">
+            {watchlistToggle}
           </div>
         )}
 

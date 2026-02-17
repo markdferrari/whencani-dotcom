@@ -12,9 +12,15 @@ type MovieCardProps = {
   genres?: TMDBGenre[];
   size?: "md" | "sm";
   hideRating?: boolean;
+  /** make the card horizontal on small screens with larger poster on the left */
+  mobileLayout?: 'stack' | 'side';
+  /** where to render the watchlist toggle (default: title row) */
+  watchlistTogglePosition?: 'title' | 'below-genres';
+  /** base path for the card link, e.g. '/movie' or '/show' */
+  hrefBase?: string;
 };
 
-export function MovieCard({ movie, genres = [], size = "md", hideRating = false }: MovieCardProps) {
+export function MovieCard({ movie, genres = [], size = "md", hideRating = false, mobileLayout = 'stack', watchlistTogglePosition = 'title', hrefBase = '/movie' }: MovieCardProps) {
   const posterUrl = getPosterUrl(movie.poster_path, size === "md" ? "w342" : "w300");
   const summary = movie.overview
     ? movie.overview.length > 110
@@ -32,7 +38,7 @@ export function MovieCard({ movie, genres = [], size = "md", hideRating = false 
   return (
     <MediaCard
       id={movie.id}
-      href={`/movie/${movie.id}`}
+      href={`${hrefBase}/${movie.id}`}
       title={movie.title}
       imageUrl={posterUrl || undefined}
       imageAlt={`${movie.title} poster`}
@@ -41,9 +47,11 @@ export function MovieCard({ movie, genres = [], size = "md", hideRating = false 
       genres={genreNames}
       rating={hideRating ? undefined : movie.vote_average}
       ratingCount={hideRating ? undefined : movie.vote_count}
-      watchlistToggle={<WatchlistToggle movieId={movie.id} />}
-      badge={showBadge ? <ReleaseBadge /> : undefined}
       size={size}
+      mobileLayout={mobileLayout}
+      watchlistToggle={<WatchlistToggle movieId={movie.id} />}
+      watchlistTogglePosition={watchlistTogglePosition}
+      badge={showBadge ? <ReleaseBadge /> : undefined}
     />
   );
 }
