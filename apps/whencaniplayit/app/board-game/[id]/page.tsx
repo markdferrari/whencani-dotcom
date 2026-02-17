@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
-import { ShareButton } from '@whencani/ui';
+import { ShareButton , LatestNews } from '@whencani/ui';
 import { RecordView } from '@/components/RecordView';
 import { BoardGameWatchlistToggle } from '@/components/BoardGameWatchlistToggle';
 import { getBoardGameById, stripHtml } from '@/lib/bgg';
@@ -192,6 +192,9 @@ export default async function BoardGamePage({ params }: PageProps) {
               </div>
             </div>
           )}
+
+          <LatestNews productName={game.name} productType="boardgame" />
+
         </DetailHeroCard>
 
         <RecordView item={{ id: game.id, title: game.name, imageUrl: posterUrl ?? null, href: `/board-game/${game.id}`, releaseDate }} />

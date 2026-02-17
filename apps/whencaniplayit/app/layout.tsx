@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     "Xbox releases",
     "Nintendo releases",
     "PC game releases",
+    "board game releases",
   ],
   robots: {
     index: true,
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WhenCanIPlayIt.com",
     description:
-      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, PC, and board games.",
     url: SITE_URL,
     siteName: SITE_NAME,
     type: "website",
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WhenCanIPlayIt.com",
     description:
-      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, and PC.",
+      "Track verified game release windows, trending review momentum, and upcoming drops across PlayStation, Xbox, Nintendo, PC, and board games.",
   },
 };
 
