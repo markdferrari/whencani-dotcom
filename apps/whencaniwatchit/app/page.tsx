@@ -6,6 +6,7 @@ import {
   getNowPlayingMovies,
   getTrendingTheatrical,
   getTrendingStreaming,
+  getNowStreamingRecent,
   getUpcomingMovies,
   TMDBGenre,
   TMDBMovie,
@@ -35,7 +36,7 @@ export async function generateMetadata(
       ? genres.find((g) => g.id === genreId)?.name
       : undefined;
 
-    const viewLabel = view === "recent" ? "Now Playing" : "Coming Soon";
+    const viewLabel = view === "recent" ? "Now Playing" : view === "streaming" ? "Now Streaming" : "Coming Soon";
     const baseTitle = genreName
       ? `${genreName} Movies ${viewLabel}`
       : `Upcoming Movies & Release Dates`;
@@ -44,7 +45,9 @@ export async function generateMetadata(
       ? `Discover upcoming ${genreName.toLowerCase()} movies and release dates. Track releases, find showtimes, and save your favourites.`
       : view === "recent"
         ? "Browse movies currently in theatres and streaming. Find showtimes and watch now."
-        : "Track upcoming movie releases and streaming dates. Browse by genre and find showtimes.";
+        : view === "streaming"
+          ? "Browse recently released movies available on streaming platforms. Find where to watch and save favourites."
+          : "Track upcoming movie releases and streaming dates. Browse by genre and find showtimes.";
 
     const canonical = buildCanonicalPath("https://whencaniwatchit.com", {
       view: view !== "upcoming" ? view : undefined,
@@ -98,6 +101,8 @@ export default async function Home({ searchParams }: PageProps) {
 
     if (view === "recent") {
       displayedMovies = await getNowPlayingMovies(9);
+    } else if (view === "streaming") {
+      displayedMovies = await getNowStreamingRecent(12, genreId, providerId);
     } else {
       displayedMovies = await getUpcomingMovies(12, genreId, providerId);
     }
@@ -185,7 +190,18 @@ export default async function Home({ searchParams }: PageProps) {
                           : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
                       }`}
                     >
-                      Now Playing
+                      Now In Cinemas
+                    </Link>
+                    <Link
+                      href="/?view=streaming"
+                      scroll={false}
+                      className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
+                        view === "streaming"
+                          ? "bg-sky-500 text-white shadow-sky-500/40"
+                          : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
+                      }`}
+                    >
+                      Now Streaming
                     </Link>
                   </div>
                   <div className="mt-5 space-y-4">

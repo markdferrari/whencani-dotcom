@@ -313,6 +313,59 @@ export const getNowPlayingRecent = async (limit = 12, genreId?: number, provider
   return movies.slice(0, limit);
 };
 
+export const getNowStreamingRecent = async (limit = 12, genreId?: number, providerId?: number) => {
+  const data = await tmdbFetch<TMDBListResponse>("/trending/movie/week");
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  let movies = data.results
+    .filter((movie) => {
+      if (!movie.release_date) return false;
+      const releaseDate = new Date(movie.release_date);
+      if (releaseDate < sixtyDaysAgo || releaseDate > new Date()) {
+        return false;
+      }
+      if (genreId && !movie.genre_ids?.includes(genreId)) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.release_date ?? "").getTime();
+      const dateB = new Date(b.release_date ?? "").getTime();
+      return dateB - dateA;
+    });
+
+  if (providerId === 0) {
+    // streaming-only view (providerId 0 not meaningful here but keep parity)
+    return movies.slice(0, limit);
+  }
+
+  if (providerId) {
+    const filtered: TMDBMovie[] = [];
+    for (const movie of movies) {
+      const providers = await getMovieWatchProviders(movie.id);
+      if (providers.some((p) => p.provider_id === providerId)) {
+        filtered.push(movie);
+      }
+      if (filtered.length >= limit) break;
+    }
+    return filtered;
+  }
+
+  // Ensure the movie is actually available on at least one streaming provider
+  const withProviders: TMDBMovie[] = [];
+  for (const movie of movies) {
+    const providers = await getMovieWatchProviders(movie.id);
+    if (providers.length > 0) {
+      withProviders.push(movie);
+    }
+    if (withProviders.length >= limit) break;
+  }
+
+  return withProviders;
+};
+
 export const getMovieGenres = async () => {
   const data = await tmdbFetch<TMDBGenreResponse>("/genre/movie/list");
   return data.genres;
