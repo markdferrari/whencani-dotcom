@@ -129,17 +129,17 @@ export default async function Home({ searchParams }: PageProps) {
       )}
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
         <main className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-10">
-        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
-          <h1 className="mt-4 text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
+        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 px-5 py-4 sm:p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+          <h1 className="text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Track every release that matters to you.
           </h1>
-          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-300">
+          <p className="mt-2 sm:mt-4 text-sm sm:text-lg text-zinc-600 dark:text-zinc-300">
             Upcoming releases, streaming dates, and theater showtimes—all in one place.
           </p>
         </section>
 
         <div className="flex flex-col lg:grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_140px]">
-          <aside className="space-y-6 min-w-0">
+          <aside className="order-2 lg:order-none space-y-6 min-w-0">
             {trendingTheatricalMovies.length > 0 && (
               <div className="space-y-2">
                 <TrendingCarousel movies={trendingTheatricalMovies} title="Trending in cinema" />
@@ -152,7 +152,7 @@ export default async function Home({ searchParams }: PageProps) {
             )}
           </aside>
 
-          <aside className="space-y-6 min-w-0 lg:order-last">
+          <aside className="order-3 lg:order-last space-y-6 min-w-0">
             <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
               <div className="mt-4 grid gap-4">
                 <GenreFilter genres={genres} currentGenreId={genreId} />
@@ -166,7 +166,7 @@ export default async function Home({ searchParams }: PageProps) {
             <RecentlyViewedSection />
           </aside>
 
-          <section className="space-y-6 min-w-0">
+          <section className="order-1 lg:order-none space-y-6 min-w-0">
             {error ? (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
                 {error}

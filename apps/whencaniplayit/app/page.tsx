@@ -138,19 +138,19 @@ export default async function Home({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <main className="mx-auto w-full px-4 py-10 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-10">
-        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
-          <h1 className="text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
+        <section className="rounded-3xl border border-zinc-200/70 bg-white/90 px-5 py-4 sm:p-8 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+          <h1 className="text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Track every game release that matters to you.
           </h1>
-          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-300">
+          <p className="mt-2 sm:mt-4 text-sm sm:text-lg text-zinc-600 dark:text-zinc-300">
             Upcoming launches, review momentum, and multi-platform tracking—all in one place.
           </p>
         </section>
 
         <PopularSection />
 
-        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
-          <aside className="space-y-6 min-w-0">
+        <div className="flex flex-col lg:grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_260px]">
+          <aside className="order-2 lg:order-none space-y-6 min-w-0">
             <Suspense fallback={
               <div className="rounded-2xl border border-zinc-200/70 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="mb-2 h-4 rounded bg-zinc-200 dark:bg-zinc-700" />
@@ -168,7 +168,7 @@ export default async function Home({ searchParams }: PageProps) {
             {config.features.boardGames && <TrendingBoardGamesSection />}
           </aside>
 
-          <section className="space-y-6 min-w-0">
+          <section className="order-1 lg:order-none space-y-6 min-w-0">
             {/* Mobile filters — visible above gamecard component on small screens */}
             <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70 lg:hidden max-w-full overflow-hidden min-w-0">
               <div className="mt-4">
@@ -190,7 +190,7 @@ export default async function Home({ searchParams }: PageProps) {
             </Suspense>
           </section>
 
-          <aside className="space-y-6 hidden lg:block min-w-0">
+          <aside className="order-3 lg:order-none space-y-6 hidden lg:block min-w-0">
             <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
               <div className="mt-4">
                 <Suspense fallback={<div>Loading filters...</div>}>
