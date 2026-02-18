@@ -8,7 +8,8 @@ import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books'
 import { generateBuyLinks } from '@/lib/buy-links';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { REGION_COOKIE_NAME, parseRegionCookie } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
@@ -109,8 +110,17 @@ export default async function BookDetailPage({ params }: PageProps) {
   const coverUrl = book.coverUrl ?? null;
   const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
   const hdrs = await headers();
-  const countryCode = (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) as string | undefined;
-  const buyLinks = config.features?.buyLinks ? generateBuyLinks(book, countryCode) : [];
+  const cookieStore = await cookies();
+
+  // Region preference: cookie overrides auto-detected country
+  const cookieRegion = config.features.regionSwitcher
+    ? parseRegionCookie(cookieStore.get(REGION_COOKIE_NAME)?.value)
+    : null;
+  const autoCountryCode =
+    (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) ?? 'US';
+  const effectiveCountryCode = cookieRegion ?? autoCountryCode;
+
+  const buyLinks = config.features?.buyLinks ? await generateBuyLinks(book, effectiveCountryCode) : [];
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 

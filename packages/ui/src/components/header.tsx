@@ -7,11 +7,12 @@ export interface HeaderProps {
   logoAlt: string;
   logoHref?: string;
   searchSlot?: React.ReactNode;
+  actionsSlot?: React.ReactNode;
   savedItemsLabel?: string;
   savedItemsHref?: string;
 }
 
-export function Header({ logoSrc, logoAlt, logoHref = "/", searchSlot, savedItemsLabel = "Watchlist", savedItemsHref = "/watchlist" }: HeaderProps) {
+export function Header({ logoSrc, logoAlt, logoHref = "/", searchSlot, actionsSlot, savedItemsLabel = "Watchlist", savedItemsHref = "/watchlist" }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/70 bg-white/80 backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/80">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -42,6 +43,7 @@ export function Header({ logoSrc, logoAlt, logoHref = "/", searchSlot, savedItem
             <Star className="h-4 w-4" />
             <span className="hidden sm:inline">{savedItemsLabel}</span>
           </Link>
+          {actionsSlot}
           <ThemeToggle />
         </div>
       </div>
