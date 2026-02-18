@@ -37,5 +37,11 @@ export const config = {
     get standardCarousels(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_STANDARD_CAROUSELS === 'true';
     },
+    get regionalIsbn(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_REGIONAL_ISBN === 'true';
+    },
+    get regionSwitcher(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_REGION_SWITCHER === 'true';
+    },
   },
 } as const;
