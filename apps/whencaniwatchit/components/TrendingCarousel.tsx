@@ -64,7 +64,7 @@ function TrendingCarouselStandard({ movies, title }: TrendingCarouselProps) {
   return (
     <MediaCarousel
       label={title}
-      slideBasis="flex-[0_0_100%]"
+      slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]"
       showNavigation
       wheelScroll
       accentClasses={ACCENT}
@@ -141,7 +141,7 @@ function TrendingCarouselLegacy({ movies, title }: TrendingCarouselProps) {
               <Link
                 key={movie.id}
                 href={`/movie/${movie.id}`}
-                className="group block min-w-0 flex-[0_0_100%]"
+                className="group block min-w-0 flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]"
               >
                 <article className="relative rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80">
                   <div className="absolute right-3 top-3 z-10">

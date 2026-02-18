@@ -6,6 +6,7 @@ import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import type { OpenCriticReview } from '@/lib/opencritic';
+import { WatchlistToggle } from './WatchlistToggle';
 
 const LATEST_REVIEWS_ENDPOINT = '/api/opencritic/reviewed-this-week';
 

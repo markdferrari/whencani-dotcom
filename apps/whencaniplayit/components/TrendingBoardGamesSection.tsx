@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Dice5 } from 'lucide-react';
 import { MediaCarousel } from '@whencani/ui';
+import { BoardGameWatchlistToggle } from './BoardGameWatchlistToggle';
 
 interface HotGame {
   id: number;
@@ -85,6 +86,9 @@ export function TrendingBoardGamesSection() {
       {games.map((g) => (
         <a key={g.id} href={`/board-game/${g.id}`} className="group block">
           <article className="relative rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-violet-400 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80">
+            <div className="absolute right-3 top-3 z-10">
+              <BoardGameWatchlistToggle gameId={g.id} className="shadow" />
+            </div>
             <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
               {g.thumbnail ? (
                 <Image

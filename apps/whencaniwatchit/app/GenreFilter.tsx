@@ -34,7 +34,7 @@ export function GenreFilter({ genres, currentGenreId }: GenreFilterProps) {
       <select
         defaultValue={currentGenreId?.toString() || ""}
         onChange={handleGenreChange}
-        className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+        className="mt-1 w-auto min-w-[140px] rounded-xl border border-zinc-200/70 bg-white px-3 py-1.5 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
       >
         <option value="">All genres</option>
         {genres.map((genre) => (
