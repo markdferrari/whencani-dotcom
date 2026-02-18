@@ -129,119 +129,99 @@ export default async function Home({ searchParams }: PageProps) {
       )}
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_40%)]">
         <main className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8 max-w-7xl flex flex-col gap-10">
-        <section className="hidden sm:block rounded-3xl border border-zinc-200/70 bg-white/90 p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
-          <h1 className="mt-4 text-4xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
-            Track every release that matters to you.
-          </h1>
-          <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-300">
-            Upcoming releases, streaming dates, and theater showtimes—all in one place.
-          </p>
-        </section>
-
-        <div className="flex flex-col lg:grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)_140px]">
-          <aside className="space-y-6 min-w-0">
-            {trendingTheatricalMovies.length > 0 && (
-              <div className="space-y-2">
-                <TrendingCarousel movies={trendingTheatricalMovies} title="Trending in cinema" />
-              </div>
-            )}
-            {trendingStreamingMovies.length > 0 && (
-              <div className="hidden lg:block space-y-2">
-                <TrendingCarousel movies={trendingStreamingMovies} title="Trending on streaming" />
-              </div>
-            )}
-          </aside>
-
-          <aside className="space-y-6 min-w-0 lg:order-last">
-            <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-              <div className="mt-4 grid gap-4">
-                <GenreFilter genres={genres} currentGenreId={genreId} />
-                {/* <PlatformFilter currentProviderId={providerId} /> */}
-              </div>
-            </div>
-
-            <div className="hidden lg:block">
-              <FindShowtimes />
-            </div>
+        <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_260px] gap-6 lg:gap-8 items-start">
+          <section className="rounded-3xl border border-zinc-200/70 bg-white/90 px-5 py-4 sm:p-10 shadow-xl shadow-slate-900/5 dark:border-zinc-800/80 dark:bg-zinc-950/75">
+            <h1 className="text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
+              Track every release that matters to you.
+            </h1>
+            <p className="mt-2 sm:mt-4 text-sm sm:text-lg text-zinc-600 dark:text-zinc-300">
+              Upcoming releases, streaming dates, and theater showtimes—all in one place.
+            </p>
+          </section>
+          <aside className="hidden lg:block min-w-0 w-full">
             <RecentlyViewedSection />
           </aside>
-
-          <section className="space-y-6 min-w-0">
-            {error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
-                {error}
-              </div>
-            ) : (
-              <>
-                <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-                  <div className="flex flex-wrap sm:flex-nowrap justify-center sm:justify-start gap-3">
-                    <Link
-                      href="/?view=upcoming"
-                      scroll={false}
-                      className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
-                        view === "upcoming"
-                          ? "bg-sky-500 text-white shadow-sky-500/40"
-                          : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
-                      }`}
-                    >
-                      Coming Soon
-                    </Link>
-                    <Link
-                      href="/?view=recent"
-                      scroll={false}
-                      className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
-                        view === "recent"
-                          ? "bg-sky-500 text-white shadow-sky-500/40"
-                          : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
-                      }`}
-                    >
-                      Now In Cinemas
-                    </Link>
-                  <Link
-                    href="/?view=tv"
-                    scroll={false}
-                    className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
-                      view === "tv"
-                        ? "bg-sky-500 text-white shadow-sky-500/40"
-                        : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
-                    }`}
-                  >
-                    Now Streaming (TV)
-                  </Link>
-                    <Link
-                      href="/?view=streaming"
-                      scroll={false}
-                      className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
-                        view === "streaming"
-                          ? "bg-sky-500 text-white shadow-sky-500/40"
-                          : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
-                      }`}
-                    >
-                      Now Streaming (Movies)
-                    </Link>
-                  </div>
-                  <div className="mt-5 space-y-4">
-                    {displayedMovies.map((movie) => (
-                      <div key={movie.id} className="mx-auto max-w-2xl">
-                        <MovieCard
-                          movie={movie}
-                          genres={genres}
-                          hideRating={view === "upcoming" || view === "tv"}
-                          hrefBase={view === "tv" ? "/show" : "/movie"}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Mobile-only placement: show FindShowtimes below the movie cards on small screens */}
-                  <div className="mt-6 lg:hidden">
-                    <FindShowtimes />
-                  </div>
-                </div>
-              </>
-            )}
-          </section>
         </div>
+
+        {trendingTheatricalMovies.length > 0 && (
+          <TrendingCarousel movies={trendingTheatricalMovies} title="Trending in cinema" />
+        )}
+        {trendingStreamingMovies.length > 0 && (
+          <TrendingCarousel movies={trendingStreamingMovies} title="Trending on streaming" />
+        )}
+
+        {error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+            {error}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap sm:flex-nowrap gap-3">
+                <Link
+                  href="/?view=upcoming"
+                  scroll={false}
+                  className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
+                    view === "upcoming"
+                      ? "bg-sky-500 text-white shadow-sky-500/40"
+                      : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
+                  }`}
+                >
+                  Coming Soon
+                </Link>
+                <Link
+                  href="/?view=recent"
+                  scroll={false}
+                  className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
+                    view === "recent"
+                      ? "bg-sky-500 text-white shadow-sky-500/40"
+                      : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
+                  }`}
+                >
+                  Now In Cinemas
+                </Link>
+                <Link
+                  href="/?view=tv"
+                  scroll={false}
+                  className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
+                    view === "tv"
+                      ? "bg-sky-500 text-white shadow-sky-500/40"
+                      : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
+                  }`}
+                >
+                  Now Streaming (TV)
+                </Link>
+                <Link
+                  href="/?view=streaming"
+                  scroll={false}
+                  className={`rounded-full px-6 py-2 text-sm font-semibold shadow-lg transition ${
+                    view === "streaming"
+                      ? "bg-sky-500 text-white shadow-sky-500/40"
+                      : "border border-zinc-200 text-zinc-600 hover:border-sky-500 dark:border-zinc-800/60 dark:text-zinc-300"
+                  }`}
+                >
+                  Now Streaming (Movies)
+                </Link>
+              </div>
+              <GenreFilter genres={genres} currentGenreId={genreId} />
+            </div>
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {displayedMovies.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  genres={genres}
+                  hideRating={view === "upcoming" || view === "tv"}
+                  hrefBase={view === "tv" ? "/show" : "/movie"}
+                />
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <FindShowtimes />
+            </div>
+          </div>
+        )}
       </main>
     </div>
     </>

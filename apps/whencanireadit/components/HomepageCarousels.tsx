@@ -145,7 +145,7 @@ function NYTCarouselStandard({ list, displayName }: { list: NYTBestsellerList; d
     <MediaCarousel
       label={displayName}
       subtitle={`Updated ${list.publishedDate}`}
-      slideBasis="flex-[0_0_100%]"
+      slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]"
       showNavigation
       accentClasses={ACCENT}
     >
@@ -169,7 +169,7 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
   return (
     <CarouselWrapper label={displayName} subtitle={`Updated ${list.publishedDate}`}>
       {list.books.map((book) => (
-        <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+        <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]">
           <NYTBookCard book={book} />
         </div>
       ))}
@@ -227,7 +227,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
           <MediaCarousel
             label="Trending Fiction"
             subtitle={`Updated ${fictionList.publishedDate}`}
-            slideBasis="flex-[0_0_100%]"
+            slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]"
             showNavigation
             accentClasses={ACCENT}
           >
@@ -238,7 +238,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
         ) : (
           <CarouselWrapper label="Trending Fiction" subtitle={`Updated ${fictionList.publishedDate}`}>
             {fictionList.books.slice(0, 8).map((book) => (
-              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]">
                 <NYTBookCard book={book} />
               </div>
             ))}
@@ -250,7 +250,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
           <MediaCarousel
             label="Trending Nonfiction"
             subtitle={`Updated ${nonfictionList.publishedDate}`}
-            slideBasis="flex-[0_0_100%]"
+            slideBasis="flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]"
             showNavigation
             accentClasses={ACCENT}
           >
@@ -261,7 +261,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
         ) : (
           <CarouselWrapper label="Trending Nonfiction" subtitle={`Updated ${nonfictionList.publishedDate}`}>
             {nonfictionList.books.slice(0, 8).map((book) => (
-              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_100%]">
+              <div key={book.isbn13 || book.title} className="min-w-0 flex-[0_0_50%] sm:flex-[0_0_33%] lg:flex-[0_0_22%]">
                 <NYTBookCard book={book} />
               </div>
             ))}
@@ -288,7 +288,7 @@ export function BooksCarousel({ label, books }: { label: string; books: Book[] }
           {label}
         </p>
       </div>
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {books.map((book) => (
           <GoogleBookCard key={book.id} book={book} />
         ))}
