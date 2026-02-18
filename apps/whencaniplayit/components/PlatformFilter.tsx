@@ -14,19 +14,16 @@ const PLATFORMS = [
 interface PlatformFilterProps {
   genres: Array<{ id: number; name: string }>;
   showBoardGames?: boolean;
+  layout?: 'stacked' | 'inline';
 }
 
-export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilterProps) {
+export function PlatformFilter({ genres, showBoardGames = false, layout = 'stacked' }: PlatformFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPlatform = searchParams.get('platform') || 'all';
   const currentGenre = searchParams.get('genre') || '';
-  const currentStudio = searchParams.get('studio') || '';
   const currentType = searchParams.get('type') || 'video';
 
-  const [studios, setStudios] = useState<Array<{ id: number; name: string }>>([]);
-  const [studioLoading, setStudioLoading] = useState(true);
-  const [studioError, setStudioError] = useState(false);
   const [bggCategories, setBggCategories] = useState<string[]>([]);
   const [bggLoading, setBggLoading] = useState(false);
 
@@ -40,37 +37,6 @@ export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilte
     const query = params.toString();
     router.push(query ? `/?${query}` : '/');
   };
-
-  useEffect(() => {
-    let isActive = true;
-    const fetchStudios = async () => {
-      setStudioLoading(true);
-      setStudioError(false);
-
-      try {
-        const response = await fetch('/api/studios');
-        if (!response.ok) {
-          throw new Error('Failed to load studios');
-        }
-        const data: Array<{ id: number; name: string }> = await response.json();
-        if (!isActive) return;
-        setStudios(data);
-      } catch (error) {
-        if (!isActive) return;
-        setStudioError(true);
-        setStudios([]);
-      } finally {
-        if (!isActive) return;
-        setStudioLoading(false);
-      }
-    };
-
-    void fetchStudios();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (!showBoardGames || currentType !== 'board') return;
@@ -98,15 +64,21 @@ export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilte
     };
   }, [currentType, showBoardGames]);
 
+  const isInline = layout === 'inline';
+  const containerClass = isInline ? 'flex flex-wrap items-end gap-3' : 'grid gap-4';
+  const selectClass = isInline
+    ? 'mt-1 w-auto min-w-[140px] rounded-xl border border-zinc-200/70 bg-white px-3 py-1.5 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100'
+    : 'mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100';
+
   return (
-    <div className="grid gap-4">
+    <div className={containerClass}>
       {showBoardGames && (
         <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
           Game Type
           <select
             value={currentType}
             onChange={(e) => handleSelectChange('type', e.target.value)}
-            className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+            className={selectClass}
           >
             <option value="video">Video Games</option>
             <option value="board">Board Games</option>
@@ -115,48 +87,20 @@ export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilte
       )}
 
       {currentType !== 'board' && (
-        <>
-          <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-            Platform
-            <select
-              value={currentPlatform}
-              onChange={(event) => handleSelectChange('platform', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
-            >
-              {PLATFORMS.map((platform) => (
-                <option key={platform.id} value={platform.id}>
-                  {platform.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
-            Studio
-            <select
-              value={currentStudio}
-              onChange={(event) => handleSelectChange('studio', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
-            >
-              <option value="">All studios</option>
-              {studios.map((studio) => (
-                <option key={studio.id} value={studio.id.toString()}>
-                  {studio.name}
-                </option>
-              ))}
-            </select>
-            {studioLoading && (
-              <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-                Loading studios…
-              </span>
-            )}
-            {studioError && (
-              <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-red-500">
-                Failed to load studios
-              </span>
-            )}
-          </label>
-        </>
+        <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+          Platform
+          <select
+            value={currentPlatform}
+            onChange={(event) => handleSelectChange('platform', event.target.value)}
+            className={selectClass}
+          >
+            {PLATFORMS.map((platform) => (
+              <option key={platform.id} value={platform.id}>
+                {platform.name}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
 
       <label className="text-xs uppercase tracking-[0.3em] text-zinc-500">
@@ -164,7 +108,7 @@ export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilte
         <select
           value={currentGenre}
           onChange={(event) => handleSelectChange('genre', event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-zinc-200/70 bg-white px-3 py-2 text-sm text-zinc-800 dark:border-zinc-800/70 dark:bg-zinc-950/70 dark:text-zinc-100"
+          className={selectClass}
         >
           <option value="">All genres</option>
           {currentType === 'board' ? (
@@ -182,7 +126,7 @@ export function PlatformFilter({ genres, showBoardGames = false }: PlatformFilte
           )}
         </select>
         {currentType === 'board' && bggLoading && (
-          <span className="mt-2 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">Loading categories…</span>
+          <span className="mt-1 block text-[10px] uppercase tracking-[0.3em] text-zinc-500">Loading categories…</span>
         )}
       </label>
     </div>

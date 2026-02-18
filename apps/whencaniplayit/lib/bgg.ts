@@ -258,13 +258,22 @@ export async function getHotBoardGames(limit = 20): Promise<BGGHotGame[]> {
 
       return items
         .slice(0, limit)
-        .map((it) => ({
-          id: parseInt(it['@_id'], 10),
-          rank: parseIntAttr(it['@_rank']) ?? 0,
-          name: extractPrimaryName(it.name),
-          thumbnail: it.thumbnail ?? undefined,
-          yearPublished: parseIntAttr(it.yearpublished?.['@_value']),
-        }))
+        .map((it) => {
+          // Hot list uses <thumbnail value="url"/> (attribute), while
+          // /thing uses <thumbnail>url</thumbnail> (text). Handle both.
+          const rawThumb = it.thumbnail as string | BGGXmlAttr | undefined;
+          const thumbnail = typeof rawThumb === 'string'
+            ? rawThumb
+            : (rawThumb as BGGXmlAttr | undefined)?.['@_value'] ?? undefined;
+
+          return {
+            id: parseInt(it['@_id'], 10),
+            rank: parseIntAttr(it['@_rank']) ?? 0,
+            name: extractPrimaryName(it.name),
+            thumbnail,
+            yearPublished: parseIntAttr(it.yearpublished?.['@_value']),
+          };
+        })
         .filter((g) => !!g.id && !!g.name);
     } catch (error) {
       console.error('getHotBoardGames error', error);

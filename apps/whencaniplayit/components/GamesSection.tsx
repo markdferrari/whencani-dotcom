@@ -2,6 +2,7 @@
 
 import { GameCard } from './GameCard';
 import { ViewToggle } from './ViewToggle';
+import { PlatformFilter } from './PlatformFilter';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import type { IGDBGame, IGDBGenre } from '@/lib/igdb';
@@ -10,9 +11,11 @@ import { BoardGameCard } from './BoardGameCard';
 
 interface GamesSectionProps {
   searchParams: { platform?: string; view?: string; genre?: string; studio?: string; type?: string };
+  genres: Array<{ id: number; name: string }>;
+  showBoardGames?: boolean;
 }
 
-export function GamesSection({ searchParams }: GamesSectionProps) {
+export function GamesSection({ searchParams, genres: initialGenres, showBoardGames = false }: GamesSectionProps) {
   const routerSearchParams = useSearchParams();
   const [videoGames, setVideoGames] = useState<IGDBGame[]>([]);
   const [boardGames, setBoardGames] = useState<BGGBoardGame[]>([]);
@@ -93,6 +96,7 @@ export function GamesSection({ searchParams }: GamesSectionProps) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ViewToggle />
+        <PlatformFilter genres={initialGenres} showBoardGames={showBoardGames} layout="inline" />
       </div>
 
       <div className={`mt-5 space-y-4 ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>

@@ -6,6 +6,7 @@ const ALLOWED_HOSTS = new Set([
   "www.opencritic.com",
   "opencritic-cdn.b-cdn.net",
   "p3.opencritic.com",
+  "cf.geekdo-images.com",
 ]);
 
 function buildCacheControlHeader() {

@@ -138,7 +138,7 @@ export function LatestReviewsSection() {
                   key={`${review.id}-carousel`}
                   href={href}
                   {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="group block min-w-0 flex-[0_0_100%]"
+                  className="group block min-w-0 flex-[0_0_70%] sm:flex-[0_0_45%] md:flex-[0_0_30%] lg:flex-[0_0_22%]"
                 >
                   <article className="relative rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-900/80">
                     <div className="relative mb-3 aspect-[3/4] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
@@ -148,7 +148,7 @@ export function LatestReviewsSection() {
                           alt={`${review.name} cover`}
                           fill
                           className="object-cover"
-                          sizes="100vw"
+                          sizes="(min-width: 1024px) 22vw, (min-width: 768px) 30vw, (min-width: 640px) 45vw, 70vw"
                           unoptimized
                         />
                       ) : (
