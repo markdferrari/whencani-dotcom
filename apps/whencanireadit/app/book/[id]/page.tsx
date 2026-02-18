@@ -5,11 +5,12 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books';
-import { generateBuyLinks } from '@/lib/buy-links';
+import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
 import { cookies, headers } from 'next/headers';
 import { REGION_COOKIE_NAME, parseRegionCookie } from '@/lib/region';
+import type { Region } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
@@ -120,7 +121,10 @@ export default async function BookDetailPage({ params }: PageProps) {
     (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) ?? 'US';
   const effectiveCountryCode = cookieRegion ?? autoCountryCode;
 
-  const buyLinks = config.features?.buyLinks ? await generateBuyLinks(book, effectiveCountryCode) : [];
+  const buyLinks = config.features?.buyLinks ? generateBuyLinks(effectiveCountryCode) : [];
+  const bookshopIsbn = book.isbn13 ?? book.isbn10;
+  const bookshopRegion: Region = effectiveCountryCode.toUpperCase() === 'GB' ? 'GB' : 'US';
+  const bookshopLink = bookshopIsbn ? getBookshopLink(bookshopIsbn, bookshopRegion) : null;
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 
@@ -211,7 +215,19 @@ export default async function BookDetailPage({ params }: PageProps) {
             {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
+          <div className="flex flex-wrap gap-2">
+            {bookshopLink && (
+              <a
+                href={bookshopLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
+              >
+                {bookshopLink.label}
+              </a>
+            )}
+            {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
+          </div>
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>
