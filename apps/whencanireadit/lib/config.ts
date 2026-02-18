@@ -43,5 +43,8 @@ export const config = {
     get regionSwitcher(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_REGION_SWITCHER === 'true';
     },
+    get homepageGenreCarousels(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_HOMEPAGE_GENRE_CAROUSELS === 'true';
+    },
   },
 } as const;

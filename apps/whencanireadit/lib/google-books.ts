@@ -156,6 +156,62 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
   }
 }
 
+async function getBooksBySubject(subject: string, maxResults: number): Promise<Book[]> {
+  const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
+    q: `subject:${subject}`,
+    orderBy: 'relevance',
+    maxResults: String(maxResults * 2),
+    printType: 'books',
+    langRestrict: 'en',
+  });
+  const books = (data.items ?? []).map(normalizeVolume);
+  const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
+  return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
+}
+
+export async function getComingSoonBooks(maxResults = 10): Promise<Book[]> {
+  try {
+    const currentYear = new Date().getFullYear();
+    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
+      q: `subject:fiction first published ${currentYear}`,
+      orderBy: 'newest',
+      maxResults: String(maxResults * 2),
+      printType: 'books',
+      langRestrict: 'en',
+    });
+    const books = (data.items ?? []).map(normalizeVolume);
+    const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const upcoming = books.filter((b) => {
+      if (!b.publishedDate) return false;
+      // Compare date strings to avoid time-of-day issues
+      return b.publishedDate >= todayStr;
+    });
+    const withCovers = upcoming.filter((b) => b.coverUrl && b.authors.length > 0);
+    return (withCovers.length > 0 ? withCovers : upcoming).slice(0, maxResults);
+  } catch (err) {
+    console.error('[getComingSoonBooks] Google Books API failed:', err);
+    return [];
+  }
+}
+
+export async function getThrillerBooks(maxResults = 10): Promise<Book[]> {
+  try {
+    return await getBooksBySubject('thriller', maxResults);
+  } catch (err) {
+    console.error('[getThrillerBooks] Google Books API failed:', err);
+    return [];
+  }
+}
+
+export async function getScienceFictionBooks(maxResults = 10): Promise<Book[]> {
+  try {
+    return await getBooksBySubject('science fiction', maxResults);
+  } catch (err) {
+    console.error('[getScienceFictionBooks] Google Books API failed:', err);
+    return [];
+  }
+}
+
 export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
   try {
     const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>(`/volumes/${volumeId}/associated`);
