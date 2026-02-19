@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books';
 import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
+import { resolveRegionalIsbn } from '@/lib/open-library';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
 import { cookies, headers } from 'next/headers';
@@ -122,8 +123,19 @@ export default async function BookDetailPage({ params }: PageProps) {
   const effectiveCountryCode = cookieRegion ?? autoCountryCode;
 
   const buyLinks = config.features?.buyLinks ? generateBuyLinks(effectiveCountryCode) : [];
-  const bookshopIsbn = book.isbn13 ?? book.isbn10;
+  const originalIsbn = book.isbn13 ?? book.isbn10;
   const bookshopRegion: Region = effectiveCountryCode.toUpperCase() === 'GB' ? 'GB' : 'US';
+
+  // Resolve regional ISBN when the feature is enabled
+  let bookshopIsbn = originalIsbn;
+  if (originalIsbn && config.features.regionalIsbn) {
+    const resolved = await resolveRegionalIsbn(originalIsbn, bookshopRegion, {
+      title: book.title,
+      authors: book.authors,
+    });
+    bookshopIsbn = resolved.isbn13 ?? resolved.isbn10 ?? originalIsbn;
+  }
+
   const bookshopLink = bookshopIsbn ? getBookshopLink(bookshopIsbn, bookshopRegion) : null;
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';

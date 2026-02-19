@@ -1,3 +1,5 @@
+import { config } from './config';
+import type { GoogleBooksSearchResponse } from './types';
 import type { Region } from './region';
 
 type CoverSize = 'S' | 'M' | 'L';
@@ -40,7 +42,7 @@ interface OLEditionsResponse {
   entries?: OLEdition[];
 }
 
-interface RegionalIsbnResult {
+export interface RegionalIsbnResult {
   isbn13: string | null;
   isbn10: string | null;
 }
@@ -51,7 +53,36 @@ const MARC_COUNTRY_CODES: Record<Region, string[]> = {
   US: ['xxu', 'nyu', 'miu'],
 };
 
+/**
+ * Resolve an ISBN to the correct regional edition.
+ *
+ * Strategy:
+ * 1. Try Open Library Works + Editions API (has explicit publish_country)
+ * 2. Fall back to Google Books search by title+author to find alternate editions
+ *
+ * Pass `title` and `authors` to enable the Google Books fallback.
+ */
 export async function resolveRegionalIsbn(
+  isbn: string,
+  region: Region,
+  bookInfo?: { title: string; authors: string[] },
+): Promise<RegionalIsbnResult> {
+  const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
+
+  // Step 1: Try Open Library
+  const olResult = await resolveViaOpenLibrary(isbn, region);
+  if (olResult.isbn13 || olResult.isbn10) return olResult;
+
+  // Step 2: Fall back to Google Books if we have title+author info
+  if (bookInfo && bookInfo.title && bookInfo.authors.length > 0) {
+    const gbResult = await resolveViaGoogleBooks(isbn, region, bookInfo.title, bookInfo.authors);
+    if (gbResult.isbn13 || gbResult.isbn10) return gbResult;
+  }
+
+  return fallback;
+}
+
+async function resolveViaOpenLibrary(
   isbn: string,
   region: Region,
 ): Promise<RegionalIsbnResult> {
@@ -97,6 +128,64 @@ export async function resolveRegionalIsbn(
       isbn13: match.isbn_13?.[0] ?? null,
       isbn10: match.isbn_10?.[0] ?? null,
     };
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * Google Books fallback: search for the same book by title+author with the
+ * `country` parameter set to the target region. Google Books often returns
+ * separate volumes for different regional editions (each with its own ISBN).
+ * We pick the edition whose ISBN differs from the original — that's the
+ * regional variant.
+ */
+async function resolveViaGoogleBooks(
+  originalIsbn: string,
+  region: Region,
+  title: string,
+  authors: string[],
+): Promise<RegionalIsbnResult> {
+  const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
+
+  try {
+    // Use a plain query (no intitle:/inauthor: prefixes) so Google Books
+    // returns all editions rather than deduplicating into one result.
+    const authorQuery = authors[0] ?? '';
+    const query = `${title} ${authorQuery}`;
+
+    const url = new URL(`${config.googleBooks.baseUrl}/volumes`);
+    url.searchParams.set('q', query);
+    url.searchParams.set('maxResults', '5');
+    url.searchParams.set('printType', 'books');
+    if (config.googleBooks.apiKey) {
+      url.searchParams.set('key', config.googleBooks.apiKey);
+    }
+
+    const res = await fetch(url.toString(), { next: { revalidate: 86400 } });
+    if (!res.ok) return fallback;
+
+    const data = (await res.json()) as GoogleBooksSearchResponse;
+    const items = data.items ?? [];
+
+    // Find an edition with a different ISBN13 than the original
+    for (const item of items) {
+      const identifiers = item.volumeInfo.industryIdentifiers ?? [];
+      const isbn13 = identifiers.find((i) => i.type === 'ISBN_13')?.identifier ?? null;
+      const isbn10 = identifiers.find((i) => i.type === 'ISBN_10')?.identifier ?? null;
+
+      // Must have an ISBN13, must be different from the one we already have,
+      // and must be the same book (title match)
+      if (
+        isbn13 &&
+        isbn13 !== originalIsbn &&
+        item.volumeInfo.title?.toLowerCase() === title.toLowerCase()
+      ) {
+        return { isbn13, isbn10 };
+      }
+    }
+
+    return fallback;
   } catch {
     return fallback;
   }
