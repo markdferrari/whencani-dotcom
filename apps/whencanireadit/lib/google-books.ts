@@ -71,6 +71,32 @@ async function enrichCover(book: Book): Promise<Book> {
   return book;
 }
 
+// Rate limiter: max concurrent requests + stagger delay between dispatches
+const MAX_CONCURRENT = 3;
+const STAGGER_MS = 200; // 200ms between each request dispatch
+let activeRequests = 0;
+const requestQueue: Array<() => void> = [];
+
+function acquireSlot(): Promise<void> {
+  if (activeRequests < MAX_CONCURRENT) {
+    activeRequests++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    requestQueue.push(resolve);
+  });
+}
+
+function releaseSlot(): void {
+  if (requestQueue.length > 0) {
+    const next = requestQueue.shift()!;
+    // Stagger the next request to avoid bursts
+    setTimeout(next, STAGGER_MS);
+  } else {
+    activeRequests--;
+  }
+}
+
 async function fetchGoogleBooksJson<T = unknown>(
   path: string,
   params: Record<string, string> = {},
@@ -93,17 +119,22 @@ async function fetchGoogleBooksJson<T = unknown>(
     return cached.data as T;
   }
 
-  const res = await fetch(key, { next: { revalidate: 3600 } });
-  if (!res.ok) {
-    throw new Error(`Google Books API error: ${res.status} ${res.statusText}`);
-  }
-  const json = (await res.json()) as T;
+  await acquireSlot();
   try {
-    jsonCache.set(key, { expires: Date.now() + CACHE_TTL, data: json as unknown });
-  } catch {
-    // ignore cache set failures
+    const res = await fetch(key, { next: { revalidate: 3600 } });
+    if (!res.ok) {
+      throw new Error(`Google Books API error: ${res.status} ${res.statusText}`);
+    }
+    const json = (await res.json()) as T;
+    try {
+      jsonCache.set(key, { expires: Date.now() + CACHE_TTL, data: json as unknown });
+    } catch {
+      // ignore cache set failures
+    }
+    return json;
+  } finally {
+    releaseSlot();
   }
-  return json;
 }
 
 export async function searchBooks(query: string, maxResults = 10, country?: string): Promise<Book[]> {

@@ -11,6 +11,20 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://whencanireadit.com";
 
+// Cache homepage carousel data for 24h + up to 1h jitter
+const CAROUSEL_CACHE_TTL = 24 * 60 * 60 * 1000;
+const CAROUSEL_CACHE_JITTER = 60 * 60 * 1000;
+
+interface CarouselCacheEntry {
+  expires: number;
+  fictionList: NYTBestsellerList | null;
+  nonfictionList: NYTBestsellerList | null;
+  newBooks: Book[];
+  comingSoonBooks: Book[];
+}
+
+const carouselCache = new Map<string, CarouselCacheEntry>();
+
 export const metadata: Metadata = {
   title: "Upcoming Book Releases & Bestsellers | WhenCanIReadIt.com",
   description:
@@ -27,10 +41,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
+async function fetchCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
   const nytEnabled = config.features.nytBestsellers;
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
-  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
 
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
@@ -62,6 +75,26 @@ export default async function Home() {
   } catch (err) {
     console.error("[Home] Unexpected error fetching homepage data:", err);
   }
+
+  const jitter = Math.floor(Math.random() * CAROUSEL_CACHE_JITTER);
+  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, newBooks, comingSoonBooks };
+}
+
+async function getCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
+  const cacheKey = country ?? "__default__";
+  const cached = carouselCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) {
+    return cached;
+  }
+  const fresh = await fetchCarouselData(country);
+  carouselCache.set(cacheKey, fresh);
+  return fresh;
+}
+
+export default async function Home() {
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+  const { fictionList, nonfictionList, newBooks, comingSoonBooks } = await getCarouselData(country);
+  const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   return (
     <div className="min-h-screen">
