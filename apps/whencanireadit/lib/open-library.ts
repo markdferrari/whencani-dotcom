@@ -492,7 +492,11 @@ function isOLKey(str: string): boolean {
  */
 export async function resolveBook(id: string, country?: string): Promise<Book | null> {
   if (isISBN(id)) {
-    return getBookByISBN(id, country);
+    const book = await getBookByISBN(id, country);
+    if (book) return book;
+    // OL doesn't have this ISBN — fall back to Google Books ISBN search
+    const { getBookByISBN: getBookByISBNGoogle } = await import('./google-books');
+    return getBookByISBNGoogle(id, country);
   }
   if (isOLKey(id)) {
     return getBookByOLKey(id, country);
