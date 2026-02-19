@@ -6,6 +6,8 @@ import { detectRegion } from "@/lib/region";
 import { getFictionBestsellers, getNonfictionBestsellers, getYoungAdultBestsellers, getAdviceBestsellers, getGraphicBooksBestsellers } from "@/lib/nyt-books";
 import { BooksCarousel, NYTCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
+import { BookReviewSection } from "@/components/BookReviewSection";
+import { getBookReviewArticles } from "@/lib/nyt-book-review";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -116,7 +118,11 @@ async function getCarouselData(country: string | undefined): Promise<CarouselCac
 
 export default async function Home() {
   const country = config.features.regionSwitcher ? await detectRegion() : undefined;
-  const { fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks } = await getCarouselData(country);
+  const [carouselData, bookReviewArticles] = await Promise.all([
+    getCarouselData(country),
+    config.features.nytBookReview ? getBookReviewArticles(4) : Promise.resolve([]),
+  ]);
+  const { fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks } = carouselData;
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   return (
@@ -160,6 +166,10 @@ export default async function Home() {
 
         {graphicList && graphicList.books.length > 0 && (
           <NYTCarousel list={graphicList} />
+        )}
+
+        {bookReviewArticles.length > 0 && (
+          <BookReviewSection articles={bookReviewArticles} />
         )}
       </main>
     </div>

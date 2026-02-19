@@ -52,5 +52,8 @@ export const config = {
     get openLibraryPrimary(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_OPEN_LIBRARY_PRIMARY === 'true';
     },
+    get nytBookReview(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_NYT_BOOK_REVIEW === 'true';
+    },
   },
 } as const;
