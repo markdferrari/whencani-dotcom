@@ -152,6 +152,8 @@ export interface OLEditionDetail {
   languages?: Array<{ key: string }>;
   description?: string | { type: string; value: string };
   subjects?: string[];
+  physical_format?: string;
+  publish_country?: string;
 }
 
 export interface OLWorkDetail {
@@ -210,6 +212,29 @@ export interface OLSubjectWork {
 export interface OLAuthorResponse {
   name: string;
   key: string;
+}
+
+// Book edition (different format/language/publisher of the same work)
+export interface BookEdition {
+  isbn13: string | null;
+  isbn10: string | null;
+  title: string | null;
+  publishDate: string | null;
+  publishers: string[];
+  language: string | null;
+  coverUrl: string | null;
+  format: string | null;
+}
+
+// Series information with other books in the series
+export interface BookSeries {
+  seriesName: string;
+  books: Array<{
+    id: string;
+    title: string;
+    authors: string[];
+    coverUrl: string | null;
+  }>;
 }
 
 // NYT API raw response types
