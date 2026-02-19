@@ -71,13 +71,20 @@ async function enrichCover(book: Book): Promise<Book> {
   return book;
 }
 
-async function fetchGoogleBooksJson<T = unknown>(path: string, params: Record<string, string> = {}): Promise<T> {
+async function fetchGoogleBooksJson<T = unknown>(
+  path: string,
+  params: Record<string, string> = {},
+  options?: { country?: string },
+): Promise<T> {
   const url = new URL(`${config.googleBooks.baseUrl}${path}`);
   if (config.googleBooks.apiKey) {
     url.searchParams.set('key', config.googleBooks.apiKey);
   }
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
+  }
+  if (options?.country) {
+    url.searchParams.set('country', options.country);
   }
 
   const key = url.toString();
@@ -99,19 +106,19 @@ async function fetchGoogleBooksJson<T = unknown>(path: string, params: Record<st
   return json;
 }
 
-export async function searchBooks(query: string, maxResults = 10): Promise<Book[]> {
+export async function searchBooks(query: string, maxResults = 10, country?: string): Promise<Book[]> {
   const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
     q: query,
     maxResults: String(maxResults),
     printType: 'books',
     langRestrict: 'en',
-  });
+  }, { country });
   return (data.items ?? []).map(normalizeVolume);
 }
 
-export async function getBookById(volumeId: string): Promise<Book | null> {
+export async function getBookById(volumeId: string, country?: string): Promise<Book | null> {
   try {
-    const raw = await fetchGoogleBooksJson<GoogleBooksVolumeResponse>(`/volumes/${volumeId}`);
+    const raw = await fetchGoogleBooksJson<GoogleBooksVolumeResponse>(`/volumes/${volumeId}`, {}, { country });
     const book = normalizeVolume(raw);
     return enrichCover(book);
   } catch {
@@ -119,12 +126,12 @@ export async function getBookById(volumeId: string): Promise<Book | null> {
   }
 }
 
-export async function getBookByISBN(isbn: string): Promise<Book | null> {
+export async function getBookByISBN(isbn: string, country?: string): Promise<Book | null> {
   try {
     const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
       q: `isbn:${isbn}`,
       maxResults: '1',
-    });
+    }, { country });
     if (!data.items?.length) return null;
     return normalizeVolume(data.items[0]);
   } catch {
@@ -132,7 +139,7 @@ export async function getBookByISBN(isbn: string): Promise<Book | null> {
   }
 }
 
-export async function getNewBooks(maxResults = 12): Promise<Book[]> {
+export async function getNewBooks(maxResults = 12, country?: string): Promise<Book[]> {
   try {
     const currentYear = new Date().getFullYear();
     const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
@@ -141,7 +148,7 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
       maxResults: String(maxResults * 2),
       printType: 'all',
       langRestrict: 'en',
-    });
+    }, { country });
     const books = (data.items ?? []).map(normalizeVolume);
     const currentYearBooks = books.filter((b) => {
       if (!b.publishedDate) return false;
@@ -156,20 +163,20 @@ export async function getNewBooks(maxResults = 12): Promise<Book[]> {
   }
 }
 
-async function getBooksBySubject(subject: string, maxResults: number): Promise<Book[]> {
+async function getBooksBySubject(subject: string, maxResults: number, country?: string): Promise<Book[]> {
   const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
     q: `subject:${subject}`,
     orderBy: 'relevance',
     maxResults: String(maxResults * 2),
     printType: 'books',
     langRestrict: 'en',
-  });
+  }, { country });
   const books = (data.items ?? []).map(normalizeVolume);
   const withCovers = books.filter((b) => b.coverUrl && b.authors.length > 0);
   return (withCovers.length > 0 ? withCovers : books).slice(0, maxResults);
 }
 
-export async function getComingSoonBooks(maxResults = 10): Promise<Book[]> {
+export async function getComingSoonBooks(maxResults = 10, country?: string): Promise<Book[]> {
   try {
     const currentYear = new Date().getFullYear();
     const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>('/volumes', {
@@ -178,7 +185,7 @@ export async function getComingSoonBooks(maxResults = 10): Promise<Book[]> {
       maxResults: String(maxResults * 2),
       printType: 'books',
       langRestrict: 'en',
-    });
+    }, { country });
     const books = (data.items ?? []).map(normalizeVolume);
     const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
     const upcoming = books.filter((b) => {
@@ -194,27 +201,27 @@ export async function getComingSoonBooks(maxResults = 10): Promise<Book[]> {
   }
 }
 
-export async function getThrillerBooks(maxResults = 10): Promise<Book[]> {
+export async function getThrillerBooks(maxResults = 10, country?: string): Promise<Book[]> {
   try {
-    return await getBooksBySubject('thriller', maxResults);
+    return await getBooksBySubject('thriller', maxResults, country);
   } catch (err) {
     console.error('[getThrillerBooks] Google Books API failed:', err);
     return [];
   }
 }
 
-export async function getScienceFictionBooks(maxResults = 10): Promise<Book[]> {
+export async function getScienceFictionBooks(maxResults = 10, country?: string): Promise<Book[]> {
   try {
-    return await getBooksBySubject('science fiction', maxResults);
+    return await getBooksBySubject('science fiction', maxResults, country);
   } catch (err) {
     console.error('[getScienceFictionBooks] Google Books API failed:', err);
     return [];
   }
 }
 
-export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
+export async function getSimilarBooks(volumeId: string, country?: string): Promise<Book[]> {
   try {
-    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>(`/volumes/${volumeId}/associated`);
+    const data = await fetchGoogleBooksJson<GoogleBooksSearchResponse>(`/volumes/${volumeId}/associated`, {}, { country });
     if (data.items?.length) {
       return data.items.map(normalizeVolume);
     }
@@ -223,7 +230,7 @@ export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
   }
 
   try {
-    const book = await getBookById(volumeId);
+    const book = await getBookById(volumeId, country);
     if (!book) return [];
 
     const query = book.categories.length > 0
@@ -232,7 +239,7 @@ export async function getSimilarBooks(volumeId: string): Promise<Book[]> {
         ? `inauthor:${book.authors[0]}`
         : book.title;
 
-    const results = await searchBooks(query, 8);
+    const results = await searchBooks(query, 8, country);
     return results.filter((b) => b.id !== volumeId);
   } catch {
     return [];

@@ -9,8 +9,7 @@ import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
 import { resolveRegionalIsbn } from '@/lib/open-library';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
-import { cookies, headers } from 'next/headers';
-import { REGION_COOKIE_NAME, parseRegionCookie } from '@/lib/region';
+import { detectRegion } from '@/lib/region';
 import type { Region } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
@@ -102,29 +101,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
+  const region: Region = config.features.regionSwitcher ? await detectRegion() : 'US';
+
+  const book = isISBN(id) ? await getBookByISBN(id, region) : await getBookById(id, region);
   if (!book) {
     notFound();
   }
 
-  const similarBooks = await getSimilarBooks(book.id);
+  const similarBooks = await getSimilarBooks(book.id, region);
 
   const coverUrl = book.coverUrl ?? null;
   const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
-  const hdrs = await headers();
-  const cookieStore = await cookies();
 
-  // Region preference: cookie overrides auto-detected country
-  const cookieRegion = config.features.regionSwitcher
-    ? parseRegionCookie(cookieStore.get(REGION_COOKIE_NAME)?.value)
-    : null;
-  const autoCountryCode =
-    (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) ?? 'US';
-  const effectiveCountryCode = cookieRegion ?? autoCountryCode;
-
-  const buyLinks = config.features?.buyLinks ? generateBuyLinks(effectiveCountryCode) : [];
+  const buyLinks = config.features?.buyLinks ? generateBuyLinks(region) : [];
   const originalIsbn = book.isbn13 ?? book.isbn10;
-  const bookshopRegion: Region = effectiveCountryCode.toUpperCase() === 'GB' ? 'GB' : 'US';
+  const bookshopRegion: Region = region;
 
   // Resolve regional ISBN when the feature is enabled
   let bookshopIsbn = originalIsbn;

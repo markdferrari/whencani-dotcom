@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { config } from "@/lib/config";
 import { getNewBooks, getComingSoonBooks } from "@/lib/google-books";
+import { detectRegion } from "@/lib/region";
 import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
 import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const nytEnabled = config.features.nytBestsellers;
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
 
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
@@ -39,8 +41,8 @@ export default async function Home() {
     const results = await Promise.allSettled([
       nytEnabled ? getFictionBestsellers() : Promise.resolve(null),
       nytEnabled ? getNonfictionBestsellers() : Promise.resolve(null),
-      getNewBooks(12),
-      genreCarouselsEnabled ? getComingSoonBooks(10) : Promise.resolve([]),
+      getNewBooks(12, country),
+      genreCarouselsEnabled ? getComingSoonBooks(10, country) : Promise.resolve([]),
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {

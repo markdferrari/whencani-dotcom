@@ -7,6 +7,8 @@ import {
   serializeBookshelf,
 } from '@/lib/bookshelf';
 import { getBookById } from '@/lib/google-books';
+import { detectRegion } from '@/lib/region';
+import { config } from '@/lib/config';
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -35,8 +37,9 @@ function cookieOptions() {
 
 export async function GET(request: Request) {
   const ids = readBookshelfFromRequest(request);
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
 
-  const results = await Promise.allSettled(ids.map((id) => getBookById(id)));
+  const results = await Promise.allSettled(ids.map((id) => getBookById(id, country)));
   const books = results
     .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getBookById>>> => r.status === 'fulfilled')
     .map((r) => r.value)
