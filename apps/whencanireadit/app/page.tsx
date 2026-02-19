@@ -3,8 +3,8 @@ import { config } from "@/lib/config";
 import { getNewBooks as getNewBooksGoogle, getComingSoonBooks as getComingSoonBooksGoogle } from "@/lib/google-books";
 import { getNewBooks as getNewBooksOL, getComingSoonBooks as getComingSoonBooksOL } from "@/lib/open-library";
 import { detectRegion } from "@/lib/region";
-import { getFictionBestsellers, getNonfictionBestsellers } from "@/lib/nyt-books";
-import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
+import { getFictionBestsellers, getNonfictionBestsellers, getYoungAdultBestsellers, getAdviceBestsellers, getGraphicBooksBestsellers } from "@/lib/nyt-books";
+import { BooksCarousel, NYTCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
@@ -20,6 +20,9 @@ interface CarouselCacheEntry {
   expires: number;
   fictionList: NYTBestsellerList | null;
   nonfictionList: NYTBestsellerList | null;
+  yaList: NYTBestsellerList | null;
+  adviceList: NYTBestsellerList | null;
+  graphicList: NYTBestsellerList | null;
   newBooks: Book[];
   comingSoonBooks: Book[];
 }
@@ -52,6 +55,9 @@ async function fetchCarouselData(country: string | undefined): Promise<CarouselC
 
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
+  let yaList: NYTBestsellerList | null = null;
+  let adviceList: NYTBestsellerList | null = null;
+  let graphicList: NYTBestsellerList | null = null;
   let newBooks: Book[] = [];
   let comingSoonBooks: Book[] = [];
 
@@ -61,6 +67,9 @@ async function fetchCarouselData(country: string | undefined): Promise<CarouselC
       nytEnabled ? getNonfictionBestsellers() : Promise.resolve(null),
       getNewBooks(12, country),
       genreCarouselsEnabled ? getComingSoonBooks(12, country) : Promise.resolve([]),
+      nytEnabled ? getYoungAdultBestsellers() : Promise.resolve(null),
+      nytEnabled ? getAdviceBestsellers() : Promise.resolve(null),
+      nytEnabled ? getGraphicBooksBestsellers() : Promise.resolve(null),
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {
@@ -77,12 +86,21 @@ async function fetchCarouselData(country: string | undefined): Promise<CarouselC
     if (results[3].status === "fulfilled") {
       comingSoonBooks = results[3].value;
     }
+    if (results[4].status === "fulfilled" && results[4].value) {
+      yaList = results[4].value;
+    }
+    if (results[5].status === "fulfilled" && results[5].value) {
+      adviceList = results[5].value;
+    }
+    if (results[6].status === "fulfilled" && results[6].value) {
+      graphicList = results[6].value;
+    }
   } catch (err) {
     console.error("[Home] Unexpected error fetching homepage data:", err);
   }
 
   const jitter = Math.floor(Math.random() * CAROUSEL_CACHE_JITTER);
-  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, newBooks, comingSoonBooks };
+  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks };
 }
 
 async function getCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
@@ -98,7 +116,7 @@ async function getCarouselData(country: string | undefined): Promise<CarouselCac
 
 export default async function Home() {
   const country = config.features.regionSwitcher ? await detectRegion() : undefined;
-  const { fictionList, nonfictionList, newBooks, comingSoonBooks } = await getCarouselData(country);
+  const { fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks } = await getCarouselData(country);
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   return (
@@ -130,6 +148,18 @@ export default async function Home() {
           <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
             <BooksCarousel label="Coming Soon" books={comingSoonBooks} />
           </div>
+        )}
+
+        {yaList && yaList.books.length > 0 && (
+          <NYTCarousel list={yaList} />
+        )}
+
+        {adviceList && adviceList.books.length > 0 && (
+          <NYTCarousel list={adviceList} />
+        )}
+
+        {graphicList && graphicList.books.length > 0 && (
+          <NYTCarousel list={graphicList} />
         )}
       </main>
     </div>

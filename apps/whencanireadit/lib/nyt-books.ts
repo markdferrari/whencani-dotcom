@@ -6,7 +6,10 @@ type BestsellerListName =
   | 'combined-print-and-e-book-nonfiction'
   | 'hardcover-fiction'
   | 'hardcover-nonfiction'
-  | 'paperback-nonfiction';
+  | 'paperback-nonfiction'
+  | 'young-adult-hardcover'
+  | 'advice-how-to-and-miscellaneous'
+  | 'graphic-books-and-manga';
 
 function normalizeNYTBook(raw: NYTListResponse['results']['books'][number]): NYTBook {
   return {
@@ -56,4 +59,16 @@ export async function getFictionBestsellers(): Promise<NYTBestsellerList> {
 
 export async function getNonfictionBestsellers(): Promise<NYTBestsellerList> {
   return getBestsellerList('combined-print-and-e-book-nonfiction');
+}
+
+export async function getYoungAdultBestsellers(): Promise<NYTBestsellerList> {
+  return getBestsellerList('young-adult-hardcover');
+}
+
+export async function getAdviceBestsellers(): Promise<NYTBestsellerList> {
+  return getBestsellerList('advice-how-to-and-miscellaneous');
+}
+
+export async function getGraphicBooksBestsellers(): Promise<NYTBestsellerList> {
+  return getBestsellerList('graphic-books-and-manga');
 }
