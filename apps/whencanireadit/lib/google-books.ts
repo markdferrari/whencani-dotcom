@@ -121,7 +121,8 @@ export async function getBookById(volumeId: string, country?: string): Promise<B
     const raw = await fetchGoogleBooksJson<GoogleBooksVolumeResponse>(`/volumes/${volumeId}`, {}, { country });
     const book = normalizeVolume(raw);
     return enrichCover(book);
-  } catch {
+  } catch (err) {
+    console.error(`[getBookById] Failed for volume "${volumeId}" (country=${country ?? 'none'}):`, err);
     return null;
   }
 }
@@ -132,9 +133,13 @@ export async function getBookByISBN(isbn: string, country?: string): Promise<Boo
       q: `isbn:${isbn}`,
       maxResults: '1',
     }, { country });
-    if (!data.items?.length) return null;
+    if (!data.items?.length) {
+      console.warn(`[getBookByISBN] No results for ISBN "${isbn}" (country=${country ?? 'none'})`);
+      return null;
+    }
     return normalizeVolume(data.items[0]);
-  } catch {
+  } catch (err) {
+    console.error(`[getBookByISBN] Failed for ISBN "${isbn}" (country=${country ?? 'none'}):`, err);
     return null;
   }
 }
