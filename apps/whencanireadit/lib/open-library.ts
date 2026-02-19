@@ -69,7 +69,13 @@ export async function resolveRegionalIsbn(
 ): Promise<RegionalIsbnResult> {
   const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
 
-  // Step 1: Try Open Library
+  // Google Books data is US-centric — the ISBN we already have is almost
+  // certainly the US edition. Only attempt resolution when the user's region
+  // is different from the default (US). For US users the original ISBN is
+  // already correct; swapping it would be wrong.
+  if (region === 'US') return fallback;
+
+  // Step 1: Try Open Library (has explicit publish_country metadata)
   const olResult = await resolveViaOpenLibrary(isbn, region);
   if (olResult.isbn13 || olResult.isbn10) return olResult;
 
