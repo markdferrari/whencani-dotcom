@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { config } from "@/lib/config";
-import { getNewBooks } from "@/lib/google-books";
+import { getNewBooks, getComingSoonBooks } from "@/lib/google-books";
+import { detectRegion } from "@/lib/region";
 import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
 import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
@@ -9,6 +10,20 @@ import type { NYTBestsellerList, Book } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 const SITE_URL = "https://whencanireadit.com";
+
+// Cache homepage carousel data for 24h + up to 1h jitter
+const CAROUSEL_CACHE_TTL = 24 * 60 * 60 * 1000;
+const CAROUSEL_CACHE_JITTER = 60 * 60 * 1000;
+
+interface CarouselCacheEntry {
+  expires: number;
+  fictionList: NYTBestsellerList | null;
+  nonfictionList: NYTBestsellerList | null;
+  newBooks: Book[];
+  comingSoonBooks: Book[];
+}
+
+const carouselCache = new Map<string, CarouselCacheEntry>();
 
 export const metadata: Metadata = {
   title: "Upcoming Book Releases & Bestsellers | WhenCanIReadIt.com",
@@ -26,18 +41,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
+async function fetchCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
   const nytEnabled = config.features.nytBestsellers;
+  const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
   let newBooks: Book[] = [];
+  let comingSoonBooks: Book[] = [];
 
   try {
     const results = await Promise.allSettled([
       nytEnabled ? getFictionBestsellers() : Promise.resolve(null),
       nytEnabled ? getNonfictionBestsellers() : Promise.resolve(null),
-      getNewBooks(12),
+      getNewBooks(12, country),
+      genreCarouselsEnabled ? getComingSoonBooks(12, country) : Promise.resolve([]),
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {
@@ -51,9 +69,32 @@ export default async function Home() {
     } else {
       console.error("[Home] getNewBooks failed:", results[2].reason);
     }
+    if (results[3].status === "fulfilled") {
+      comingSoonBooks = results[3].value;
+    }
   } catch (err) {
     console.error("[Home] Unexpected error fetching homepage data:", err);
   }
+
+  const jitter = Math.floor(Math.random() * CAROUSEL_CACHE_JITTER);
+  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, newBooks, comingSoonBooks };
+}
+
+async function getCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
+  const cacheKey = country ?? "__default__";
+  const cached = carouselCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) {
+    return cached;
+  }
+  const fresh = await fetchCarouselData(country);
+  carouselCache.set(cacheKey, fresh);
+  return fresh;
+}
+
+export default async function Home() {
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+  const { fictionList, nonfictionList, newBooks, comingSoonBooks } = await getCarouselData(country);
+  const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   return (
     <div className="min-h-screen">
@@ -79,6 +120,26 @@ export default async function Home() {
         <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
           <BooksCarousel label="New This Month" books={newBooks} />
         </div>
+
+        {genreCarouselsEnabled && comingSoonBooks.length > 0 && (
+          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+            <BooksCarousel label="Coming Soon" books={comingSoonBooks} />
+          </div>
+        )}
+
+        {/* TODO: Add thriller and sci-fi carousels once rate limit budget allows
+        {genreCarouselsEnabled && thrillerBooks.length > 0 && (
+          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+            <BooksCarousel label="Thrillers" books={thrillerBooks} />
+          </div>
+        )}
+
+        {genreCarouselsEnabled && sciFiBooks.length > 0 && (
+          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+            <BooksCarousel label="Science Fiction" books={sciFiBooks} />
+          </div>
+        )}
+        */}
       </main>
     </div>
   );

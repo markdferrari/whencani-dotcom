@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { MediaCard, MediaCarousel, ReleaseBadge, isReleasedRecently } from "@whencani/ui";
 import { config } from "@/lib/config";
 import { useBookshelfIds } from "@/hooks/use-bookshelf";
+import { BookshelfToggle } from "@/components/BookshelfToggle";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 const ACCENT = {
@@ -20,7 +21,7 @@ interface NYTCarouselProps {
 }
 
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
-  const href = book.isbn13 ?? book.isbn10 ?? book.googleBooksId ?? null;
+  const href = book.googleBooksId ?? book.isbn13 ?? book.isbn10 ?? null;
 
   const card = (
     <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -177,18 +178,16 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
   );
 }
 
-function GoogleBookCard({ book }: { book: Book }) {
+export function GoogleBookCard({ book, showBookshelfToggle }: { book: Book; showBookshelfToggle?: boolean }) {
   const bookshelfIds = useBookshelfIds();
   const isInBookshelf = bookshelfIds.includes(book.id);
   const isReleased = isReleasedRecently(book.publishedDate, 0);
   const featureEnabled = config.features.bookshelfImprovements;
   const showBadge = featureEnabled && isInBookshelf && isReleased;
-  const preferredId = book.isbn13 ?? book.isbn10 ?? book.id;
-
   return (
     <MediaCard
       id={book.id}
-      href={`/book/${preferredId}`}
+      href={`/book/${book.id}`}
       title={book.title}
       imageUrl={book.coverUrl || undefined}
       imageAlt={`${book.title} book cover`}
@@ -197,6 +196,7 @@ function GoogleBookCard({ book }: { book: Book }) {
       authors={book.authors}
       genres={book.categories}
       badge={showBadge ? <ReleaseBadge /> : undefined}
+      watchlistToggle={showBookshelfToggle ? <BookshelfToggle bookId={book.id} /> : undefined}
     />
   );
 }
@@ -272,7 +272,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
   );
 }
 
-export function BooksCarousel({ label, books }: { label: string; books: Book[] }) {
+export function BooksCarousel({ label, books, showBookshelfToggle }: { label: string; books: Book[]; showBookshelfToggle?: boolean }) {
   if (books.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 p-8 text-center text-sm text-zinc-600 dark:border-zinc-800/70 dark:bg-zinc-900/60 dark:text-zinc-300">
@@ -290,7 +290,7 @@ export function BooksCarousel({ label, books }: { label: string; books: Book[] }
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {books.map((book) => (
-          <GoogleBookCard key={book.id} book={book} />
+          <GoogleBookCard key={book.id} book={book} showBookshelfToggle={showBookshelfToggle} />
         ))}
       </div>
     </div>

@@ -5,11 +5,12 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books';
-import { generateBuyLinks } from '@/lib/buy-links';
+import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
+import { resolveRegionalIsbn } from '@/lib/open-library';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
-import { cookies, headers } from 'next/headers';
-import { REGION_COOKIE_NAME, parseRegionCookie } from '@/lib/region';
+import { detectRegion } from '@/lib/region';
+import type { Region } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BuyLinks } from '@/components/BuyLinks';
@@ -70,7 +71,8 @@ function InfoCard({ label, value }: { label: string; value: string | ReactNode }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+  const book = isISBN(id) ? await getBookByISBN(id, country) : await getBookById(id, country);
   if (!book) return {};
 
   const coverImage = book.coverUrlLarge ?? book.coverUrl ?? undefined;
@@ -100,27 +102,33 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
+  const region: Region = config.features.regionSwitcher ? await detectRegion() : 'US';
+
+  const book = isISBN(id) ? await getBookByISBN(id, region) : await getBookById(id, region);
   if (!book) {
     notFound();
   }
 
-  const similarBooks = await getSimilarBooks(book.id);
+  const similarBooks = await getSimilarBooks(book.id, region);
 
   const coverUrl = book.coverUrl ?? null;
   const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
-  const hdrs = await headers();
-  const cookieStore = await cookies();
 
-  // Region preference: cookie overrides auto-detected country
-  const cookieRegion = config.features.regionSwitcher
-    ? parseRegionCookie(cookieStore.get(REGION_COOKIE_NAME)?.value)
-    : null;
-  const autoCountryCode =
-    (hdrs.get('cf-ipcountry') ?? hdrs.get('x-vercel-ip-country')) ?? 'US';
-  const effectiveCountryCode = cookieRegion ?? autoCountryCode;
+  const buyLinks = config.features?.buyLinks ? generateBuyLinks(region) : [];
+  const originalIsbn = book.isbn13 ?? book.isbn10;
+  const bookshopRegion: Region = region;
 
-  const buyLinks = config.features?.buyLinks ? await generateBuyLinks(book, effectiveCountryCode) : [];
+  // Resolve regional ISBN when the feature is enabled
+  let bookshopIsbn = originalIsbn;
+  if (originalIsbn && config.features.regionalIsbn) {
+    const resolved = await resolveRegionalIsbn(originalIsbn, bookshopRegion, {
+      title: book.title,
+      authors: book.authors,
+    });
+    bookshopIsbn = resolved.isbn13 ?? resolved.isbn10 ?? originalIsbn;
+  }
+
+  const bookshopLink = bookshopIsbn ? getBookshopLink(bookshopIsbn, bookshopRegion) : null;
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 
@@ -211,7 +219,19 @@ export default async function BookDetailPage({ params }: PageProps) {
             {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
+          <div className="flex flex-wrap gap-2">
+            {bookshopLink && (
+              <a
+                href={bookshopLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
+              >
+                {bookshopLink.label}
+              </a>
+            )}
+            {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
+          </div>
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>
@@ -219,7 +239,7 @@ export default async function BookDetailPage({ params }: PageProps) {
         {similarBooks.length > 0 && (
           <MediaCarousel label="You might also like" slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]" className="mt-8">
             {similarBooks.slice(0, 6).map((similar) => (
-              <Link key={similar.id} href={`/book/${similar.isbn13 ?? similar.isbn10 ?? similar.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
+              <Link key={similar.id} href={`/book/${similar.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
                 <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
                   {similar.coverUrl ? (
                     <Image src={similar.coverUrl} alt={`${similar.title} cover`} fill className="object-cover" sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px" />
