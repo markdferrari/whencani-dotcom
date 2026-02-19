@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BOOKSHELF_COOKIE_NAME, parseBookshelfCookie } from '@/lib/bookshelf';
 import { useToast } from '@whencani/ui';
+import type { Book } from '@/lib/types';
 
 const BOOKSHELF_EVENT_NAME = 'bookshelf:update';
 
@@ -85,4 +86,41 @@ export function useBookshelfActions() {
 
     return payload.ids;
   }, [toast]);
+}
+
+export function useBookshelfBooks() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchBooks = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/bookshelf', { cache: 'no-store' });
+      if (!response.ok) {
+        setBooks([]);
+        return;
+      }
+
+      const data = (await response.json()) as { books?: Book[] };
+      setBooks(data.books ?? []);
+    } catch (error) {
+      console.error('Failed to load bookshelf books', error);
+      setBooks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
+
+  useEffect(() => {
+    const handler = () => fetchBooks();
+    window.addEventListener(BOOKSHELF_EVENT_NAME, handler);
+    return () => window.removeEventListener(BOOKSHELF_EVENT_NAME, handler);
+  }, [fetchBooks]);
+
+  return { books, isLoading, refresh: fetchBooks };
 }

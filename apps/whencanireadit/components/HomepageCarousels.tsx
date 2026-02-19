@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { MediaCard, MediaCarousel, ReleaseBadge, isReleasedRecently } from "@whencani/ui";
 import { config } from "@/lib/config";
 import { useBookshelfIds } from "@/hooks/use-bookshelf";
+import { BookshelfToggle } from "@/components/BookshelfToggle";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
 const ACCENT = {
@@ -177,7 +178,7 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
   );
 }
 
-function GoogleBookCard({ book }: { book: Book }) {
+export function GoogleBookCard({ book, showBookshelfToggle }: { book: Book; showBookshelfToggle?: boolean }) {
   const bookshelfIds = useBookshelfIds();
   const isInBookshelf = bookshelfIds.includes(book.id);
   const isReleased = isReleasedRecently(book.publishedDate, 0);
@@ -197,6 +198,7 @@ function GoogleBookCard({ book }: { book: Book }) {
       authors={book.authors}
       genres={book.categories}
       badge={showBadge ? <ReleaseBadge /> : undefined}
+      watchlistToggle={showBookshelfToggle ? <BookshelfToggle bookId={book.id} /> : undefined}
     />
   );
 }
@@ -272,7 +274,7 @@ export function NYTSidebar({ fictionList, nonfictionList }: { fictionList: NYTBe
   );
 }
 
-export function BooksCarousel({ label, books }: { label: string; books: Book[] }) {
+export function BooksCarousel({ label, books, showBookshelfToggle }: { label: string; books: Book[]; showBookshelfToggle?: boolean }) {
   if (books.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-200/70 bg-zinc-50/70 p-8 text-center text-sm text-zinc-600 dark:border-zinc-800/70 dark:bg-zinc-900/60 dark:text-zinc-300">
@@ -290,7 +292,7 @@ export function BooksCarousel({ label, books }: { label: string; books: Book[] }
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {books.map((book) => (
-          <GoogleBookCard key={book.id} book={book} />
+          <GoogleBookCard key={book.id} book={book} showBookshelfToggle={showBookshelfToggle} />
         ))}
       </div>
     </div>
