@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { config } from "@/lib/config";
-import { getNewBooks, getComingSoonBooks } from "@/lib/google-books";
+import { getNewBooks as getNewBooksGoogle, getComingSoonBooks as getComingSoonBooksGoogle } from "@/lib/google-books";
+import { getNewBooks as getNewBooksOL, getComingSoonBooks as getComingSoonBooksOL } from "@/lib/open-library";
 import { detectRegion } from "@/lib/region";
-import { getFictionBestsellers, getNonfictionBestsellers, enrichWithGoogleIds } from "@/lib/nyt-books";
+import { getFictionBestsellers, getNonfictionBestsellers } from "@/lib/nyt-books";
 import { BooksCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import type { NYTBestsellerList, Book } from "@/lib/types";
@@ -44,6 +45,10 @@ export const metadata: Metadata = {
 async function fetchCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
   const nytEnabled = config.features.nytBestsellers;
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
+  const useOL = config.features.openLibraryPrimary;
+
+  const getNewBooks = useOL ? getNewBooksOL : getNewBooksGoogle;
+  const getComingSoonBooks = useOL ? getComingSoonBooksOL : getComingSoonBooksGoogle;
 
   let fictionList: NYTBestsellerList | null = null;
   let nonfictionList: NYTBestsellerList | null = null;
@@ -59,10 +64,10 @@ async function fetchCarouselData(country: string | undefined): Promise<CarouselC
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {
-      fictionList = await enrichWithGoogleIds(results[0].value);
+      fictionList = results[0].value;
     }
     if (results[1].status === "fulfilled" && results[1].value) {
-      nonfictionList = await enrichWithGoogleIds(results[1].value);
+      nonfictionList = results[1].value;
     }
     if (results[2].status === "fulfilled") {
       newBooks = results[2].value;
@@ -126,20 +131,6 @@ export default async function Home() {
             <BooksCarousel label="Coming Soon" books={comingSoonBooks} />
           </div>
         )}
-
-        {/* TODO: Add thriller and sci-fi carousels once rate limit budget allows
-        {genreCarouselsEnabled && thrillerBooks.length > 0 && (
-          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-            <BooksCarousel label="Thrillers" books={thrillerBooks} />
-          </div>
-        )}
-
-        {genreCarouselsEnabled && sciFiBooks.length > 0 && (
-          <div className="rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
-            <BooksCarousel label="Science Fiction" books={sciFiBooks} />
-          </div>
-        )}
-        */}
       </main>
     </div>
   );

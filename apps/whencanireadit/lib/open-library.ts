@@ -1,23 +1,150 @@
 import { config } from './config';
-import type { GoogleBooksSearchResponse } from './types';
+import type {
+  Book,
+  GoogleBooksSearchResponse,
+  OLSearchResponse,
+  OLEditionDetail,
+  OLWorkDetail,
+  OLRatingsResponse,
+  OLTrendingResponse,
+  OLSubjectResponse,
+  OLAuthorResponse,
+} from './types';
 import type { Region } from './region';
+
+// --- Shared infrastructure ---
+
+const OL_BASE = 'https://openlibrary.org';
+const OL_COVERS_BASE = 'https://covers.openlibrary.org';
+const USER_AGENT = 'WhenCanIReadIt/1.0 (hello@whencanireadit.com)';
+
+// In-memory cache for OL responses (24h + jitter)
+const OL_CACHE_TTL = 24 * 60 * 60 * 1000;
+const OL_CACHE_JITTER = 60 * 60 * 1000;
+const olJsonCache = new Map<string, { expires: number; data: unknown }>();
+
+// Author name cache (24h TTL)
+const authorCache = new Map<string, { expires: number; name: string }>();
+
+// Concurrency limiter (shared with all OL requests)
+const OL_MAX_CONCURRENT = 5;
+const OL_STAGGER_MS = 100;
+let olActiveRequests = 0;
+const olRequestQueue: Array<() => void> = [];
+
+function olAcquireSlot(): Promise<void> {
+  if (olActiveRequests < OL_MAX_CONCURRENT) {
+    olActiveRequests++;
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    olRequestQueue.push(resolve);
+  });
+}
+
+function olReleaseSlot(): void {
+  if (olRequestQueue.length > 0) {
+    const next = olRequestQueue.shift()!;
+    setTimeout(next, OL_STAGGER_MS);
+  } else {
+    olActiveRequests--;
+  }
+}
+
+async function fetchOL<T = unknown>(url: string): Promise<T> {
+  const cached = olJsonCache.get(url);
+  if (cached && cached.expires > Date.now()) {
+    return cached.data as T;
+  }
+
+  await olAcquireSlot();
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': USER_AGENT },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) {
+      throw new Error(`Open Library API error: ${res.status} ${res.statusText} for ${url}`);
+    }
+    const json = (await res.json()) as T;
+    const jitter = Math.floor(Math.random() * OL_CACHE_JITTER);
+    olJsonCache.set(url, { expires: Date.now() + OL_CACHE_TTL + jitter, data: json as unknown });
+    return json;
+  } finally {
+    olReleaseSlot();
+  }
+}
+
+// --- Helper utilities ---
+
+function extractDescription(desc: string | { type: string; value: string } | undefined): string | null {
+  if (!desc) return null;
+  if (typeof desc === 'string') return desc;
+  return desc.value ?? null;
+}
+
+function olCoverUrl(coverId: number | undefined, isbn: string | null, size: 'S' | 'M' | 'L'): string | null {
+  if (coverId) return `${OL_COVERS_BASE}/b/id/${coverId}-${size}.jpg`;
+  if (isbn) return `${OL_COVERS_BASE}/b/isbn/${isbn}-${size}.jpg`;
+  return null;
+}
+
+function extractLanguageCode(languages: Array<{ key: string }> | undefined): string | null {
+  if (!languages?.length) return null;
+  // Key is like "/languages/eng" — extract the code
+  const code = languages[0].key.replace('/languages/', '');
+  // Map common OL codes to ISO 639-1
+  const map: Record<string, string> = { eng: 'en', fre: 'fr', ger: 'de', spa: 'es', ita: 'it', por: 'pt', jpn: 'ja', chi: 'zh' };
+  return map[code] ?? code;
+}
+
+function pickIsbn13(isbns: string[] | undefined): string | null {
+  if (!isbns?.length) return null;
+  return isbns.find((i) => i.length === 13) ?? isbns[0] ?? null;
+}
+
+function pickIsbn10(isbns: string[] | undefined): string | null {
+  if (!isbns?.length) return null;
+  return isbns.find((i) => i.length === 10) ?? null;
+}
+
+async function resolveAuthorName(authorKey: string): Promise<string> {
+  const cached = authorCache.get(authorKey);
+  if (cached && cached.expires > Date.now()) return cached.name;
+
+  try {
+    const data = await fetchOL<OLAuthorResponse>(`${OL_BASE}${authorKey}.json`);
+    const jitter = Math.floor(Math.random() * OL_CACHE_JITTER);
+    authorCache.set(authorKey, { name: data.name, expires: Date.now() + OL_CACHE_TTL + jitter });
+    return data.name;
+  } catch {
+    // Return key as fallback
+    return authorKey.replace('/authors/', '');
+  }
+}
+
+async function resolveAuthorNames(authorKeys: Array<{ key: string }> | undefined): Promise<string[]> {
+  if (!authorKeys?.length) return [];
+  const names = await Promise.all(authorKeys.map((a) => resolveAuthorName(a.key)));
+  return names;
+}
+
+// --- Cover image utilities (kept from original) ---
 
 type CoverSize = 'S' | 'M' | 'L';
 
 export function getOpenLibraryCoverUrl(isbn: string, size: CoverSize = 'L'): string {
-  return `https://covers.openlibrary.org/b/isbn/${isbn}-${size}.jpg`;
+  return `${OL_COVERS_BASE}/b/isbn/${isbn}-${size}.jpg`;
 }
 
 export async function getOpenLibraryCover(isbn: string): Promise<string | null> {
   const url = getOpenLibraryCoverUrl(isbn, 'L');
 
   try {
-    // Check if cover exists (Open Library returns a 1x1 pixel for missing covers)
     const res = await fetch(url, { method: 'HEAD', next: { revalidate: 86400 } });
     if (!res.ok) return null;
 
     const contentLength = res.headers.get('content-length');
-    // A 1x1 placeholder is typically under 1KB
     if (contentLength && parseInt(contentLength, 10) < 1000) return null;
 
     return url;
@@ -26,20 +153,355 @@ export async function getOpenLibraryCover(isbn: string): Promise<string | null> 
   }
 }
 
-// --- Regional ISBN resolution via Open Library Works + Editions API ---
+// --- Book provider functions ---
 
-interface OLEditionResponse {
-  works?: Array<{ key: string }>;
+export async function searchBooks(query: string, maxResults = 10, _country?: string): Promise<Book[]> {
+  const url = `${OL_BASE}/search.json?q=${encodeURIComponent(query)}&limit=${maxResults}&fields=key,title,subtitle,author_name,author_key,first_publish_year,isbn,cover_i,subject,publisher,number_of_pages_median,language&language=eng`;
+
+  try {
+    const data = await fetchOL<OLSearchResponse>(url);
+    return (data.docs ?? []).map((doc): Book => {
+      const isbn13 = doc.isbn?.find((i) => i.length === 13) ?? null;
+      const isbn10 = doc.isbn?.find((i) => i.length === 10) ?? null;
+      const coverId = doc.cover_i;
+
+      return {
+        id: isbn13 ?? isbn10 ?? doc.key.replace('/works/', ''),
+        title: doc.title,
+        subtitle: doc.subtitle ?? null,
+        authors: doc.author_name ?? [],
+        publisher: doc.publisher?.[0] ?? null,
+        publishedDate: doc.first_publish_year ? String(doc.first_publish_year) : null,
+        description: null, // Search doesn't return descriptions
+        pageCount: doc.number_of_pages_median ?? null,
+        categories: (doc.subject ?? []).slice(0, 4),
+        isbn10,
+        isbn13,
+        coverUrl: olCoverUrl(coverId, isbn13 ?? isbn10, 'M'),
+        coverUrlLarge: olCoverUrl(coverId, isbn13 ?? isbn10, 'L'),
+        language: doc.language?.[0] ?? null,
+        previewLink: `${OL_BASE}${doc.key}`,
+        infoLink: `${OL_BASE}${doc.key}`,
+        averageRating: null,
+        ratingsCount: null,
+        maturityRating: null,
+        saleInfo: null,
+        source: 'openlibrary',
+      };
+    });
+  } catch (err) {
+    console.error('[OL searchBooks] Failed:', err);
+    return [];
+  }
 }
 
-interface OLEdition {
+export async function getBookByISBN(isbn: string, _country?: string): Promise<Book | null> {
+  try {
+    // Step 1: Fetch edition data by ISBN
+    const edition = await fetchOL<OLEditionDetail>(`${OL_BASE}/isbn/${isbn}.json`);
+
+    const workKey = edition.works?.[0]?.key;
+    let workData: OLWorkDetail | null = null;
+    let ratings: OLRatingsResponse | null = null;
+
+    if (workKey) {
+      // Step 2: Fetch work data (description, subjects) and ratings in parallel
+      const [work, rate] = await Promise.allSettled([
+        fetchOL<OLWorkDetail>(`${OL_BASE}${workKey}.json`),
+        fetchOL<OLRatingsResponse>(`${OL_BASE}${workKey}/ratings.json`),
+      ]);
+      workData = work.status === 'fulfilled' ? work.value : null;
+      ratings = rate.status === 'fulfilled' ? rate.value : null;
+    }
+
+    // Step 3: Resolve author names
+    const authors = await resolveAuthorNames(edition.authors);
+
+    const isbn13 = pickIsbn13(edition.isbn_13);
+    const isbn10 = pickIsbn10(edition.isbn_10);
+    const coverId = edition.covers?.[0];
+    const description = extractDescription(edition.description) ?? extractDescription(workData?.description);
+    const subjects = workData?.subjects ?? edition.subjects ?? [];
+
+    return {
+      id: isbn13 ?? isbn10 ?? isbn,
+      title: edition.title,
+      subtitle: edition.subtitle ?? null,
+      authors,
+      publisher: edition.publishers?.[0] ?? null,
+      publishedDate: edition.publish_date ?? null,
+      description,
+      pageCount: edition.number_of_pages ?? null,
+      categories: subjects.slice(0, 4),
+      isbn10,
+      isbn13,
+      coverUrl: olCoverUrl(coverId, isbn13 ?? isbn10, 'M'),
+      coverUrlLarge: olCoverUrl(coverId, isbn13 ?? isbn10, 'L'),
+      language: extractLanguageCode(edition.languages),
+      previewLink: workKey ? `${OL_BASE}${workKey}` : null,
+      infoLink: workKey ? `${OL_BASE}${workKey}` : null,
+      averageRating: ratings?.summary?.average ?? null,
+      ratingsCount: ratings?.summary?.count ?? null,
+      maturityRating: null,
+      saleInfo: null,
+      source: 'openlibrary',
+    };
+  } catch (err) {
+    console.error(`[OL getBookByISBN] Failed for ISBN "${isbn}":`, err);
+    return null;
+  }
+}
+
+export async function getBookByOLKey(key: string, _country?: string): Promise<Book | null> {
+  try {
+    // Normalize key — could be "OL12345W" or "/works/OL12345W"
+    const workPath = key.startsWith('/works/') ? key : `/works/${key}`;
+
+    const [workData, ratings] = await Promise.allSettled([
+      fetchOL<OLWorkDetail>(`${OL_BASE}${workPath}.json`),
+      fetchOL<OLRatingsResponse>(`${OL_BASE}${workPath}/ratings.json`),
+    ]);
+
+    const work = workData.status === 'fulfilled' ? workData.value : null;
+    if (!work) return null;
+
+    const rate = ratings.status === 'fulfilled' ? ratings.value : null;
+
+    // Resolve authors from work
+    const authorKeys = work.authors?.map((a) => ({ key: a.author.key }));
+    const authors = await resolveAuthorNames(authorKeys);
+
+    const coverId = work.covers?.[0];
+    const description = extractDescription(work.description);
+    const olKey = work.key?.replace('/works/', '') ?? key;
+
+    return {
+      id: olKey,
+      title: work.title,
+      subtitle: null,
+      authors,
+      publisher: null,
+      publishedDate: null,
+      description,
+      pageCount: null,
+      categories: (work.subjects ?? []).slice(0, 4),
+      isbn10: null,
+      isbn13: null,
+      coverUrl: olCoverUrl(coverId, null, 'M'),
+      coverUrlLarge: olCoverUrl(coverId, null, 'L'),
+      language: null,
+      previewLink: `${OL_BASE}${workPath}`,
+      infoLink: `${OL_BASE}${workPath}`,
+      averageRating: rate?.summary?.average ?? null,
+      ratingsCount: rate?.summary?.count ?? null,
+      maturityRating: null,
+      saleInfo: null,
+      source: 'openlibrary',
+    };
+  } catch (err) {
+    console.error(`[OL getBookByOLKey] Failed for key "${key}":`, err);
+    return null;
+  }
+}
+
+export async function getNewBooks(maxResults = 12, _country?: string): Promise<Book[]> {
+  try {
+    const data = await fetchOL<OLTrendingResponse>(`${OL_BASE}/trending/weekly.json?limit=${maxResults * 2}`);
+    const currentYear = new Date().getFullYear();
+
+    const books = (data.works ?? [])
+      .filter((w) => w.cover_i || w.cover_edition_key) // Only books with covers
+      .map((w): Book => {
+        const isbn = w.availability?.isbn ?? null;
+        return {
+          id: isbn ?? w.key.replace('/works/', ''),
+          title: w.title,
+          subtitle: null,
+          authors: w.author_name ?? [],
+          publisher: null,
+          publishedDate: w.first_publish_year ? String(w.first_publish_year) : null,
+          description: null,
+          pageCount: null,
+          categories: (w.subject ?? []).slice(0, 4),
+          isbn10: null,
+          isbn13: isbn,
+          coverUrl: olCoverUrl(w.cover_i, isbn, 'M'),
+          coverUrlLarge: olCoverUrl(w.cover_i, isbn, 'L'),
+          language: null,
+          previewLink: `${OL_BASE}${w.key}`,
+          infoLink: `${OL_BASE}${w.key}`,
+          averageRating: null,
+          ratingsCount: null,
+          maturityRating: null,
+          saleInfo: null,
+          source: 'openlibrary',
+        };
+      });
+
+    // Prefer books from the current year, but fall back to all trending if none match
+    const currentYearBooks = books.filter((b) => {
+      if (!b.publishedDate) return false;
+      return parseInt(b.publishedDate, 10) >= currentYear - 1;
+    });
+
+    return (currentYearBooks.length > 0 ? currentYearBooks : books).slice(0, maxResults);
+  } catch (err) {
+    console.error('[OL getNewBooks] Failed:', err);
+    return [];
+  }
+}
+
+export async function getComingSoonBooks(maxResults = 10, _country?: string): Promise<Book[]> {
+  try {
+    const currentYear = new Date().getFullYear();
+    const url = `${OL_BASE}/search.json?q=first_publish_year:${currentYear}&sort=new&limit=${maxResults * 2}&fields=key,title,subtitle,author_name,isbn,cover_i,subject,first_publish_year,language`;
+
+    const data = await fetchOL<OLSearchResponse>(url);
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    const books = (data.docs ?? [])
+      .filter((doc) => doc.cover_i && doc.author_name?.length)
+      .map((doc): Book => {
+        const isbn13 = doc.isbn?.find((i) => i.length === 13) ?? null;
+        const isbn10 = doc.isbn?.find((i) => i.length === 10) ?? null;
+        return {
+          id: isbn13 ?? isbn10 ?? doc.key.replace('/works/', ''),
+          title: doc.title,
+          subtitle: doc.subtitle ?? null,
+          authors: doc.author_name ?? [],
+          publisher: doc.publisher?.[0] ?? null,
+          publishedDate: doc.first_publish_year ? String(doc.first_publish_year) : null,
+          description: null,
+          pageCount: doc.number_of_pages_median ?? null,
+          categories: (doc.subject ?? []).slice(0, 4),
+          isbn10,
+          isbn13,
+          coverUrl: olCoverUrl(doc.cover_i, isbn13 ?? isbn10, 'M'),
+          coverUrlLarge: olCoverUrl(doc.cover_i, isbn13 ?? isbn10, 'L'),
+          language: doc.language?.[0] ?? null,
+          previewLink: `${OL_BASE}${doc.key}`,
+          infoLink: `${OL_BASE}${doc.key}`,
+          averageRating: null,
+          ratingsCount: null,
+          maturityRating: null,
+          saleInfo: null,
+          source: 'openlibrary',
+        };
+      });
+
+    return books.slice(0, maxResults);
+  } catch (err) {
+    console.error('[OL getComingSoonBooks] Failed:', err);
+    return [];
+  }
+}
+
+export async function getBooksBySubject(subject: string, maxResults = 10): Promise<Book[]> {
+  try {
+    const slug = subject.toLowerCase().replace(/\s+/g, '_');
+    const data = await fetchOL<OLSubjectResponse>(`${OL_BASE}/subjects/${slug}.json?limit=${maxResults * 2}`);
+
+    return (data.works ?? [])
+      .filter((w) => w.cover_id || w.cover_edition_key)
+      .slice(0, maxResults)
+      .map((w): Book => {
+        const isbn = w.availability?.isbn ?? null;
+        return {
+          id: isbn ?? w.key.replace('/works/', ''),
+          title: w.title,
+          subtitle: null,
+          authors: w.authors?.map((a) => a.name) ?? [],
+          publisher: null,
+          publishedDate: w.first_publish_year ? String(w.first_publish_year) : null,
+          description: null,
+          pageCount: null,
+          categories: (w.subject ?? []).slice(0, 4),
+          isbn10: null,
+          isbn13: isbn,
+          coverUrl: olCoverUrl(w.cover_id, isbn, 'M'),
+          coverUrlLarge: olCoverUrl(w.cover_id, isbn, 'L'),
+          language: null,
+          previewLink: `${OL_BASE}${w.key}`,
+          infoLink: `${OL_BASE}${w.key}`,
+          averageRating: null,
+          ratingsCount: null,
+          maturityRating: null,
+          saleInfo: null,
+          source: 'openlibrary',
+        };
+      });
+  } catch (err) {
+    console.error(`[OL getBooksBySubject] Failed for "${subject}":`, err);
+    return [];
+  }
+}
+
+export async function getSimilarBooks(bookId: string, _country?: string): Promise<Book[]> {
+  try {
+    // First resolve the book to get its categories
+    const book = isISBN(bookId)
+      ? await getBookByISBN(bookId)
+      : await getBookByOLKey(bookId);
+
+    if (!book) return [];
+
+    const subject = book.categories[0];
+    if (!subject) {
+      // Fall back to author search if no categories
+      if (book.authors.length > 0) {
+        const results = await searchBooks(book.authors[0], 8);
+        return results.filter((b) => b.id !== bookId);
+      }
+      return [];
+    }
+
+    const results = await getBooksBySubject(subject, 8);
+    return results.filter((b) => b.id !== bookId && b.id !== book.id);
+  } catch (err) {
+    console.error(`[OL getSimilarBooks] Failed for "${bookId}":`, err);
+    return [];
+  }
+}
+
+// --- Smart book resolver ---
+
+function isISBN(str: string): boolean {
+  const cleaned = str.replace(/-/g, '');
+  return /^(?:\d{10}|\d{13}|\d{9}[\dXx])$/.test(cleaned);
+}
+
+function isOLKey(str: string): boolean {
+  return /^OL\d+[AMW]$/.test(str);
+}
+
+/**
+ * Resolve a book by any ID format:
+ * - ISBN → Open Library ISBN lookup
+ * - OL key → Open Library work lookup
+ * - Other (legacy Google Books volume ID) → Google Books fallback
+ */
+export async function resolveBook(id: string, country?: string): Promise<Book | null> {
+  if (isISBN(id)) {
+    return getBookByISBN(id, country);
+  }
+  if (isOLKey(id)) {
+    return getBookByOLKey(id, country);
+  }
+  // Legacy Google Books volume ID — use Google Books directly
+  const { getBookById } = await import('./google-books');
+  return getBookById(id, country);
+}
+
+// --- Regional ISBN resolution (kept from original) ---
+
+interface OLRegionalEdition {
   isbn_13?: string[];
   isbn_10?: string[];
   publish_country?: string;
 }
 
-interface OLEditionsResponse {
-  entries?: OLEdition[];
+interface OLEditionsListResponse {
+  entries?: OLRegionalEdition[];
 }
 
 export interface RegionalIsbnResult {
@@ -47,21 +509,11 @@ export interface RegionalIsbnResult {
   isbn10: string | null;
 }
 
-// MARC country codes that correspond to each region
 const MARC_COUNTRY_CODES: Record<Region, string[]> = {
   GB: ['xxk', 'enk', 'stk', 'wlk'],
   US: ['xxu', 'nyu', 'miu'],
 };
 
-/**
- * Resolve an ISBN to the correct regional edition.
- *
- * Strategy:
- * 1. Try Open Library Works + Editions API (has explicit publish_country)
- * 2. Fall back to Google Books search by title+author to find alternate editions
- *
- * Pass `title` and `authors` to enable the Google Books fallback.
- */
 export async function resolveRegionalIsbn(
   isbn: string,
   region: Region,
@@ -69,17 +521,11 @@ export async function resolveRegionalIsbn(
 ): Promise<RegionalIsbnResult> {
   const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
 
-  // Google Books data is US-centric — the ISBN we already have is almost
-  // certainly the US edition. Only attempt resolution when the user's region
-  // is different from the default (US). For US users the original ISBN is
-  // already correct; swapping it would be wrong.
   if (region === 'US') return fallback;
 
-  // Step 1: Try Open Library (has explicit publish_country metadata)
   const olResult = await resolveViaOpenLibrary(isbn, region);
   if (olResult.isbn13 || olResult.isbn10) return olResult;
 
-  // Step 2: Fall back to Google Books if we have title+author info
   if (bookInfo && bookInfo.title && bookInfo.authors.length > 0) {
     const gbResult = await resolveViaGoogleBooks(isbn, region, bookInfo.title, bookInfo.authors);
     if (gbResult.isbn13 || gbResult.isbn10) return gbResult;
@@ -95,32 +541,15 @@ async function resolveViaOpenLibrary(
   const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
 
   try {
-    // Step 1: resolve ISBN to a Work key
-    const editionRes = await fetch(
-      `https://openlibrary.org/isbn/${isbn}.json`,
-      { next: { revalidate: 86400 } },
-    );
-    if (!editionRes.ok) return fallback;
-
-    const edition = (await editionRes.json()) as OLEditionResponse;
+    const edition = await fetchOL<{ works?: Array<{ key: string }> }>(`${OL_BASE}/isbn/${isbn}.json`);
     const workKey = edition.works?.[0]?.key;
     if (!workKey) return fallback;
 
-    // workKey is e.g. "/works/OL45883W" — strip leading slash
     const workPath = workKey.replace(/^\//, '');
-
-    // Step 2: fetch all editions for the work
-    const editionsRes = await fetch(
-      `https://openlibrary.org/${workPath}/editions.json?limit=100`,
-      { next: { revalidate: 86400 } },
-    );
-    if (!editionsRes.ok) return fallback;
-
-    const editionsData = (await editionsRes.json()) as OLEditionsResponse;
+    const editionsData = await fetchOL<OLEditionsListResponse>(`${OL_BASE}/${workPath}/editions.json?limit=100`);
     const entries = editionsData.entries ?? [];
     const targetCodes = MARC_COUNTRY_CODES[region];
 
-    // Step 3: find the first edition matching the target region with an ISBN
     const match = entries.find(
       (e) =>
         e.publish_country !== undefined &&
@@ -139,13 +568,6 @@ async function resolveViaOpenLibrary(
   }
 }
 
-/**
- * Google Books fallback: search for the same book by title+author with the
- * `country` parameter set to the target region. Google Books often returns
- * separate volumes for different regional editions (each with its own ISBN).
- * We pick the edition whose ISBN differs from the original — that's the
- * regional variant.
- */
 async function resolveViaGoogleBooks(
   originalIsbn: string,
   region: Region,
@@ -155,8 +577,6 @@ async function resolveViaGoogleBooks(
   const fallback: RegionalIsbnResult = { isbn13: null, isbn10: null };
 
   try {
-    // Use a plain query (no intitle:/inauthor: prefixes) so Google Books
-    // returns all editions rather than deduplicating into one result.
     const authorQuery = authors[0] ?? '';
     const query = `${title} ${authorQuery}`;
 
@@ -174,14 +594,11 @@ async function resolveViaGoogleBooks(
     const data = (await res.json()) as GoogleBooksSearchResponse;
     const items = data.items ?? [];
 
-    // Find an edition with a different ISBN13 than the original
     for (const item of items) {
       const identifiers = item.volumeInfo.industryIdentifiers ?? [];
       const isbn13 = identifiers.find((i) => i.type === 'ISBN_13')?.identifier ?? null;
       const isbn10 = identifiers.find((i) => i.type === 'ISBN_10')?.identifier ?? null;
 
-      // Must have an ISBN13, must be different from the one we already have,
-      // and must be the same book (title match)
       if (
         isbn13 &&
         isbn13 !== originalIsbn &&

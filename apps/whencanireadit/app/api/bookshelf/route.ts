@@ -7,6 +7,7 @@ import {
   serializeBookshelf,
 } from '@/lib/bookshelf';
 import { getBookById } from '@/lib/google-books';
+import { resolveBook } from '@/lib/open-library';
 import { detectRegion } from '@/lib/region';
 import { config } from '@/lib/config';
 
@@ -39,9 +40,10 @@ export async function GET(request: Request) {
   const ids = readBookshelfFromRequest(request);
   const country = config.features.regionSwitcher ? await detectRegion() : undefined;
 
-  const results = await Promise.allSettled(ids.map((id) => getBookById(id, country)));
+  const lookupBook = config.features.openLibraryPrimary ? resolveBook : getBookById;
+  const results = await Promise.allSettled(ids.map((id) => lookupBook(id, country)));
   const books = results
-    .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getBookById>>> => r.status === 'fulfilled')
+    .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof lookupBook>>> => r.status === 'fulfilled')
     .map((r) => r.value)
     .filter(Boolean);
 

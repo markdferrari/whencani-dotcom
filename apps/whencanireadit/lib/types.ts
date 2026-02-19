@@ -1,4 +1,4 @@
-// Normalized book representation (from Google Books API)
+// Normalized book representation (provider-agnostic)
 export interface Book {
   id: string;
   title: string;
@@ -20,6 +20,7 @@ export interface Book {
   ratingsCount: number | null;
   maturityRating: string | null;
   saleInfo: BookSaleInfo | null;
+  source?: 'google' | 'openlibrary';
 }
 
 export interface BookSaleInfo {
@@ -114,6 +115,101 @@ export interface GoogleBooksVolumeResponse {
 export interface GoogleBooksSearchResponse {
   totalItems: number;
   items?: GoogleBooksVolumeResponse[];
+}
+
+// Open Library API response types
+export interface OLSearchResponse {
+  numFound: number;
+  docs: OLSearchDoc[];
+}
+
+export interface OLSearchDoc {
+  key: string; // "/works/OL..."
+  title: string;
+  subtitle?: string;
+  author_name?: string[];
+  author_key?: string[];
+  first_publish_year?: number;
+  isbn?: string[];
+  cover_i?: number;
+  subject?: string[];
+  publisher?: string[];
+  number_of_pages_median?: number;
+  language?: string[];
+}
+
+export interface OLEditionDetail {
+  title: string;
+  subtitle?: string;
+  publishers?: string[];
+  publish_date?: string;
+  number_of_pages?: number;
+  isbn_13?: string[];
+  isbn_10?: string[];
+  covers?: number[];
+  works?: Array<{ key: string }>;
+  authors?: Array<{ key: string }>;
+  languages?: Array<{ key: string }>;
+  description?: string | { type: string; value: string };
+  subjects?: string[];
+}
+
+export interface OLWorkDetail {
+  key: string;
+  title: string;
+  description?: string | { type: string; value: string };
+  covers?: number[];
+  subjects?: string[];
+  authors?: Array<{ author: { key: string }; type?: { key: string } }>;
+}
+
+export interface OLRatingsResponse {
+  summary: {
+    average?: number;
+    count?: number;
+  };
+}
+
+export interface OLTrendingResponse {
+  works: OLTrendingWork[];
+}
+
+export interface OLTrendingWork {
+  key: string;
+  title: string;
+  edition_count: number;
+  first_publish_year?: number;
+  cover_i?: number;
+  cover_edition_key?: string;
+  author_key?: string[];
+  author_name?: string[];
+  subject?: string[];
+  ia?: string[];
+  availability?: { isbn?: string };
+}
+
+export interface OLSubjectResponse {
+  name: string;
+  work_count: number;
+  works: OLSubjectWork[];
+}
+
+export interface OLSubjectWork {
+  key: string;
+  title: string;
+  edition_count: number;
+  cover_id?: number;
+  cover_edition_key?: string;
+  authors?: Array<{ name: string; key: string }>;
+  first_publish_year?: number;
+  subject?: string[];
+  ia?: string[];
+  availability?: { isbn?: string };
+}
+
+export interface OLAuthorResponse {
+  name: string;
+  key: string;
 }
 
 // NYT API raw response types

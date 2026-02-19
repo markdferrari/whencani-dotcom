@@ -21,7 +21,7 @@ interface NYTCarouselProps {
 }
 
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
-  const href = book.googleBooksId ?? book.isbn13 ?? book.isbn10 ?? null;
+  const href = book.isbn13 ?? book.isbn10 ?? null;
 
   const card = (
     <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -178,7 +178,7 @@ export function NYTCarousel({ list }: NYTCarouselProps) {
   );
 }
 
-export function GoogleBookCard({ book, showBookshelfToggle }: { book: Book; showBookshelfToggle?: boolean }) {
+export function BookCard({ book, showBookshelfToggle }: { book: Book; showBookshelfToggle?: boolean }) {
   const bookshelfIds = useBookshelfIds();
   const isInBookshelf = bookshelfIds.includes(book.id);
   const isReleased = isReleasedRecently(book.publishedDate, 0);
@@ -290,7 +290,7 @@ export function BooksCarousel({ label, books, showBookshelfToggle }: { label: st
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {books.map((book) => (
-          <GoogleBookCard key={book.id} book={book} showBookshelfToggle={showBookshelfToggle} />
+          <BookCard key={book.id} book={book} showBookshelfToggle={showBookshelfToggle} />
         ))}
       </div>
     </div>
