@@ -49,5 +49,8 @@ export const config = {
     get bookshelfPage(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_BOOKSHELF_PAGE === 'true';
     },
+    get openLibraryPrimary(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_OPEN_LIBRARY_PRIMARY === 'true';
+    },
   },
 } as const;

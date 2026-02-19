@@ -4,9 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { getBookById, getBookByISBN, getSimilarBooks } from '@/lib/google-books';
+import { getBookById, getBookByISBN, getSimilarBooks as getSimilarBooksGoogle } from '@/lib/google-books';
+import { resolveBook, getSimilarBooks as getSimilarBooksOL, resolveRegionalIsbn } from '@/lib/open-library';
 import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
-import { resolveRegionalIsbn } from '@/lib/open-library';
 import { config } from '@/lib/config';
 import type { Book } from '@/lib/types';
 import { detectRegion } from '@/lib/region';
@@ -72,7 +72,10 @@ function InfoCard({ label, value }: { label: string; value: string | ReactNode }
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const country = config.features.regionSwitcher ? await detectRegion() : undefined;
-  const book = isISBN(id) ? await getBookByISBN(id, country) : await getBookById(id, country);
+  const useOL = config.features.openLibraryPrimary;
+  const book = useOL
+    ? await resolveBook(id, country)
+    : isISBN(id) ? await getBookByISBN(id, country) : await getBookById(id, country);
   if (!book) return {};
 
   const coverImage = book.coverUrlLarge ?? book.coverUrl ?? undefined;
@@ -103,12 +106,16 @@ export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   const region: Region = config.features.regionSwitcher ? await detectRegion() : 'US';
+  const useOL = config.features.openLibraryPrimary;
 
-  const book = isISBN(id) ? await getBookByISBN(id, region) : await getBookById(id, region);
+  const book = useOL
+    ? await resolveBook(id, region)
+    : isISBN(id) ? await getBookByISBN(id, region) : await getBookById(id, region);
   if (!book) {
     notFound();
   }
 
+  const getSimilarBooks = useOL ? getSimilarBooksOL : getSimilarBooksGoogle;
   const similarBooks = await getSimilarBooks(book.id, region);
 
   const coverUrl = book.coverUrl ?? null;

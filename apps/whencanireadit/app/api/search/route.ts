@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { searchBooks } from '@/lib/google-books';
+import { searchBooks as searchBooksGoogle } from '@/lib/google-books';
+import { searchBooks as searchBooksOL } from '@/lib/open-library';
 import { detectRegion } from '@/lib/region';
 import { config } from '@/lib/config';
 
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+    const searchBooks = config.features.openLibraryPrimary ? searchBooksOL : searchBooksGoogle;
     const books = await searchBooks(query.trim(), 8, country);
 
     const results = books.map((book) => ({

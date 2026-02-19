@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useBookshelfBooks } from '@/hooks/use-bookshelf';
-import { GoogleBookCard } from '@/components/HomepageCarousels';
+import { BookCard } from '@/components/HomepageCarousels';
 
 export function BookshelfSection() {
   const { books, isLoading } = useBookshelfBooks();
@@ -50,7 +50,7 @@ export function BookshelfSection() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {books.map((book) => (
-          <GoogleBookCard key={book.id} book={book} showBookshelfToggle />
+          <BookCard key={book.id} book={book} showBookshelfToggle />
         ))}
       </div>
     </section>
