@@ -1,16 +1,16 @@
-import { redirect } from 'next/navigation';
-import type { Metadata } from 'next';
-import { config } from '@/lib/config';
-import { BookshelfSection } from '@/components/BookshelfSection';
+import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { config } from "@/lib/config";
+import { BookshelfSection } from "@/components/BookshelfSection";
 
 export const metadata: Metadata = {
-  title: 'My Bookshelf | WhenCanIReadIt.com',
-  description: 'View and manage your saved books.',
+  title: "My Bookshelf | WhenCanIReadIt.com",
+  description: "View and manage your saved books.",
 };
 
 export default function BookshelfPage() {
   if (!config.features.bookshelfPage) {
-    redirect('/');
+    redirect("/");
   }
 
   return (
@@ -24,11 +24,29 @@ export default function BookshelfPage() {
             Your saved books, all in one place
           </h1>
           <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-300">
-            Keep track of books you want to read. Toggle the star on any book to add or remove it from your bookshelf.
+            Keep track of books you want to read. Toggle the star on any book to
+            add or remove it from your bookshelf.
           </p>
         </section>
 
         <BookshelfSection />
+
+        <div className="flex gap-4 mt-6">
+          <a
+            href="https://whencaniplayit.com/watchlist"
+            className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
+          >
+            My Games
+          </a>
+        </div>
+        <div className="flex gap-4 mt-6">
+          <a
+            href="https://whencaniwatchit.com/watchlist"
+            className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
+          >
+            My Movies
+          </a>
+        </div>
       </main>
     </div>
   );

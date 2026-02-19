@@ -1,12 +1,13 @@
 import { config } from './config';
 import type {
   Book,
+  BookEdition,
+  BookSeries,
   GoogleBooksSearchResponse,
   OLSearchResponse,
   OLEditionDetail,
   OLWorkDetail,
   OLRatingsResponse,
-  OLTrendingResponse,
   OLSubjectResponse,
   OLAuthorResponse,
 } from './types';
@@ -16,7 +17,7 @@ import type { Region } from './region';
 
 const OL_BASE = 'https://openlibrary.org';
 const OL_COVERS_BASE = 'https://covers.openlibrary.org';
-const USER_AGENT = 'WhenCanIReadIt/1.0 (hello@whencanireadit.com)';
+const USER_AGENT = 'WhenCanIReadIt.com/1.0 (info@whencanireadit.com)';
 
 // In-memory cache for OL responses (24h + jitter)
 const OL_CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -306,30 +307,45 @@ export async function getBookByOLKey(key: string, _country?: string): Promise<Bo
 
 export async function getNewBooks(maxResults = 12, _country?: string): Promise<Book[]> {
   try {
-    const data = await fetchOL<OLTrendingResponse>(`${OL_BASE}/trending/weekly.json?limit=${maxResults * 2}`);
     const currentYear = new Date().getFullYear();
+    // Search for books first published this year, sorted by edition count (proxy for popularity)
+    const url = `${OL_BASE}/search.json?q=first_publish_year:${currentYear}&sort=editions&limit=${maxResults * 4}&fields=key,title,subtitle,author_name,isbn,cover_i,first_publish_year,subject,publisher,number_of_pages_median,language`;
+    const data = await fetchOL<OLSearchResponse>(url);
 
-    const books = (data.works ?? [])
-      .filter((w) => w.cover_i || w.cover_edition_key) // Only books with covers
-      .map((w): Book => {
-        const isbn = w.availability?.isbn ?? null;
+    const books = (data.docs ?? [])
+      .filter((doc) => {
+        // Must have a cover
+        if (!doc.cover_i) return false;
+        // Must have at least one author
+        if (!doc.author_name || doc.author_name.length === 0) return false;
+        // Prefer English books (accept if no language info available)
+        const langs = doc.language ?? [];
+        if (langs.length > 0 && !langs.includes('eng')) return false;
+        return true;
+      })
+      .map((doc): Book => {
+        const isbns = doc.isbn ?? [];
+        const isbn13 = pickIsbn13(isbns);
+        const isbn10 = pickIsbn10(isbns);
+        const id = isbn13 ?? isbn10 ?? doc.key.replace('/works/', '');
+
         return {
-          id: isbn ?? w.key.replace('/works/', ''),
-          title: w.title,
-          subtitle: null,
-          authors: w.author_name ?? [],
-          publisher: null,
-          publishedDate: w.first_publish_year ? String(w.first_publish_year) : null,
+          id,
+          title: doc.title,
+          subtitle: doc.subtitle ?? null,
+          authors: doc.author_name ?? [],
+          publisher: doc.publisher?.[0] ?? null,
+          publishedDate: doc.first_publish_year ? String(doc.first_publish_year) : null,
           description: null,
-          pageCount: null,
-          categories: (w.subject ?? []).slice(0, 4),
-          isbn10: null,
-          isbn13: isbn,
-          coverUrl: olCoverUrl(w.cover_i, isbn, 'M'),
-          coverUrlLarge: olCoverUrl(w.cover_i, isbn, 'L'),
-          language: null,
-          previewLink: `${OL_BASE}${w.key}`,
-          infoLink: `${OL_BASE}${w.key}`,
+          pageCount: doc.number_of_pages_median ?? null,
+          categories: (doc.subject ?? []).slice(0, 4),
+          isbn10,
+          isbn13,
+          coverUrl: olCoverUrl(doc.cover_i, isbn13 ?? isbn10, 'M'),
+          coverUrlLarge: olCoverUrl(doc.cover_i, isbn13 ?? isbn10, 'L'),
+          language: doc.language?.[0] ?? null,
+          previewLink: `${OL_BASE}${doc.key}`,
+          infoLink: `${OL_BASE}${doc.key}`,
           averageRating: null,
           ratingsCount: null,
           maturityRating: null,
@@ -338,13 +354,7 @@ export async function getNewBooks(maxResults = 12, _country?: string): Promise<B
         };
       });
 
-    // Prefer books from the current year, but fall back to all trending if none match
-    const currentYearBooks = books.filter((b) => {
-      if (!b.publishedDate) return false;
-      return parseInt(b.publishedDate, 10) >= currentYear - 1;
-    });
-
-    return (currentYearBooks.length > 0 ? currentYearBooks : books).slice(0, maxResults);
+    return books.slice(0, maxResults);
   } catch (err) {
     console.error('[OL getNewBooks] Failed:', err);
     return [];
@@ -482,7 +492,11 @@ function isOLKey(str: string): boolean {
  */
 export async function resolveBook(id: string, country?: string): Promise<Book | null> {
   if (isISBN(id)) {
-    return getBookByISBN(id, country);
+    const book = await getBookByISBN(id, country);
+    if (book) return book;
+    // OL doesn't have this ISBN — fall back to Google Books ISBN search
+    const { getBookByISBN: getBookByISBNGoogle } = await import('./google-books');
+    return getBookByISBNGoogle(id, country);
   }
   if (isOLKey(id)) {
     return getBookByOLKey(id, country);
@@ -492,16 +506,118 @@ export async function resolveBook(id: string, country?: string): Promise<Book | 
   return getBookById(id, country);
 }
 
+// --- Editions and series ---
+
+async function resolveWorkKey(bookId: string): Promise<string | null> {
+  try {
+    if (isOLKey(bookId)) return `/works/${bookId}`;
+    if (isISBN(bookId)) {
+      const edition = await fetchOL<OLEditionDetail>(`${OL_BASE}/isbn/${bookId}.json`);
+      return edition.works?.[0]?.key ?? null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getWorkEditions(bookId: string): Promise<BookEdition[]> {
+  try {
+    const workKey = await resolveWorkKey(bookId);
+    if (!workKey) return [];
+
+    const workPath = workKey.replace(/^\//, '');
+    const data = await fetchOL<OLEditionsListResponse>(`${OL_BASE}/${workPath}/editions.json?limit=100`);
+    const entries = data.entries ?? [];
+
+    // Current book's ISBN to exclude
+    const currentIsbn = isISBN(bookId) ? bookId.replace(/-/g, '') : null;
+    const seen = new Set<string>();
+
+    return entries
+      .filter((e) => {
+        const isbn = e.isbn_13?.[0] ?? e.isbn_10?.[0];
+        if (!isbn) return false;
+        // Exclude current book
+        if (currentIsbn && isbn.replace(/-/g, '') === currentIsbn) return false;
+        // Deduplicate
+        if (seen.has(isbn)) return false;
+        seen.add(isbn);
+        return true;
+      })
+      .map((e): BookEdition => {
+        const isbn13 = e.isbn_13?.[0] ?? null;
+        const isbn10 = e.isbn_10?.[0] ?? null;
+        return {
+          isbn13,
+          isbn10,
+          title: e.title ?? null,
+          publishDate: e.publish_date ?? null,
+          publishers: e.publishers ?? [],
+          language: extractLanguageCode(e.languages),
+          coverUrl: olCoverUrl(e.covers?.[0], isbn13 ?? isbn10, 'S'),
+          format: e.physical_format ?? null,
+        };
+      });
+  } catch (err) {
+    console.error('[OL getWorkEditions] Failed:', err);
+    return [];
+  }
+}
+
+export async function getBookSeries(bookId: string): Promise<BookSeries | null> {
+  try {
+    const workKey = await resolveWorkKey(bookId);
+    if (!workKey) return null;
+
+    const work = await fetchOL<OLWorkDetail>(`${OL_BASE}${workKey}.json`);
+    const subjects = work.subjects ?? [];
+
+    const seriesSubject = subjects.find((s) => s.toLowerCase().startsWith('series:'));
+    if (!seriesSubject) return null;
+
+    const seriesName = seriesSubject.substring(7).replace(/_/g, ' ').trim();
+    const slug = seriesSubject.substring(7).toLowerCase().replace(/\s+/g, '_');
+
+    const data = await fetchOL<OLSubjectResponse>(`${OL_BASE}/subjects/series:${slug}.json?limit=20`);
+    const currentWorkKey = workKey;
+
+    const books = (data.works ?? [])
+      .filter((w) => w.key !== currentWorkKey && (w.cover_id || w.cover_edition_key))
+      .map((w) => {
+        const isbn = w.availability?.isbn ?? null;
+        return {
+          id: isbn ?? w.key.replace('/works/', ''),
+          title: w.title,
+          authors: w.authors?.map((a) => a.name) ?? [],
+          coverUrl: olCoverUrl(w.cover_id, isbn, 'M'),
+        };
+      });
+
+    if (books.length === 0) return null;
+    return { seriesName, books };
+  } catch (err) {
+    console.error('[OL getBookSeries] Failed:', err);
+    return null;
+  }
+}
+
 // --- Regional ISBN resolution (kept from original) ---
 
-interface OLRegionalEdition {
+interface OLFullEdition {
   isbn_13?: string[];
   isbn_10?: string[];
   publish_country?: string;
+  title?: string;
+  publishers?: string[];
+  publish_date?: string;
+  languages?: Array<{ key: string }>;
+  covers?: number[];
+  physical_format?: string;
 }
 
 interface OLEditionsListResponse {
-  entries?: OLRegionalEdition[];
+  entries?: OLFullEdition[];
 }
 
 export interface RegionalIsbnResult {

@@ -21,6 +21,8 @@ interface DetailHeroCardProps {
   backdropClassName?: string;
   /** Optional content rendered below the poster image */
   posterFooter?: React.ReactNode;
+  /** When true, the backdrop banner section is not rendered */
+  hideBackdrop?: boolean;
   /** Content rendered in the right column next to the poster */
   children: React.ReactNode;
   className?: string;
@@ -34,6 +36,7 @@ export function DetailHeroCard({
   posterAspect = "2/3",
   posterUnoptimized = false,
   posterFooter,
+  hideBackdrop = false,
   backdropClassName,
   children,
   className,
@@ -48,23 +51,25 @@ export function DetailHeroCard({
       )}
     >
       {/* Backdrop */}
-      <div className="relative h-56 bg-zinc-100 dark:bg-zinc-900 sm:h-72">
-        {backdropUrl ? (
-          <Image
-            src={backdropUrl}
-            alt={`${title} backdrop`}
-            fill
-            className={cn("object-cover", backdropClassName)}
-            priority
-            unoptimized={posterUnoptimized}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
-            No backdrop
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/40 to-transparent dark:from-zinc-950/95 dark:via-zinc-950/50" />
-      </div>
+      {!hideBackdrop && (
+        <div className="relative h-56 bg-zinc-100 dark:bg-zinc-900 sm:h-72">
+          {backdropUrl ? (
+            <Image
+              src={backdropUrl}
+              alt={`${title} backdrop`}
+              fill
+              className={cn("object-cover", backdropClassName)}
+              priority
+              unoptimized={posterUnoptimized}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.4em] text-zinc-400">
+              No backdrop
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/40 to-transparent dark:from-zinc-950/95 dark:via-zinc-950/50" />
+        </div>
+      )}
 
       {/* Poster + Details grid */}
       <div className="grid gap-6 p-6 sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-10 sm:p-10">

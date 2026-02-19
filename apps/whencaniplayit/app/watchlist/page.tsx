@@ -39,6 +39,13 @@ export default async function WatchlistPage({ searchParams }: PageProps) {
             My Movies
           </a>
         </div>
+          <a
+            href="https://whencanireadit.com/bookshelf"
+            className="rounded-full bg-sky-500 px-6 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-sky-600"
+          >
+            My Books
+          </a>
+        </div>        
       </main>
     </div>
   );

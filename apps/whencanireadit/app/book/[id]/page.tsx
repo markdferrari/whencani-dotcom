@@ -5,10 +5,10 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { getBookById, getBookByISBN, getSimilarBooks as getSimilarBooksGoogle } from '@/lib/google-books';
-import { resolveBook, getSimilarBooks as getSimilarBooksOL, resolveRegionalIsbn } from '@/lib/open-library';
+import { resolveBook, getSimilarBooks as getSimilarBooksOL, getWorkEditions, getBookSeries, resolveRegionalIsbn } from '@/lib/open-library';
 import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
 import { config } from '@/lib/config';
-import type { Book } from '@/lib/types';
+import type { BookEdition, BookSeries } from '@/lib/types';
 import { detectRegion } from '@/lib/region';
 import type { Region } from '@/lib/region';
 
@@ -116,10 +116,13 @@ export default async function BookDetailPage({ params }: PageProps) {
   }
 
   const getSimilarBooks = useOL ? getSimilarBooksOL : getSimilarBooksGoogle;
-  const similarBooks = await getSimilarBooks(book.id, region);
+  const [similarBooks, editions, series] = await Promise.all([
+    getSimilarBooks(book.id, region),
+    useOL ? getWorkEditions(book.id) : Promise.resolve([] as BookEdition[]),
+    useOL ? getBookSeries(book.id) : Promise.resolve(null as BookSeries | null),
+  ]);
 
   const coverUrl = book.coverUrl ?? null;
-  const backdropUrl = book.coverUrlLarge ?? book.coverUrl ?? null;
 
   const buyLinks = config.features?.buyLinks ? generateBuyLinks(region) : [];
   const originalIsbn = book.isbn13 ?? book.isbn10;
@@ -172,12 +175,24 @@ export default async function BookDetailPage({ params }: PageProps) {
 
         <DetailHeroCard
           title={book.title}
-          backdropUrl={backdropUrl}
+          backdropUrl={null}
+          hideBackdrop
           posterUrl={coverUrl}
           posterAlt={`${book.title} book cover`}
           posterAspect="2/3"
-          backdropClassName="blur-sm scale-110"
           className="mt-6"
+          posterFooter={
+            bookshopLink ? (
+              <a
+                href={bookshopLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
+              >
+                {bookshopLink.label}
+              </a>
+            ) : undefined
+          }
         >
           <div>
             <div className="flex items-start justify-between gap-4">
@@ -226,22 +241,70 @@ export default async function BookDetailPage({ params }: PageProps) {
             {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {bookshopLink && (
-              <a
-                href={bookshopLink.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
-              >
-                {bookshopLink.label}
-              </a>
-            )}
-            {buyLinks.length > 0 && <BuyLinks links={buyLinks} isPreorder={isPreorder} />}
-          </div>
+          {buyLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <BuyLinks links={buyLinks} isPreorder={isPreorder} />
+            </div>
+          )}
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>
+
+        {editions.length > 0 && (
+          <section className="mt-8 rounded-3xl border border-zinc-200/70 bg-white/90 p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-zinc-500">Other Editions</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {editions.slice(0, 6).map((edition) => {
+                const editionId = edition.isbn13 ?? edition.isbn10;
+                if (!editionId) return null;
+                return (
+                  <Link
+                    key={editionId}
+                    href={`/book/${editionId}`}
+                    className="flex items-center gap-3 rounded-xl border border-zinc-100/70 bg-white p-3 transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80"
+                  >
+                    <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900">
+                      {edition.coverUrl ? (
+                        <Image src={edition.coverUrl} alt={edition.title ?? 'Edition cover'} fill className="object-cover" sizes="44px" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[0.5rem] uppercase tracking-widest text-zinc-400">—</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                        {edition.format ?? 'Edition'}
+                      </p>
+                      {edition.language && (
+                        <p className="text-xs text-zinc-500">{formatLanguageName(edition.language)}</p>
+                      )}
+                      {edition.publishers[0] && (
+                        <p className="truncate text-xs text-zinc-400">{edition.publishers[0]}</p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {series && series.books.length > 0 && (
+          <MediaCarousel label={`More from ${series.seriesName}`} slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]" className="mt-8">
+            {series.books.map((seriesBook) => (
+              <Link key={seriesBook.id} href={`/book/${seriesBook.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
+                <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
+                  {seriesBook.coverUrl ? (
+                    <Image src={seriesBook.coverUrl} alt={`${seriesBook.title} cover`} fill className="object-cover" sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[0.6rem] uppercase tracking-[0.4em] text-zinc-400">No cover</div>
+                  )}
+                </div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{seriesBook.title}</p>
+                {seriesBook.authors.length > 0 && <p className="mt-0.5 text-xs text-zinc-500">{seriesBook.authors[0]}</p>}
+              </Link>
+            ))}
+          </MediaCarousel>
+        )}
 
         {similarBooks.length > 0 && (
           <MediaCarousel label="You might also like" slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]" className="mt-8">

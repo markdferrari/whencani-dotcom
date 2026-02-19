@@ -81,7 +81,7 @@ export default function RootLayout({
                 </a>
               </div>
               <div className="sm:text-right text-sm text-zinc-500 dark:text-zinc-400">
-                Data provided by <a href="https://books.google.com/" target="_blank" rel="noopener noreferrer" className="underline">Google Books</a> &amp; <a href="https://developer.nytimes.com/" target="_blank" rel="noopener noreferrer" className="underline">NYT</a>
+                Data provided by <a href="https://openlibrary.org/" target="_blank" rel="noopener noreferrer" className="underline">Open Library</a> &amp; <a href="https://developer.nytimes.com/" target="_blank" rel="noopener noreferrer" className="underline">NYT</a>
               </div>
             </div>
           </footer>
