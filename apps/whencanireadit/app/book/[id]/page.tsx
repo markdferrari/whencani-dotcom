@@ -71,7 +71,8 @@ function InfoCard({ label, value }: { label: string; value: string | ReactNode }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const book = isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
+  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+  const book = isISBN(id) ? await getBookByISBN(id, country) : await getBookById(id, country);
   if (!book) return {};
 
   const coverImage = book.coverUrlLarge ?? book.coverUrl ?? undefined;
@@ -238,7 +239,7 @@ export default async function BookDetailPage({ params }: PageProps) {
         {similarBooks.length > 0 && (
           <MediaCarousel label="You might also like" slideBasis="flex-[0_0_70%] sm:flex-[0_0_45%] lg:flex-[0_0_22%]" className="mt-8">
             {similarBooks.slice(0, 6).map((similar) => (
-              <Link key={similar.id} href={`/book/${similar.isbn13 ?? similar.isbn10 ?? similar.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
+              <Link key={similar.id} href={`/book/${similar.id}`} className="block rounded-2xl border border-zinc-100/80 bg-white p-3 shadow-sm transition hover:border-sky-400 dark:border-zinc-800/80 dark:bg-zinc-900/80">
                 <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900">
                   {similar.coverUrl ? (
                     <Image src={similar.coverUrl} alt={`${similar.title} cover`} fill className="object-cover" sizes="(max-width: 640px) 70vw, (max-width: 1024px) 45vw, 220px" />

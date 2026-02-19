@@ -21,7 +21,7 @@ interface NYTCarouselProps {
 }
 
 function NYTBookCard({ book }: { book: NYTBestsellerList["books"][number] }) {
-  const href = book.isbn13 ?? book.isbn10 ?? book.googleBooksId ?? null;
+  const href = book.googleBooksId ?? book.isbn13 ?? book.isbn10 ?? null;
 
   const card = (
     <article className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-100/80 bg-white p-4 text-center shadow-sm transition hover:border-sky-500/40 hover:shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950/70">
@@ -184,12 +184,10 @@ export function GoogleBookCard({ book, showBookshelfToggle }: { book: Book; show
   const isReleased = isReleasedRecently(book.publishedDate, 0);
   const featureEnabled = config.features.bookshelfImprovements;
   const showBadge = featureEnabled && isInBookshelf && isReleased;
-  const preferredId = book.isbn13 ?? book.isbn10 ?? book.id;
-
   return (
     <MediaCard
       id={book.id}
-      href={`/book/${preferredId}`}
+      href={`/book/${book.id}`}
       title={book.title}
       imageUrl={book.coverUrl || undefined}
       imageAlt={`${book.title} book cover`}

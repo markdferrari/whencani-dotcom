@@ -42,7 +42,7 @@ export default async function Home() {
       nytEnabled ? getFictionBestsellers() : Promise.resolve(null),
       nytEnabled ? getNonfictionBestsellers() : Promise.resolve(null),
       getNewBooks(12, country),
-      genreCarouselsEnabled ? getComingSoonBooks(10, country) : Promise.resolve([]),
+      genreCarouselsEnabled ? getComingSoonBooks(12, country) : Promise.resolve([]),
     ]);
 
     if (results[0].status === "fulfilled" && results[0].value) {
