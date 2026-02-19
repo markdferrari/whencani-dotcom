@@ -237,6 +237,17 @@ export interface BookSeries {
   }>;
 }
 
+// NYT Book Review RSS article
+export interface BookReviewArticle {
+  title: string;
+  description: string;
+  url: string;
+  imageUrl: string | null;
+  author: string | null;
+  pubDate: string;
+  bookTitles: string[];
+}
+
 // NYT API raw response types
 export interface NYTListResponse {
   status: string;
