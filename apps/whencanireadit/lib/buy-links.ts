@@ -7,7 +7,7 @@ export interface BookshopLink {
 }
 
 const BOOKSHOP_UK_AFFILIATE_TAG = '17007';
-const BOOKSHOP_US_AFFILIATE_TAG = '17007TBC';
+const BOOKSHOP_US_AFFILIATE_TAG = '121353';
 
 export function getBookshopLink(isbn: string, region: Region): BookshopLink {
   if (region === 'GB') {
