@@ -2,6 +2,7 @@ import { type Metadata, type ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { WatchlistToggle } from "@/components/WatchlistToggle";
+import { MovieRemindMeButton } from "@/components/MovieRemindMeButton";
 import { RecordView } from "@/components/RecordView";
 import {
   formatReleaseDate,
@@ -209,6 +210,12 @@ export default async function MoviePage({ params }: MoviePageProps) {
                   url={`https://whencaniwatchit.com/movie/${id}`}
                 />
                 <WatchlistToggle movieId={Number(id)} className="shadow" />
+                <MovieRemindMeButton
+                  itemId={Number(id)}
+                  itemTitle={movie.title}
+                  releaseDate={movie.release_date ?? null}
+                  className="shadow"
+                />
               </div>
             </div>            
             {movie.tagline && (

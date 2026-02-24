@@ -13,6 +13,7 @@ import { detectRegion } from '@/lib/region';
 import type { Region } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
+import { BookRemindMeButton } from '@/components/BookRemindMeButton';
 import { BuyLinks } from '@/components/BuyLinks';
 import { RecordView } from '@/components/RecordView';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
@@ -200,6 +201,12 @@ export default async function BookDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-2">
                 <ShareButton title={`${book.title} — WhenCanIReadIt.com`} text={book.publishedDate ? `${book.title} by ${book.authors.join(', ')}. Check it out!` : `Check out ${book.title} on WhenCanIReadIt.com`} url={pageUrl} />
                 <BookshelfToggle bookId={book.id} className="shadow" />
+                <BookRemindMeButton
+                  itemId={book.id}
+                  itemTitle={book.title}
+                  releaseDate={book.publishedDate ?? null}
+                  className="shadow"
+                />
               </div>
             </div>
             {book.subtitle && <p className="mt-1 text-lg text-zinc-600 dark:text-zinc-300">{book.subtitle}</p>}

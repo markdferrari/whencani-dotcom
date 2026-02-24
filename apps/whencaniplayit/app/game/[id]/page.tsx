@@ -8,6 +8,7 @@ import { GameLinks } from '@/components/GameLinks';
 import { LatestNews } from '@/components/LatestNews';
 import { ReviewSection } from '@/components/ReviewSection';
 import { WatchlistToggle } from '@/components/WatchlistToggle';
+import { GameRemindMeButton } from '@/components/GameRemindMeButton';
 import { RecordView } from '@/components/RecordView';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
@@ -268,6 +269,12 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                   url={`https://whencaniplayit.com/game/${id}`}
                 />
                 <WatchlistToggle gameId={game.id} className="shadow" />
+                <GameRemindMeButton
+                  itemId={game.id}
+                  itemTitle={game.name}
+                  releaseDate={releaseDate ? new Date(releaseDate * 1000).toISOString().split('T')[0] : null}
+                  className="shadow"
+                />
               </div>
             </div>
           </div>

@@ -15,6 +15,9 @@ export default $config({
     };
   },
   async run() {
+    const googleClientId = new sst.Secret("GoogleClientId");
+    const googleClientSecret = new sst.Secret("GoogleClientSecret");
+    
     const certificateArn =
       process.env.ACM_CERTIFICATE_ARN ??
       "arn:aws:acm:us-east-1:632700996244:certificate/d3deeb5a-33dc-4b3b-8f82-4598dad5220b";
@@ -31,7 +34,9 @@ export default $config({
         dns: false
       },
       environment: {
-        TMDB_API_KEY: process.env.TMDB_API_KEY!,
+        TMDB_API_KEY: process.env.TMDB_API_KEY!,        
+        GOOGLE_CLIENT_ID: googleClientId.value,
+        GOOGLE_CLIENT_SECRET: googleClientSecret.value,
       },
       // Cache behavior is handled by the default CloudFront behavior,
       // which respects Cache-Control headers set by route handlers.
