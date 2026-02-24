@@ -78,18 +78,28 @@ export function RemindMeButton({
           ? 'when a release date is announced'
           : `on ${formatReminderDate(releaseDate, timing)}`;
         toast({
-          title: `We'll remind you about ${itemTitle} ${dateText}`,
+          title: `Reminder set for ${itemTitle} ${dateText}`,
           variant: 'success',
         });
-        setOpen(false);
       } else if (permission === 'denied') {
         toast({
           title: 'Notifications are blocked. Please enable them in your browser settings.',
           variant: 'destructive',
         });
+      } else {
+        toast({
+          title: 'Could not set reminder. Please try again.',
+          variant: 'destructive',
+        });
       }
+    } catch {
+      toast({
+        title: 'Could not set reminder. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
+      setOpen(false);
     }
   };
 
@@ -101,10 +111,20 @@ export function RemindMeButton({
         toast({
           title: `Reminder removed for ${itemTitle}`,
         });
-        setOpen(false);
+      } else {
+        toast({
+          title: 'Could not remove reminder. Please try again.',
+          variant: 'destructive',
+        });
       }
+    } catch {
+      toast({
+        title: 'Could not remove reminder. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
+      setOpen(false);
     }
   };
 

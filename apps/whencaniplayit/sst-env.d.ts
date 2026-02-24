@@ -14,6 +14,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "NotificationsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "VapidPrivateKey": {
       "type": "sst.sst.Secret"
       "value": string
