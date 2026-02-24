@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { ToastProvider } from "@whencani/ui";
 import "./globals.css";
 
@@ -16,6 +17,10 @@ const geistMono = Geist_Mono({
 
 const SITE_URL = "https://whencaniplayit.com";
 const SITE_NAME = "WhenCanIPlayIt.com";
+
+export const viewport: Viewport = {
+  themeColor: "#0ea5e9",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,6 +72,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegistration />
         <ToastProvider>
           <Header />
           {children}

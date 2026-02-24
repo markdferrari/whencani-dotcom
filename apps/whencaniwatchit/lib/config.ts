@@ -33,5 +33,8 @@ export const config = {
     get standardCarousels(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_STANDARD_CAROUSELS === 'true';
     },
+    get pwa(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_PWA === 'true';
+    },
   },
 } as const;

@@ -1,4 +1,5 @@
 import { GET } from '@/app/api/search/route';
+import { mapBGGDetailsToSearchResults } from '@/lib/search-utils';
 import * as igdb from '@/lib/igdb';
 import * as bgg from '@/lib/bgg';
 
@@ -11,7 +12,7 @@ describe('mapBGGDetailsToSearchResults', () => {
       { id: 101, name: 'Catan', thumbnail: 'https://example.com/catan.jpg', yearPublished: 1995 },
     ];
 
-    const results = require('@/app/api/search/route').mapBGGDetailsToSearchResults(details);
+    const results = mapBGGDetailsToSearchResults(details as Parameters<typeof mapBGGDetailsToSearchResults>[0]);
 
     expect(results).toHaveLength(1);
     expect(results[0].id).toBe(101);
