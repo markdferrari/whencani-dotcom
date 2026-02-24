@@ -18,6 +18,9 @@ export default $config({
     const certificateArn = "arn:aws:acm:us-east-1:632700996244:certificate/15b3fa06-9db9-440e-8164-f8cd8b910efc"
     const googleClientId = new sst.Secret("GoogleClientId");
     const googleClientSecret = new sst.Secret("GoogleClientSecret");
+    const vapidPublicKey = new sst.Secret("VapidPublicKey");
+    const vapidPrivateKey = new sst.Secret("VapidPrivateKey");
+    const vapidSubject = new sst.Secret("VapidSubject");
     const site = new sst.aws.Nextjs("WhenCanPlayIt", {
       server: {
         runtime: 'nodejs22.x',
@@ -35,7 +38,10 @@ export default $config({
         RAPID_API_KEY: process.env.RAPID_API_KEY!,
         BGG_API_TOKEN: process.env.BGG_API_TOKEN!,
         GOOGLE_CLIENT_ID: googleClientId.value,
-        GOOGLE_CLIENT_SECRET: googleClientSecret.value,        
+        GOOGLE_CLIENT_SECRET: googleClientSecret.value,
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: vapidPublicKey.value,
+        VAPID_PRIVATE_KEY: vapidPrivateKey.value,
+        VAPID_SUBJECT: vapidSubject.value,
       },
       // Cache behavior is handled by the default CloudFront behavior,
       // which respects Cache-Control headers set by route handlers.
