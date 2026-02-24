@@ -38,5 +38,8 @@ export const config = {
     get boardGames(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_BOARD_GAMES === 'true';
     },
+    get pwa(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_PWA === 'true';
+    },
   },
 } as const;

@@ -17,8 +17,6 @@ A user discovers a game or movie, adds it to their watchlist, and then forgets a
 
 Add a bell icon button next to the watchlist toggle on detail pages. Tapping it shows a small popover with options:
 
-On the user watchlist/favourite page, 'Remind me' button should be beside 'Buy Now'
-
 - **1 day before release**
 - **1 week before release**
 - **On release day**
