@@ -6,6 +6,26 @@
 
 declare module "sst" {
   export interface Resource {
+    "GoogleClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GoogleClientSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "VapidPrivateKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "VapidPublicKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "VapidSubject": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "WhenCanPlayIt": {
       "type": "sst.aws.Nextjs"
       "url": string

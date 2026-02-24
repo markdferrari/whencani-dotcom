@@ -1,13 +1,16 @@
 import crypto from 'crypto';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, DeleteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import type { ActiveReminder, NotificationApp, ReminderItemType, ReminderTiming } from '@whencani/ui';
 
-/**
- * In-memory store for push reminders.
- * In production this will be replaced with DynamoDB.
- * For now, this provides a working implementation that persists for the lifetime of the server process.
- */
+const ddbClient = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-interface StoredReminder {
+function getTableName(): string {
+  return process.env.NOTIFICATIONS_TABLE_NAME ?? 'notifications';
+}
+
+export interface StoredReminder {
   pk: string;
   sk: string;
   subscription: PushSubscriptionJSON;
@@ -19,17 +22,12 @@ interface StoredReminder {
   timing: ReminderTiming;
   app: NotificationApp;
   createdAt: string;
+  gsi1pk: string;
+  gsi1sk: string;
 }
-
-// In-memory store — replaced with DynamoDB in production
-const reminders = new Map<string, StoredReminder>();
 
 function hashEndpoint(endpoint: string): string {
   return crypto.createHash('sha256').update(endpoint).digest('hex').slice(0, 16);
-}
-
-function makeKey(endpointHash: string, itemId: string | number, timing: ReminderTiming): string {
-  return `${endpointHash}:${itemId}:${timing}`;
 }
 
 export function computeRemindAt(releaseDate: string, timing: ReminderTiming): string {
@@ -41,16 +39,28 @@ export function computeRemindAt(releaseDate: string, timing: ReminderTiming): st
   } else if (timing === '1w') {
     date.setDate(date.getDate() - 7);
   }
-  // For 'release', remindAt === releaseDate
   return date.toISOString().split('T')[0];
 }
 
-export function storeSubscription(subscription: PushSubscriptionJSON): string {
-  // Return the endpoint hash for later reference
-  return hashEndpoint(subscription.endpoint ?? '');
+export async function storeSubscription(subscription: PushSubscriptionJSON): Promise<string> {
+  const endpointHash = hashEndpoint(subscription.endpoint ?? '');
+
+  await docClient.send(new PutCommand({
+    TableName: getTableName(),
+    Item: {
+      pk: `PUSH#${endpointHash}`,
+      sk: 'SUBSCRIPTION',
+      subscription,
+      createdAt: new Date().toISOString(),
+      gsi1pk: 'SUBSCRIPTION',
+      gsi1sk: `PUSH#${endpointHash}`,
+    },
+  }));
+
+  return endpointHash;
 }
 
-export function storeReminder(
+export async function storeReminder(
   subscription: PushSubscriptionJSON,
   itemId: string | number,
   itemType: ReminderItemType,
@@ -58,10 +68,10 @@ export function storeReminder(
   releaseDate: string,
   timing: ReminderTiming,
   app: NotificationApp,
-): StoredReminder {
+): Promise<StoredReminder> {
   const endpointHash = hashEndpoint(subscription.endpoint ?? '');
   const sk = `REMINDER#${itemId}#${timing}`;
-  const key = makeKey(endpointHash, itemId, timing);
+  const remindAt = computeRemindAt(releaseDate, timing);
 
   const reminder: StoredReminder = {
     pk: `PUSH#${endpointHash}`,
@@ -71,66 +81,102 @@ export function storeReminder(
     itemType,
     itemTitle,
     releaseDate,
-    remindAt: computeRemindAt(releaseDate, timing),
+    remindAt,
     timing,
     app,
     createdAt: new Date().toISOString(),
+    // GSI for querying due reminders by date
+    gsi1pk: `REMIND_AT#${remindAt}`,
+    gsi1sk: `${app}#${endpointHash}#${itemId}`,
   };
 
-  reminders.set(key, reminder);
+  await docClient.send(new PutCommand({
+    TableName: getTableName(),
+    Item: reminder,
+  }));
+
   return reminder;
 }
 
-export function deleteReminders(subscription: PushSubscriptionJSON, itemId: string | number): number {
+export async function deleteReminders(subscription: PushSubscriptionJSON, itemId: string | number): Promise<number> {
   const endpointHash = hashEndpoint(subscription.endpoint ?? '');
-  let count = 0;
+  const pk = `PUSH#${endpointHash}`;
 
-  for (const [key, reminder] of reminders.entries()) {
-    if (reminder.pk === `PUSH#${endpointHash}` && String(reminder.itemId) === String(itemId)) {
-      reminders.delete(key);
-      count++;
-    }
+  // Query all reminders for this subscription + item
+  const result = await docClient.send(new QueryCommand({
+    TableName: getTableName(),
+    KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+    ExpressionAttributeValues: {
+      ':pk': pk,
+      ':skPrefix': `REMINDER#${itemId}#`,
+    },
+  }));
+
+  const items = result.Items ?? [];
+
+  // Delete each matching reminder
+  for (const item of items) {
+    await docClient.send(new DeleteCommand({
+      TableName: getTableName(),
+      Key: { pk: item.pk as string, sk: item.sk as string },
+    }));
   }
 
-  return count;
+  return items.length;
 }
 
-export function getReminders(endpoint: string): ActiveReminder[] {
+export async function getReminders(endpoint: string): Promise<ActiveReminder[]> {
   const endpointHash = hashEndpoint(endpoint);
-  const results: ActiveReminder[] = [];
+  const pk = `PUSH#${endpointHash}`;
 
-  for (const reminder of reminders.values()) {
-    if (reminder.pk === `PUSH#${endpointHash}`) {
-      results.push({
-        itemId: reminder.itemId,
-        itemType: reminder.itemType,
-        timing: reminder.timing,
-        remindAt: reminder.remindAt,
-      });
-    }
-  }
+  const result = await docClient.send(new QueryCommand({
+    TableName: getTableName(),
+    KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+    ExpressionAttributeValues: {
+      ':pk': pk,
+      ':skPrefix': 'REMINDER#',
+    },
+  }));
 
-  return results;
+  return (result.Items ?? []).map((item) => ({
+    itemId: item.itemId as string | number,
+    itemType: item.itemType as ReminderItemType,
+    timing: item.timing as ReminderTiming,
+    remindAt: item.remindAt as string,
+  }));
 }
 
-export function getDueReminders(today: string): StoredReminder[] {
+export async function getDueReminders(today: string): Promise<StoredReminder[]> {
+  // Query the GSI for all reminders due on or before today
+  // We scan dates up to and including today
   const results: StoredReminder[] = [];
 
-  for (const reminder of reminders.values()) {
-    if (reminder.remindAt !== 'TBA' && reminder.remindAt <= today) {
-      results.push(reminder);
-    }
+  // Query for exact date match first, then scan for older ones
+  // For efficiency, query the main table filtering by remindAt
+  const result = await docClient.send(new QueryCommand({
+    TableName: getTableName(),
+    IndexName: 'gsi1',
+    KeyConditionExpression: 'gsi1pk = :gsi1pk',
+    ExpressionAttributeValues: {
+      ':gsi1pk': `REMIND_AT#${today}`,
+    },
+  }));
+
+  for (const item of result.Items ?? []) {
+    results.push(item as unknown as StoredReminder);
   }
 
   return results;
 }
 
-export function deleteReminderByKey(pk: string, sk: string): boolean {
-  for (const [key, reminder] of reminders.entries()) {
-    if (reminder.pk === pk && reminder.sk === sk) {
-      reminders.delete(key);
-      return true;
-    }
+export async function deleteReminderByKey(pk: string, sk: string): Promise<boolean> {
+  try {
+    await docClient.send(new DeleteCommand({
+      TableName: getTableName(),
+      Key: { pk, sk },
+    }));
+    return true;
+  } catch {
+    return false;
   }
-  return false;
 }

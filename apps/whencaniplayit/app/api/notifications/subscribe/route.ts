@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing subscription endpoint' }, { status: 400 });
     }
 
-    storeSubscription(body.subscription);
+    await storeSubscription(body.subscription);
 
     return NextResponse.json({ success: true });
   } catch {

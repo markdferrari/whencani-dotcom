@@ -1,8 +1,6 @@
 # Sign In
 
-I want a Google Signin button on all 3 sites
-
-Standard Google button - 
+Google Signin button on all 3 sites
 
 Use DynamoDB as the primary database (this should be managed via SST config)
 

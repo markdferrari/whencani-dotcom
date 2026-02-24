@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid item type' }, { status: 400 });
     }
 
-    const reminder = storeReminder(
+    const reminder = await storeReminder(
       body.subscription,
       body.itemId,
       body.itemType,
@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const count = deleteReminders(body.subscription, body.itemId);
+    const count = await deleteReminders(body.subscription, body.itemId);
 
     return NextResponse.json({ success: true, deleted: count });
   } catch {

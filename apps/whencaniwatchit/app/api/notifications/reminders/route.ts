@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing endpoint parameter' }, { status: 400 });
     }
 
-    const reminders = getReminders(decodeURIComponent(endpoint));
+    const reminders = await getReminders(decodeURIComponent(endpoint));
 
     return NextResponse.json({ reminders });
   } catch {
