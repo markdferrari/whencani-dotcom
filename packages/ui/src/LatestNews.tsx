@@ -15,6 +15,10 @@ interface NewsItem {
   contentSnippet?: string;
 }
 
+// In-memory cache for RSS feeds — avoids re-fetching on every page render
+const NEWS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const newsCache = new Map<string, { expires: number; items: NewsItem[] }>();
+
 export async function LatestNews({ productName, productType, extraSearchQuery = '', numberOfArticles = 6 }: LatestNewsProps) {
   try {
     const parser = new Parser();
@@ -35,25 +39,26 @@ export async function LatestNews({ productName, productType, extraSearchQuery = 
       case 'boardgame':
         category = 'board game';
         break;  
-      case 'movie':
-        category = 'movie';
-        break;
-      case 'tv':
-        category = 'tv show';
-        break;        
       default:
         category = '';
     }
     const query = category ? `${productName} ${category} ${extraSearchQuery}` : `${productName} ${extraSearchQuery}`;
     const feedUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
-    const feed = await parser.parseURL(feedUrl);
 
-    if (!feed.items || feed.items.length === 0) {
-      return null;
+    // Check in-memory cache first
+    const cached = newsCache.get(feedUrl);
+    let newsItems: NewsItem[];
+    if (cached && cached.expires > Date.now()) {
+      newsItems = cached.items.slice(0, numberOfArticles);
+    } else {
+      const feed = await parser.parseURL(feedUrl);
+      if (!feed.items || feed.items.length === 0) {
+        return null;
+      }
+      const allItems = feed.items.slice(0, 20) as NewsItem[];
+      newsCache.set(feedUrl, { expires: Date.now() + NEWS_CACHE_TTL, items: allItems });
+      newsItems = allItems.slice(0, numberOfArticles);
     }
-
-    // Take up to the specified number of articles
-    const newsItems = feed.items.slice(0, numberOfArticles) as NewsItem[];
 
     return (
       <div className="mt-4">

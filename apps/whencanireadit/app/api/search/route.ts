@@ -26,8 +26,15 @@ export async function GET(request: NextRequest) {
       href: `/book/${book.id}`,
     }));
 
-    return NextResponse.json({ results });
+    return NextResponse.json({ results }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=1800',
+      },
+    });
   } catch {
-    return NextResponse.json({ results: [] }, { status: 500 });
+    return NextResponse.json({ results: [] }, {
+      status: 500,
+      headers: { 'Cache-Control': 'no-store' },
+    });
   }
 }

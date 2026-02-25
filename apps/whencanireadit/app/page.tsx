@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { config } from "@/lib/config";
 import { getNewBooks as getNewBooksGoogle, getComingSoonBooks as getComingSoonBooksGoogle } from "@/lib/google-books";
 import { getNewBooks as getNewBooksOL, getComingSoonBooks as getComingSoonBooksOL } from "@/lib/open-library";
-import { detectRegion } from "@/lib/region";
 import { getFictionBestsellers, getNonfictionBestsellers, getYoungAdultBestsellers, getAdviceBestsellers, getGraphicBooksBestsellers } from "@/lib/nyt-books";
 import { BooksCarousel, NYTCarousel, NYTSidebar } from "@/components/HomepageCarousels";
 import { RecentlyViewedSection } from "@/components/RecentlyViewedSection";
 import type { NYTBestsellerList, Book } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+// ISR: regenerate homepage every hour — NYT lists update once/day, new books change slowly
+export const revalidate = 3600;
 
 const SITE_URL = "https://whencanireadit.com";
 
@@ -115,7 +115,9 @@ async function getCarouselData(country: string | undefined): Promise<CarouselCac
 }
 
 export default async function Home() {
-  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
+  // Homepage uses default region (US) to keep the page statically cacheable via ISR.
+  // Region-specific content is handled client-side or on detail pages.
+  const country = undefined;
   const { fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks } = await getCarouselData(country);
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
