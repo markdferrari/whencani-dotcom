@@ -32,9 +32,9 @@ export interface WatchlistToolbarProps {
 }
 
 const SORT_OPTIONS = [
-  { value: 'date-added', label: 'Date Added' },
   { value: 'release-soonest', label: 'Release Date (Soonest)' },
   { value: 'release-latest', label: 'Release Date (Latest)' },
+  { value: 'date-added', label: 'Date Added' },
   { value: 'alphabetical', label: 'Alphabetical' },
 ] as const;
 
