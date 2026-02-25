@@ -566,7 +566,7 @@ export async function getGameById(id: number): Promise<IGDBGame | null> {
   return game;
 }
 
-export async function getGamesByIds(ids: number[]): Promise<IGDBGame[]> {
+export async function getGamesByIds(ids: number[], options?: { cache?: RequestCache | number }): Promise<IGDBGame[]> {
   if (ids.length === 0) {
     return [];
   }
@@ -584,7 +584,7 @@ export async function getGamesByIds(ids: number[]): Promise<IGDBGame[]> {
     limit ${normalizedIds.length};
   `;
 
-  const results = await igdbRequest<IGDBGame[]>('games', query);
+  const results = await igdbRequest<IGDBGame[]>('games', query, options);
   const isTbc = (human?: string) => {
     if (!human) return false;
     const normalized = human.toLowerCase();
@@ -760,7 +760,7 @@ export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
   }
 
   //console.log('Fetching popularity data (types 2 and 10)...');
-  const popularityData = await igdbRequest<PopularityEntry[]>('popularity_primitives', popularityQuery);
+  const popularityData = await igdbRequest<PopularityEntry[]>('popularity_primitives', popularityQuery, { cache: 3600 });
   //console.log('Popularity data received:', popularityData.length, 'entries');
   //console.log('Sample entry:', popularityData[0]);
 
@@ -801,7 +801,7 @@ export async function getPopularGames(limit = 50): Promise<IGDBGame[]> {
   }
 
   // Fetch full game data for these IDs
-  const games = await getGamesByIds(topGameIds);
+  const games = await getGamesByIds(topGameIds, { cache: 3600 });
   console.log('Games fetched:', games.length);
 
   return games;

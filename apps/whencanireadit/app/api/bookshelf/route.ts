@@ -47,7 +47,9 @@ export async function GET(request: Request) {
     .map((r) => r.value)
     .filter(Boolean);
 
-  return NextResponse.json({ ids, books });
+  return NextResponse.json({ ids, books }, {
+    headers: { 'Cache-Control': 'private, no-store' },
+  });
 }
 
 export async function POST(request: Request) {
