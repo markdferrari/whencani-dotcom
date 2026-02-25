@@ -89,7 +89,7 @@ export function WatchlistSection({ overrideIds, isShared = false }: WatchlistSec
   const featureEnabled = config.features.watchlistImprovements; 
 
   // Read URL params
-  const sortBy = (searchParams.get('sort') || 'date-added') as 'release-soonest' | 'release-latest' | 'alphabetical' | 'date-added' ;
+  const sortBy = (searchParams.get('sort') || 'release-soonest') as 'release-soonest' | 'release-latest' | 'alphabetical' | 'date-added' ;
   const genreFilter = searchParams.get('genre') || '';
   const platformFilter = searchParams.get('platform') || '';
 
