@@ -55,5 +55,8 @@ export const config = {
     get pwa(): boolean {
       return process.env.NEXT_PUBLIC_FEATURE_PWA === 'true';
     },
+    get notifications(): boolean {
+      return process.env.NEXT_PUBLIC_FEATURE_NOTIFICATIONS === 'true';
+    },
   },
 } as const;
