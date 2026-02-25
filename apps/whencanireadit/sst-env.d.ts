@@ -6,6 +6,30 @@
 
 declare module "sst" {
   export interface Resource {
+    "GoogleClientId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GoogleClientSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "NotificationsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "VapidPrivateKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "VapidPublicKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "VapidSubject": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "WhenCanIReadIt": {
       "type": "sst.aws.Nextjs"
       "url": string
