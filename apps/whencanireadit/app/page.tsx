@@ -22,7 +22,7 @@ interface CarouselCacheEntry {
   nonfictionList: NYTBestsellerList | null;
   yaList: NYTBestsellerList | null;
   adviceList: NYTBestsellerList | null;
-  graphicList: NYTBestsellerList | null;
+  //graphicList: NYTBestsellerList | null;
   newBooks: Book[];
   comingSoonBooks: Book[];
 }
@@ -92,15 +92,15 @@ async function fetchCarouselData(country: string | undefined): Promise<CarouselC
     if (results[5].status === "fulfilled" && results[5].value) {
       adviceList = results[5].value;
     }
-    if (results[6].status === "fulfilled" && results[6].value) {
-      graphicList = results[6].value;
-    }
+    //if (results[6].status === "fulfilled" && results[6].value) {
+    //  graphicList = results[6].value;
+    //}
   } catch (err) {
     console.error("[Home] Unexpected error fetching homepage data:", err);
   }
 
   const jitter = Math.floor(Math.random() * CAROUSEL_CACHE_JITTER);
-  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks };
+  return { expires: Date.now() + CAROUSEL_CACHE_TTL + jitter, fictionList, nonfictionList, yaList, adviceList, newBooks, comingSoonBooks };
 }
 
 async function getCarouselData(country: string | undefined): Promise<CarouselCacheEntry> {
@@ -118,7 +118,7 @@ export default async function Home() {
   // Homepage uses default region (US) to keep the page statically cacheable via ISR.
   // Region-specific content is handled client-side or on detail pages.
   const country = undefined;
-  const { fictionList, nonfictionList, yaList, adviceList, graphicList, newBooks, comingSoonBooks } = await getCarouselData(country);
+  const { fictionList, nonfictionList, yaList, adviceList, newBooks, comingSoonBooks } = await getCarouselData(country);
   const genreCarouselsEnabled = config.features.homepageGenreCarousels;
 
   return (
@@ -158,10 +158,6 @@ export default async function Home() {
 
         {adviceList && adviceList.books.length > 0 && (
           <NYTCarousel list={adviceList} />
-        )}
-
-        {graphicList && graphicList.books.length > 0 && (
-          <NYTCarousel list={graphicList} />
         )}
       </main>
     </div>
