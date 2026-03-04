@@ -5,6 +5,7 @@ User-agent: *
 Allow: /
 Allow: /game/
 Disallow: /api/
+Disallow: /book/
 Disallow: /_next/
 Disallow: /__tests__/
 
