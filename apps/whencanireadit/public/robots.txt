@@ -1,0 +1,8 @@
+# WhenCanIReadIt.com robots.txt
+# Only allow crawling of the homepage
+
+User-agent: *
+Allow: /$
+Disallow: /
+
+Sitemap: https://whencanireadit.com/sitemap.xml
