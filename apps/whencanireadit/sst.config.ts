@@ -56,6 +56,25 @@ export default $config({
     const certificateArn = process.env.ACM_CERTIFICATE_ARN
       ?? "arn:aws:acm:us-east-1:632700996244:certificate/0dbc1389-0710-41fa-bdfb-e5ce01ea68a2";
 
+    // CloudFront cache policy: same as SST default but ignores query strings
+    // to prevent cache fragmentation from utm_*, fbclid, etc.
+    const serverCachePolicy = new aws.cloudfront.CachePolicy("ServerCachePolicy", {
+      comment: "WhenCanIReadIt server cache policy — no query strings in cache key",
+      defaultTtl: 0,
+      maxTtl: 31536000,
+      minTtl: 0,
+      parametersInCacheKeyAndForwardedToOrigin: {
+        cookiesConfig: { cookieBehavior: "none" },
+        headersConfig: {
+          headerBehavior: "whitelist",
+          headers: { items: ["x-open-next-cache-key"] },
+        },
+        queryStringsConfig: { queryStringBehavior: "none" },
+        enableAcceptEncodingBrotli: true,
+        enableAcceptEncodingGzip: true,
+      },
+    });
+
     const site = new sst.aws.Nextjs("WhenCanIReadIt", {
       server: {
         runtime: 'nodejs22.x',
@@ -83,8 +102,14 @@ export default $config({
           resources: [notificationsTable.nodes.table.arn, $interpolate`${notificationsTable.nodes.table.arn}/index/*`],
         },
       ],
-      // Cache behavior is handled by the default CloudFront behavior,
-      // which respects Cache-Control headers set by route handlers.
+      transform: {
+        cdn: (args) => {
+          args.defaultCacheBehavior = {
+            ...args.defaultCacheBehavior,
+            cachePolicyId: serverCachePolicy.id,
+          };
+        },
+      },
     });
 
     const nodes = site.nodes as {

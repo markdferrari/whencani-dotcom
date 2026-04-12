@@ -19,8 +19,8 @@ import { MediaCarousel } from '@whencani/ui/media-carousel';
 import { ShareButton } from '@whencani/ui';
 import { LatestNews } from '@whencani/ui';
 
-// ISR: book data changes infrequently, cache for 1 hour
-export const revalidate = 3600;
+// ISR: book data changes infrequently, revalidate every 24 hours
+export const revalidate = 86400;
 
 const SITE_URL = config.app?.url || 'https://whencanireadit.com';
 
@@ -129,6 +129,7 @@ export default async function BookDetailPage({ params }: PageProps) {
   ]);
 
   const coverUrl = book.coverUrl ?? null;
+
   const bookshopIsbn = book.isbn13 ?? book.isbn10;
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
@@ -231,7 +232,9 @@ export default async function BookDetailPage({ params }: PageProps) {
             {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          <RegionBuyLinks isPreorder={isPreorder} buyLinksEnabled={!!config.features?.buyLinks} />
+          {config.features?.buyLinks && (
+            <RegionBuyLinks isPreorder={isPreorder} className="flex flex-wrap gap-2" />
+          )}
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>

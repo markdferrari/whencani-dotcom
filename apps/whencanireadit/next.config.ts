@@ -51,12 +51,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Book detail pages — content rarely changes, cache at CDN for 1h with 12h SWR
+        // Book detail pages — content rarely changes, cache at CDN for 24h with 7d SWR
         source: '/book/:id*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=43200',
+            value: 'public, s-maxage=86400, stale-while-revalidate=604800',
           },
         ],
       },
