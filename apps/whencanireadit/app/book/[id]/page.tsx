@@ -112,6 +112,8 @@ export default async function BookDetailPage({ params }: PageProps) {
 
   const useOL = config.features.openLibraryPrimary;
 
+  // Book data is fetched without region — keeps the page ISR-cacheable.
+  // Region-specific buy links are handled client-side via RegionBuyLinks.
   const book = useOL
     ? await resolveBook(id)
     : isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
