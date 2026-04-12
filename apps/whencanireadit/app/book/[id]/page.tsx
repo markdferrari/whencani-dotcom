@@ -5,22 +5,22 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { getBookById, getBookByISBN, getSimilarBooks as getSimilarBooksGoogle } from '@/lib/google-books';
-import { resolveBook, getSimilarBooks as getSimilarBooksOL, getWorkEditions, getBookSeries, resolveRegionalIsbn } from '@/lib/open-library';
-import { generateBuyLinks, getBookshopLink } from '@/lib/buy-links';
+import { resolveBook, getSimilarBooks as getSimilarBooksOL, getWorkEditions, getBookSeries } from '@/lib/open-library';
 import { config } from '@/lib/config';
 import type { BookEdition, BookSeries } from '@/lib/types';
-import { detectRegion } from '@/lib/region';
-import type { Region } from '@/lib/region';
 
 import { BookshelfToggle } from '@/components/BookshelfToggle';
 import { BookRemindMeButton } from '@/components/BookRemindMeButton';
-import { BuyLinks } from '@/components/BuyLinks';
+import { RegionBuyLinks, RegionBookshopLink } from '@/components/RegionBuyLinks';
 import { RecordView } from '@/components/RecordView';
 import { DetailBackLink } from '@whencani/ui/detail-back-link';
 import { DetailHeroCard } from '@whencani/ui/detail-hero-card';
 import { MediaCarousel } from '@whencani/ui/media-carousel';
 import { ShareButton } from '@whencani/ui';
 import { LatestNews } from '@whencani/ui';
+
+// ISR: book data changes infrequently, cache for 1 hour
+export const revalidate = 3600;
 
 const SITE_URL = config.app?.url || 'https://whencanireadit.com';
 
@@ -70,13 +70,17 @@ function InfoCard({ label, value }: { label: string; value: string | ReactNode }
   );
 }
 
+// Enable ISR for dynamic book pages — rendered on first visit, then cached
+export async function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const country = config.features.regionSwitcher ? await detectRegion() : undefined;
   const useOL = config.features.openLibraryPrimary;
   const book = useOL
-    ? await resolveBook(id, country)
-    : isISBN(id) ? await getBookByISBN(id, country) : await getBookById(id, country);
+    ? await resolveBook(id)
+    : isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
   if (!book) return {};
 
   const coverImage = book.coverUrlLarge ?? book.coverUrl ?? undefined;
@@ -106,40 +110,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const region: Region = config.features.regionSwitcher ? await detectRegion() : 'US';
   const useOL = config.features.openLibraryPrimary;
 
+  // Book data is fetched without region — keeps the page ISR-cacheable.
+  // Region-specific buy links are handled client-side via RegionBuyLinks.
   const book = useOL
-    ? await resolveBook(id, region)
-    : isISBN(id) ? await getBookByISBN(id, region) : await getBookById(id, region);
+    ? await resolveBook(id)
+    : isISBN(id) ? await getBookByISBN(id) : await getBookById(id);
   if (!book) {
     notFound();
   }
 
   const getSimilarBooks = useOL ? getSimilarBooksOL : getSimilarBooksGoogle;
   const [similarBooks, editions, series] = await Promise.all([
-    getSimilarBooks(book.id, region),
+    getSimilarBooks(book.id),
     useOL ? getWorkEditions(book.id) : Promise.resolve([] as BookEdition[]),
     useOL ? getBookSeries(book.id) : Promise.resolve(null as BookSeries | null),
   ]);
 
   const coverUrl = book.coverUrl ?? null;
-
-  const buyLinks = config.features?.buyLinks ? generateBuyLinks(region) : [];
-  const originalIsbn = book.isbn13 ?? book.isbn10;
-  const bookshopRegion: Region = region;
-
-  // Resolve regional ISBN when the feature is enabled
-  let bookshopIsbn = originalIsbn;
-  if (originalIsbn && config.features.regionalIsbn) {
-    const resolved = await resolveRegionalIsbn(originalIsbn, bookshopRegion, {
-      title: book.title,
-      authors: book.authors,
-    });
-    bookshopIsbn = resolved.isbn13 ?? resolved.isbn10 ?? originalIsbn;
-  }
-
-  const bookshopLink = bookshopIsbn ? getBookshopLink(bookshopIsbn, bookshopRegion) : null;
+  const bookshopIsbn = book.isbn13 ?? book.isbn10;
   const pageUrl = `${SITE_URL}/book/${book.id}`;
   const isPreorder = book.saleInfo?.saleability === 'FOR_PREORDER';
 
@@ -183,15 +173,8 @@ export default async function BookDetailPage({ params }: PageProps) {
           posterAspect="2/3"
           className="mt-6"
           posterFooter={
-            bookshopLink ? (
-              <a
-                href={bookshopLink.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
-              >
-                {bookshopLink.label}
-              </a>
+            bookshopIsbn ? (
+              <RegionBookshopLink isbn={bookshopIsbn} />
             ) : undefined
           }
         >
@@ -248,11 +231,7 @@ export default async function BookDetailPage({ params }: PageProps) {
             {book.language && <InfoCard label="Language" value={formatLanguageName(book.language)} />}
           </div>
 
-          {buyLinks.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <BuyLinks links={buyLinks} isPreorder={isPreorder} />
-            </div>
-          )}
+          <RegionBuyLinks isPreorder={isPreorder} buyLinksEnabled={!!config.features?.buyLinks} />
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
         </DetailHeroCard>
