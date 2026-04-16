@@ -109,6 +109,18 @@ export default $config({
             cachePolicyId: serverCachePolicy.id,
           };
         },
+        assets: (args) => {
+          // S3 lifecycle: expire stale ISR cache objects after 3 days
+          args.lifecycleRules = [
+            ...(args.lifecycleRules ?? []),
+            {
+              enabled: true,
+              id: "expire-isr-cache",
+              prefix: "_cache/",
+              expiration: { days: 3 },
+            },
+          ];
+        },
       },
     });
 
