@@ -233,7 +233,7 @@ export default async function BookDetailPage({ params }: PageProps) {
           </div>
 
           {config.features?.buyLinks && (
-            <RegionBuyLinks isPreorder={isPreorder} className="flex flex-wrap gap-2" />
+            <RegionBuyLinks isPreorder={isPreorder} isbn={bookshopIsbn ?? undefined} className="flex flex-wrap gap-2" />
           )}
 
           <LatestNews productName={book.title} productType="book" extraSearchQuery={book.authors.join(' ')} numberOfArticles={3} />
