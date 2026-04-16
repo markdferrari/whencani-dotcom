@@ -14,14 +14,15 @@ function readRegionFromCookie(): Region {
 
 interface RegionBuyLinksProps {
   isPreorder?: boolean;
+  isbn?: string;
   className?: string;
 }
 
-export function RegionBuyLinks({ isPreorder, className }: RegionBuyLinksProps) {
+export function RegionBuyLinks({ isPreorder, isbn, className }: RegionBuyLinksProps) {
   const [region, setRegion] = useState<Region>('US');
   useEffect(() => setRegion(readRegionFromCookie()), []);
 
-  const links = generateBuyLinks(region);
+  const links = generateBuyLinks(region, isbn);
   if (links.length === 0) return null;
 
   return (

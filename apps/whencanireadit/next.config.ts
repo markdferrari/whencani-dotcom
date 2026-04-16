@@ -51,6 +51,16 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Homepage — content changes ~1x/day, cache at CDN for 24h with 7d SWR
+        source: '/',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=86400, stale-while-revalidate=604800',
+          },
+        ],
+      },
+      {
         // Book detail pages — content rarely changes, cache at CDN for 24h with 7d SWR
         source: '/book/:id*',
         headers: [
