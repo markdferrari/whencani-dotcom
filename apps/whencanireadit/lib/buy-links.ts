@@ -32,35 +32,19 @@ export function generateBuyLinks(countryCode?: string, isbn?: string): BuyLink[]
 
   // Book-specific Amazon product link (when ISBN is available)
   if (isbn) {
-    if (isGB) {
-      links.push({
-        name: 'Buy on Amazon',
-        url: `https://www.amazon.co.uk/dp/${encodeURIComponent(isbn)}?tag=${AMAZON_AFFILIATE_TAG}`,
-        icon: 'amazon',
-      });
-    } else {
-      links.push({
-        name: 'Buy on Amazon',
-        url: `https://www.amazon.com/dp/${encodeURIComponent(isbn)}?tag=${AMAZON_AFFILIATE_TAG}`,
-        icon: 'amazon',
-      });
-    }
+    links.push({
+      name: 'Buy on Amazon',
+      url: `https://www.amazon.co.uk/dp/${encodeURIComponent(isbn)}?tag=${AMAZON_AFFILIATE_TAG}`,
+      icon: 'amazon',
+    });
   }
 
-  // Kindle Unlimited (UK vs US)
-  if (isGB) {
-    links.push({
-      name: 'Kindle Unlimited',
-      url: `https://www.amazon.co.uk/kindle-dbs/hz/signup?tag=${AMAZON_AFFILIATE_TAG}`,
-      icon: 'kindle',
-    });
-  } else {
-    links.push({
-      name: 'Kindle Unlimited',
-      url: `https://www.amazon.com/kindle-dbs/hz/signup?tag=${AMAZON_AFFILIATE_TAG}`,
-      icon: 'kindle',
-    });
-  }
+  // Kindle Unlimited
+  links.push({
+    name: 'Kindle Unlimited',
+    url: `https://www.amazon.co.uk/kindle-dbs/hz/signup?tag=${AMAZON_AFFILIATE_TAG}`,
+    icon: 'kindle',
+  });
 
   // Always add Audible link
   links.push({
