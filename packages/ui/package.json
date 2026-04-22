@@ -33,13 +33,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
-    "lucide-react": "^0.574.0",
-    "tailwind-merge": "^3.4.1"
+    "lucide-react": "^1.8.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "typescript": "^5"
+    "typescript": "^6"
   },
   "peerDependencies": {
     "next": ">=14.0.0",
